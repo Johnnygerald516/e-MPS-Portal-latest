@@ -1,0 +1,343 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import { ArrowRight, Building2Icon, Users, ShieldUser} from "lucide-react";
+import { NavLink } from "../components/ui/nav-link";
+import { LoadingButton } from "../components/ui/loading-button";
+import { useRouter } from "next/navigation";
+import { AgriculturalBackground } from "../components/ui/agricultural-background";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+
+const features = [
+  {
+    icon: <Users className="w-10 h-10 text-government-blue-500" />,
+    title: "Mmiliki Binafsi",
+    description:"Mtanzania mwenye vigezo vilivyoainishwa kwa mujibu wa sheria anaemuombea kibali kibarua wake.",
+    href: "/services/spring",
+    // color: "bg-green-100 dark:bg-green-950",
+  },
+  {
+    icon: <Building2Icon className="w-10 h-10 text-government-blue-500" />,
+    title: "Kampuni",
+    description:"Kampuni iliyopo ndani ya Jamhuri ya muungano wa Tanzania yenye usajili pamoja na leseni ya biashara.",
+    href: "/services/winter",
+    // color: "bg-blue-100 dark:bg-blue-950",
+  },
+  {
+    icon: <ShieldUser className="w-10 h-10 text-government-blue-500" />,
+    title: "Akaunti",
+    description:"Tengeneza Akaunti yako itakayokuwezesha kumsajili kibarua wako kwa ajili ya kumuombea kibali cha kufanya kazi za msimu.",
+    href: "/login",
+    // color: "bg-yellow-100 dark:bg-yellow-950",
+  }
+];
+
+const services = [
+  {
+    title: "Winter Services",
+    description: "Snow removal, holiday planning, winter event management",
+    image: "/winter.jpg",
+    href: "/services/winter",
+    color: "bg-blue-100 dark:bg-blue-950",
+  },
+  {
+    title: "Spring Services",
+    description: "Landscaping, garden planning, spring cleaning solutions",
+    image: "/spring.jpg",
+    href: "/services/spring",
+    color: "bg-green-100 dark:bg-green-950",
+  },
+  {
+    title: "Summer Services",
+    description: "Event management, outdoor activities, vacation planning",
+    image: "/summer.jpg",
+    href: "/services/summer",
+    color: "bg-yellow-100 dark:bg-yellow-950",
+  },
+];
+
+// Animation variants
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      type: "spring" as const, 
+      stiffness: 300, 
+      damping: 24 
+    }
+  }
+};
+
+const featureCardVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: {
+      duration: 0.5
+    }
+  },
+  hover: { 
+    y: -8,
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
+  }
+};
+
+export default function Home() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleNavigation = (path: string) => {
+    setIsLoading(true);
+    router.push(path);
+  };
+
+  return (
+    <AgriculturalBackground type="combined" opacity={0.05} className="rounded-lg">
+      <motion.div 
+        className="flex flex-col gap-16 py-8"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* Hero Section */}
+        {/* <section className="flex flex-col-reverse md:flex-row items-center gap-8 py-16">
+          <div className="flex-1 space-y-6">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+              Your Complete Seasonal Portal
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Manage all your seasonal activities in one place with our
+              comprehensive portal solution.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                href="/login"
+                className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+              >
+                Get Started
+              </Link>
+              <Link
+                href="/services"
+                className="inline-flex h-12 items-center justify-center rounded-md border border-input bg-background px-6 py-3 text-base font-medium hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+              >
+                Learn More
+              </Link>
+            </div>
+          </div>
+          <div className="flex-1 relative">
+            <div className="aspect-video w-full max-w-lg mx-auto relative rounded-xl overflow-hidden shadow-xl">
+              <Image
+                src="/hero-image.jpg"
+                alt="Seasonal Portal Hero"
+                fill
+                style={{ objectFit: "cover" }}
+                priority
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+        </section> */}
+
+        {/* Features Section */}
+        <motion.section 
+          className="py-16"
+          variants={itemVariants}
+        >
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            variants={containerVariants}
+          >
+            {features.map((feature, index) => (
+              <motion.div 
+                key={index} 
+                variants={featureCardVariants}
+                whileHover="hover"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0, 
+                  transition: { 
+                    duration: 0.5, 
+                    delay: index * 0.15 
+                  }
+                }}
+              >
+                <NavLink href={feature.href} className="group block h-full">
+                  <AgriculturalBackground 
+                    type={index === 0 ? "farm" : index === 1 ? "tractor" : "fishing-nets"} 
+                    opacity={0.1} 
+                    className="rounded-xl h-full"
+                  >
+                    <motion.div 
+                      className="flex flex-col items-center p-6 rounded-xl text-center h-full"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.15 + 0.2 }}
+                    >
+                      <motion.div 
+                        className="mb-4 p-3 rounded-full bg-government-blue-100"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: index * 0.15 + 0.3 }}
+                      >
+                        {feature.icon}
+                      </motion.div>
+                      <motion.h3 
+                        className="text-xl font-bold mb-2"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.15 + 0.4 }}
+                      >
+                        {feature.title}
+                      </motion.h3>
+                      <motion.p 
+                        className="text-muted-foreground"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: index * 0.15 + 0.5 }}
+                      >
+                        {feature.description}
+                      </motion.p>
+                      <motion.div 
+                        className="mt-4 flex items-center text-government-blue-600 font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: index * 0.15 + 0.6 }}
+                      >
+                        <span>Learn more</span>
+                        <motion.span
+                          className="inline-block ml-2"
+                          initial={{ x: 0 }}
+                          whileHover={{ x: 3 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </motion.span>
+                      </motion.div>
+                    </motion.div>
+                  </AgriculturalBackground>
+                </NavLink>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        {/* Services Section */}
+        {/* <section className="py-16 bg-muted/50 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8 rounded-xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Our Services</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Discover our range of seasonal services tailored to your needs
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <Link
+                href={service.href}
+                key={index}
+                className="group overflow-hidden rounded-xl shadow-md bg-card hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+              >
+                <div className={`relative h-48 w-full ${service.color} overflow-hidden`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    className="group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                  <p className="text-muted-foreground flex-1">{service.description}</p>
+                  <div className="mt-4 flex items-center text-primary font-medium">
+                    <span>Learn more</span>
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section> */}
+
+        {/* CTA Section */}
+        <motion.section 
+          className="py-16 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8 rounded-xl overflow-hidden relative bg-sky-900/50"
+          variants={itemVariants}
+        >
+          <AgriculturalBackground type="combined" opacity={0.2} className="absolute inset-0">
+            <div className="absolute inset-0 bg-government-blue-700/80"></div>
+          </AgriculturalBackground>
+          <motion.div 
+            className="max-w-4xl mx-auto text-center relative z-10 text-primary-foreground"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <motion.h2 
+              className="text-3xl font-bold mb-4"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              Tayari Kuanza?
+            </motion.h2>
+            <motion.p 
+              className="text-xl opacity-90 mb-8 max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              Tengeneza Akaunti yako itakayokuwezesha kumsajili kibarua wako kwa ajili ya kumuombea kibali cha kufanya kazi za msimu.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <LoadingButton
+                isLoading={isLoading}
+                onClick={() => handleNavigation('/login')}
+                className="inline-flex h-12 items-center justify-center rounded-md bg-white text-government-blue-600 px-6 py-3 text-base font-medium shadow hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-government-blue-500 transition-colors"
+              >
+                Tengeneza akaunti
+              </LoadingButton>
+            </motion.div>
+          </motion.div>
+        </motion.section>
+
+        {/* Footer */}
+        <motion.footer 
+          className="border-t py-8 text-center text-muted-foreground"
+          variants={itemVariants}
+        >
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            © {new Date().getFullYear()} Seasonal Portal. All rights reserved.
+          </motion.p>
+        </motion.footer>
+      </motion.div>
+    </AgriculturalBackground>
+  );
+}

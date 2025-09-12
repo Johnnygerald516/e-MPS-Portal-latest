@@ -1,0 +1,68 @@
+/* Agricultural Background Styles */
+
+.bg-farm-pattern {
+  background-image: url('/assets/images/backgrounds/farm-pattern.svg');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.bg-hoes-pattern {
+  background-image: url('/assets/images/backgrounds/hoes-pattern.svg');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.bg-tractor-pattern {
+  background-image: url('/assets/images/backgrounds/tractor-pattern.svg');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.bg-fishing-nets-pattern {
+  background-image: url('/assets/images/backgrounds/fishing-nets-pattern.svg');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.bg-agricultural-combined {
+  background-image: url('/assets/images/backgrounds/agricultural-combined.svg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Opacity variants */
+.bg-opacity-5 {
+  opacity: 0.05;
+}
+
+.bg-opacity-10 {
+  opacity: 0.1;
+}
+
+.bg-opacity-15 {
+  opacity: 0.15;
+}
+
+.bg-opacity-20 {
+  opacity: 0.2;
+}
+
+/* Background container */
+.agricultural-bg-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.agricultural-bg-container .bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.agricultural-bg-container .content-layer {
+  position: relative;
+  z-index: 1;
+}

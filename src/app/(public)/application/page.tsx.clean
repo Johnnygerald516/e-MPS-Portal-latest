@@ -1,0 +1,23 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
+export default function ApplicationPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to the first step of the application
+    router.push("/application/basic-info");
+  }, [router]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+        <p className="text-slate-600">Inakupeleka kwenye fomu ya maombi...</p>
+      </div>
+    </div>
+  );
+}

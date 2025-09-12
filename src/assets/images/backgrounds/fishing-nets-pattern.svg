@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Fishing net pattern -->
+    <pattern id="fishing-net" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="#708090" stroke-width="0.5" opacity="0.6"/>
+      <path d="M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#708090" stroke-width="0.5" opacity="0.6"/>
+      <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80" stroke="#708090" stroke-width="0.5" opacity="0.6"/>
+    </pattern>
+    
+    <!-- Fish pattern -->
+    <pattern id="fish" width="60" height="30" patternUnits="userSpaceOnUse">
+      <path d="M40,15 C50,10 50,20 40,15 L20,5 C15,10 15,20 20,25 L40,15 Z" fill="#4682B4" stroke="#000000" stroke-width="0.5" opacity="0.7"/>
+      <circle cx="45" cy="15" r="1" fill="#000000"/>
+      <path d="M20,5 C15,10 15,20 20,25" fill="none" stroke="#000000" stroke-width="0.5"/>
+    </pattern>
+    
+    <!-- Water pattern -->
+    <pattern id="water" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M0,50 Q50,30 100,50 Q150,70 200,50 M0,100 Q50,80 100,100 Q150,120 200,100 M0,150 Q50,130 100,150 Q150,170 200,150" 
+            stroke="#1E90FF" stroke-width="2" opacity="0.1" fill="none"/>
+    </pattern>
+    
+    <!-- Boat pattern -->
+    <pattern id="boat" width="80" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,30 L40,30 L50,20 L0,20 Z" fill="#8B4513" stroke="#5D2906" stroke-width="1"/>
+      <path d="M25,20 L25,5 L35,5 L35,20" fill="none" stroke="#5D2906" stroke-width="1"/>
+      <path d="M35,5 L25,15" fill="none" stroke="#5D2906" stroke-width="1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#F0F8FF" opacity="0.3"/>
+  
+  <!-- Water background -->
+  <rect width="800" height="600" fill="url(#water)" opacity="0.5"/>
+  
+  <!-- Fishing nets -->
+  <rect x="0" y="0" width="800" height="600" fill="url(#fishing-net)" opacity="0.7"/>
+  
+  <!-- Fish scattered around -->
+  <rect x="50" y="50" width="60" height="30" fill="url(#fish)" opacity="0.8"/>
+  <rect x="200" y="100" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(30, 230, 115)"/>
+  <rect x="350" y="50" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(-15, 380, 65)"/>
+  <rect x="500" y="100" width="60" height="30" fill="url(#fish)" opacity="0.8"/>
+  <rect x="650" y="50" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(45, 680, 65)"/>
+  
+  <rect x="100" y="200" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(-30, 130, 215)"/>
+  <rect x="300" y="250" width="60" height="30" fill="url(#fish)" opacity="0.8"/>
+  <rect x="550" y="200" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(15, 580, 215)"/>
+  
+  <rect x="50" y="350" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(60, 80, 365)"/>
+  <rect x="250" y="400" width="60" height="30" fill="url(#fish)" opacity="0.8"/>
+  <rect x="450" y="350" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(-45, 480, 365)"/>
+  <rect x="650" y="400" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(20, 680, 415)"/>
+  
+  <rect x="150" y="500" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(-10, 180, 515)"/>
+  <rect x="400" y="500" width="60" height="30" fill="url(#fish)" opacity="0.8"/>
+  <rect x="600" y="500" width="60" height="30" fill="url(#fish)" opacity="0.8" transform="rotate(40, 630, 515)"/>
+  
+  <!-- Boats -->
+  <rect x="100" y="150" width="80" height="40" fill="url(#boat)" opacity="0.8"/>
+  <rect x="400" y="100" width="80" height="40" fill="url(#boat)" opacity="0.8" transform="rotate(-5, 440, 120)"/>
+  <rect x="600" y="300" width="80" height="40" fill="url(#boat)" opacity="0.8"/>
+  <rect x="200" y="350" width="80" height="40" fill="url(#boat)" opacity="0.8" transform="rotate(5, 240, 370)"/>
+  <rect x="500" y="450" width="80" height="40" fill="url(#boat)" opacity="0.8"/>
+</svg>

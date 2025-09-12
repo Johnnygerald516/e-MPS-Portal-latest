@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Softer government colors */
+  --background: #ffffff;
+  --foreground: hsl(215 25% 27%);
+  --card: #ffffff;
+  --card-foreground: #15171b;
+  --popover: #ffffff;
+  --popover-foreground: #15171b;
+  --primary: #1a5285; /* Softer government blue */
+  --primary-foreground: #ffffff;
+  --secondary: #f0f1f3;
+  --secondary-foreground: #2c4c6b; /* Softer darker blue */
+  --muted: #f0f1f3;
+  --muted-foreground: #5a6377; /* Softer government neutral */
+  --accent: #a38a40; /* Softer government gold */
+  --accent-foreground: #15171b;
+  --destructive: #9e3a3a; /* Softer government red */
+  --destructive-foreground: #ffffff;
+  --border: #e1e3e7;
+  --input: #e1e3e7;
+  --ring: #1a5285; /* Softer government blue */
+  --chart-1: #1a5285; /* Softer government blue */
+  --chart-2: #a38a40; /* Softer government gold */
+  --chart-3: #5a6377; /* Softer government neutral */
+  --chart-4: #2c4c6b; /* Softer darker blue */
+  --chart-5: #8a7235; /* Softer darker gold */
+  --sidebar: #f0f1f3;
+  --sidebar-foreground: #15171b;
+  --sidebar-primary: #1a5285; /* Softer government blue */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #a38a40; /* Softer government gold */
+  --sidebar-accent-foreground: #15171b;
+  --sidebar-border: #e1e3e7;
+  --sidebar-ring: #1a5285; /* Softer government blue */
+}
+
+.dark {
+  /* Softer government dark theme */
+  --background: #1a1c21;
+  --foreground: #ffffff;
+  --card: #2a2e36;
+  --card-foreground: #ffffff;
+  --popover: #2a2e36;
+  --popover-foreground: #ffffff;
+  --primary: #5590c0; /* Softer lighter government blue for dark mode */
+  --primary-foreground: #ffffff;
+  --secondary: #3f4551;
+  --secondary-foreground: #ffffff;
+  --muted: #3f4551;
+  --muted-foreground: #a5abb7;
+  --accent: #c4ad60; /* Softer lighter government gold for dark mode */
+  --accent-foreground: #15171b;
+  --destructive: #b87979; /* Softer lighter government red for dark mode */
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #3385cd; /* Lighter government blue for dark mode */
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Enhanced input field styles */
+  input, select, textarea {
+    @apply border border-gray-300 rounded-md px-4 py-2.5 w-full transition-all duration-200 ease-in-out;
+    @apply focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none;
+    @apply hover:border-blue-400;
+  }
+  
+  /* Select dropdown styling */
+  select {
+    @apply appearance-none bg-white cursor-pointer pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  
+  /* Form labels */
+  label {
+    @apply text-sm font-medium text-gray-700 mb-1.5 block;
+  }
+  
+  /* Form field spacing */
+  .form-field {
+    @apply mb-4;
+  }
+  
+  /* Button styling */
+  button {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  /* Input with icons */
+  .input-with-icon {
+    @apply relative;
+  }
+  
+  .input-with-icon input {
+    @apply pl-10;
+  }
+  
+  .input-with-icon .icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400;
+  }
+}

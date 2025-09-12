@@ -1,0 +1,852 @@
+// No need to import axios since we're using fetch directly
+
+interface VerificationRequest {
+  subjectId: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  applicationTypeId: number;
+}
+
+interface VerificationResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: {
+    applicationID: string;
+    phoneNo: string;
+  };
+}
+
+interface ApplicationTypeLookupRequest {
+  operationType: string;
+  argument1: number;
+  argument2: number;
+}
+
+interface ApplicationType {
+  ApplicationTypeID: number;
+  ApplicationTypeNameSwahili: string;
+}
+
+interface ApplicationTypeLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: ApplicationType[];
+}
+
+interface MaritalStatus {
+  MaritalStatusID: number;
+  MaritalStatus: string;
+  HaliYaNdoa: string;
+}
+
+interface MaritalStatusLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: MaritalStatus[];
+}
+
+interface OccupationType {
+  EntryId?: number;
+  OccupationTypeID?: number;
+  OccupationName?: string;
+  OccupationType?: string;
+  AinaYaKazi?: string;
+}
+
+interface OccupationTypeLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: OccupationType[];
+}
+
+interface Occupation {
+  OccupationID: number;
+  OccupationName: string;
+}
+
+interface OccupationLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: Occupation[];
+}
+
+interface Country {
+  EntryId: number;
+  CountryName: string;
+}
+
+interface CountryLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: Country[];
+}
+
+interface Region {
+  EntryId?: number;
+  EntryID?: number; // Added uppercase ID version
+  ID?: number;
+  Id?: number;
+  id?: number;
+  RegionID?: number;
+  RegionId?: number;
+  RegionName: string;
+}
+
+interface District {
+  EntryId?: number;
+  EntryID?: number;
+  ID?: number;
+  Id?: number;
+  id?: number;
+  DistrictID?: number;
+  DistrictId?: number;
+  DistrictName: string;
+}
+
+interface Ward {
+  EntryId?: number;
+  EntryID?: number;
+  ID?: number;
+  Id?: number;
+  id?: number;
+  WardID?: number;
+  WardId?: number;
+  WardName: string;
+}
+
+interface Nationality {
+  EntryId?: number;
+  EntryID?: number;
+  ID?: number;
+  Id?: number;
+  id?: number;
+  NationalityID?: number;
+  NationalityId?: number;
+  Nationality?: string;
+  NationalityName?: string;
+  Name?: string;
+  Description?: string;
+  Value?: string;
+  Text?: string;
+  Label?: string;
+  [key: string]: any; // Allow any other property
+}
+
+interface RegionLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: Region[];
+}
+
+interface DistrictLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: District[];
+}
+
+interface WardLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: Ward[];
+}
+
+interface NationalityLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: Nationality[];
+}
+
+interface RelationType {
+  RelationTypeID: number;
+  RelationName: string;
+  Uhusiano: string;
+}
+
+interface RelationTypeLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: RelationType[];
+}
+
+interface DocumentType {
+  DocumentTypeID: number;
+  DocumentName: string;
+}
+
+interface DocumentTypeLookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: DocumentType[];
+}
+
+// Generic lookup request interface
+interface LookupRequest {
+  operationType: string;
+  argument1: number;
+  argument2: number;
+}
+
+// Generic lookup response interface
+interface LookupResponse {
+  ackCode: number;
+  ackMessage: string;
+  jsonResult: any[];
+}
+
+export const verificationEndpoints = {
+  // Fetch occupation types
+  fetchOccupationTypes: async (): Promise<OccupationTypeLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "OccupationType",
+        argument1: 1,
+        argument2: 0
+      };
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn('API error, using fallback occupation types data:', errorText);
+        
+        // Return fallback data when API fails
+        return {
+          ackCode: 1,
+          ackMessage: "Using fallback occupation types data",
+          jsonResult: [ ]
+        };
+      }
+      
+      const responseData = await response.json();
+      console.log('Occupation types response:', responseData);
+      
+      // Check if the response contains valid data
+      if (responseData.ackCode === 0 || !responseData.jsonResult || responseData.jsonResult.length === 0) {
+        console.warn('Invalid or empty occupation types response, using fallback data');
+        return {
+          ackCode: 1,
+          ackMessage: "Using fallback occupation types data",
+          jsonResult: [
+            { EntryId: 1, OccupationType: "Employed" },
+            { EntryId: 2, OccupationType: "Self Employed" },
+            { EntryId: 3, OccupationType: "Business Owner" },
+            { EntryId: 4, OccupationType: "Student" },
+            { EntryId: 5, OccupationType: "Retired" },
+            { EntryId: 6, OccupationType: "Unemployed" }
+          ]
+        };
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.warn('Error fetching occupation types, using fallback data:', error);
+      // Return fallback data instead of empty response
+      return {
+        ackCode: 1,
+        ackMessage: "Using fallback occupation types data",
+        jsonResult: [
+          { EntryId: 1, OccupationType: "Employed" },
+          { EntryId: 2, OccupationType: "Self Employed" },
+          { EntryId: 3, OccupationType: "Business Owner" },
+          { EntryId: 4, OccupationType: "Student" },
+          { EntryId: 5, OccupationType: "Retired" },
+          { EntryId: 6, OccupationType: "Unemployed" }
+        ]
+      };
+    }
+  },
+  
+  // Fetch specific occupations based on occupation type ID
+  fetchOccupations: async (occupationTypeId: number): Promise<OccupationLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "OccupationType",
+        argument1: occupationTypeId,
+        argument2: 0
+      };
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Occupations response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching occupations:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch occupations based on OccupationID
+  fetchOccupationsByID: async (occupationTypeId: number): Promise<OccupationLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "Occupation",
+        argument1: occupationTypeId,
+        argument2: 0
+      };
+      
+      console.log('Fetching occupations with payload:', payload);
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn('API error, using fallback occupation data:', errorText);
+        
+        // Return fallback occupation data based on occupation type ID
+        const fallbackOccupations: Record<number, { OccupationID: number; OccupationName: string; }[]> = {
+          1: [{ OccupationID: 1, OccupationName: "Full-time Employee" }, { OccupationID: 2, OccupationName: "Part-time Employee" }],
+          2: [{ OccupationID: 3, OccupationName: "Freelancer" }, { OccupationID: 4, OccupationName: "Consultant" }],
+          3: [{ OccupationID: 5, OccupationName: "Small Business Owner" }, { OccupationID: 6, OccupationName: "Entrepreneur" }],
+          4: [{ OccupationID: 7, OccupationName: "University Student" }, { OccupationID: 8, OccupationName: "High School Student" }],
+          5: [{ OccupationID: 9, OccupationName: "Retired Professional" }, { OccupationID: 10, OccupationName: "Pensioner" }],
+          6: [{ OccupationID: 11, OccupationName: "Job Seeker" }, { OccupationID: 12, OccupationName: "Not Working" }]
+        };
+        
+        return {
+          ackCode: 1,
+          ackMessage: "Using fallback occupation data",
+          jsonResult: fallbackOccupations[occupationTypeId] || []
+        };
+      }
+      
+      const responseData = await response.json();
+      console.log('Occupations by ID response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.warn('Error fetching occupations by ID, using fallback data:', error);
+      
+      // Return fallback occupation data based on occupation type ID
+      const fallbackOccupations: Record<number, { OccupationID: number; OccupationName: string; }[]> = {
+        1: [{ OccupationID: 1, OccupationName: "Full-time Employee" }, { OccupationID: 2, OccupationName: "Part-time Employee" }],
+        2: [{ OccupationID: 3, OccupationName: "Freelancer" }, { OccupationID: 4, OccupationName: "Consultant" }],
+        3: [{ OccupationID: 5, OccupationName: "Small Business Owner" }, { OccupationID: 6, OccupationName: "Entrepreneur" }],
+        4: [{ OccupationID: 7, OccupationName: "University Student" }, { OccupationID: 8, OccupationName: "High School Student" }],
+        5: [{ OccupationID: 9, OccupationName: "Retired Professional" }, { OccupationID: 10, OccupationName: "Pensioner" }],
+        6: [{ OccupationID: 11, OccupationName: "Job Seeker" }, { OccupationID: 12, OccupationName: "Not Working" }]
+      };
+      
+      return {
+        ackCode: 1,
+        ackMessage: "Using fallback occupation data",
+        jsonResult: fallbackOccupations[occupationTypeId] || []
+      };
+    }
+  },
+  
+  // Fetch countries
+  fetchCountries: async (): Promise<CountryLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "Country",
+        argument1: 1,
+        argument2: 0
+      };
+      
+      console.log('Fetching countries with payload:', payload);
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Countries response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch regions for a country
+  fetchRegions: async (countryId: number): Promise<RegionLookupResponse> => {
+    try {
+      console.log('fetchRegions called with countryId:', countryId);
+      
+      // Ensure countryId is a number
+      const numericCountryId = Number(countryId);
+      if (isNaN(numericCountryId)) {
+        console.error('Invalid countryId provided:', countryId);
+        throw new Error('Invalid countryId provided');
+      }
+      
+      const payload = {
+        operationType: "Region",
+        argument1: numericCountryId,
+        argument2: 0
+      };
+      
+      console.log('Fetching regions with payload:', payload);
+      console.log('Payload JSON:', JSON.stringify(payload));
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Regions response:', responseData);
+      
+      // Validate response structure
+      if (!responseData.jsonResult) {
+        console.error('Invalid response structure - missing jsonResult:', responseData);
+      } else {
+        console.log('Region results count:', responseData.jsonResult.length);
+        if (responseData.jsonResult.length > 0) {
+          console.log('First region sample:', responseData.jsonResult[0]);
+        }
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch districts for a region
+  fetchDistricts: async (regionId: number): Promise<DistrictLookupResponse> => {
+    try {
+      console.log('fetchDistricts called with regionId:', regionId);
+      
+      // Ensure regionId is a number
+      const numericRegionId = Number(regionId);
+      if (isNaN(numericRegionId)) {
+        console.error('Invalid regionId provided:', regionId);
+        throw new Error('Invalid regionId provided');
+      }
+      
+      const payload = {
+        operationType: "District",
+        argument1: numericRegionId,
+        argument2: 0
+      };
+      
+      console.log('Fetching districts with payload:', payload);
+      console.log('Payload JSON:', JSON.stringify(payload));
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Districts response:', responseData);
+      
+      // Validate response structure
+      if (!responseData.jsonResult) {
+        console.error('Invalid response structure - missing jsonResult:', responseData);
+      } else {
+        console.log('District results count:', responseData.jsonResult.length);
+        if (responseData.jsonResult.length > 0) {
+          console.log('First district sample:', responseData.jsonResult[0]);
+        }
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch wards for a district
+  fetchWards: async (districtId: number): Promise<WardLookupResponse> => {
+    try {
+      console.log('fetchWards called with districtId:', districtId);
+      
+      // Ensure districtId is a number
+      const numericDistrictId = Number(districtId);
+      if (isNaN(numericDistrictId)) {
+        console.error('Invalid districtId provided:', districtId);
+        throw new Error('Invalid districtId provided');
+      }
+      
+      const payload = {
+        operationType: "Ward",
+        argument1: numericDistrictId,
+        argument2: 0
+      };
+      
+      console.log('Fetching wards with payload:', payload);
+      console.log('Payload JSON:', JSON.stringify(payload));
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Wards response:', responseData);
+      
+      // Validate response structure
+      if (!responseData.jsonResult) {
+        console.error('Invalid response structure - missing jsonResult:', responseData);
+      } else {
+        console.log('Ward results count:', responseData.jsonResult.length);
+        if (responseData.jsonResult.length > 0) {
+          console.log('First ward sample:', responseData.jsonResult[0]);
+        }
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching wards:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch nationalities
+  fetchNationalities: async (): Promise<NationalityLookupResponse> => {
+    try {
+      console.log('fetchNationalities called');
+      
+      const payload = {
+        operationType: "nationality",
+        argument1: 1,
+        argument2: 0
+      };
+      
+      console.log('Fetching nationalities with payload:', payload);
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      
+      // Log the raw response for debugging
+      console.log('Raw nationalities response:', JSON.stringify(responseData).substring(0, 200) + '...');
+      
+      // Validate response structure
+      if (!responseData.jsonResult) {
+        console.error('Invalid response structure - missing jsonResult:', responseData);
+      } else {
+        console.log('Nationality results count:', responseData.jsonResult.length);
+        if (responseData.jsonResult.length > 0) {
+          // Log the first few entries to understand the structure
+          console.log('First nationality sample:', JSON.stringify(responseData.jsonResult[0]));
+          if (responseData.jsonResult.length > 1) {
+            console.log('Second nationality sample:', JSON.stringify(responseData.jsonResult[1]));
+          }
+          // Log available keys to help with debugging
+          console.log('Available keys in first nationality:', Object.keys(responseData.jsonResult[0]));
+        }
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching nationalities:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch document types
+  fetchDocumentTypes: async (): Promise<DocumentTypeLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "DocumentType",
+        argument1: 1,
+        argument2: 0
+      };
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        // Return a friendly error response instead of throwing
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch document types",
+          jsonResult: []
+        };
+      }
+      
+      const responseData = await response.json();
+      console.log('Document types response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching document types:', error);
+      // Return a friendly error response instead of throwing
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch document types",
+        jsonResult: []
+      };
+    }
+  },
+  
+  // Fetch relationship types
+  fetchRelationTypes: async (): Promise<RelationTypeLookupResponse> => {
+    try {
+      const payload = {
+        operationType: "RelationType",
+        argument1: 1,
+        argument2: 0
+      };
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        // Return a friendly error response instead of throwing
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch relationship types",
+          jsonResult: []
+        };
+      }
+      
+      const responseData = await response.json();
+      console.log('Relationship types response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching relationship types:', error);
+      // Return a friendly error response instead of throwing
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch relationship types",
+        jsonResult: []
+      };
+    }
+  },
+  
+  // Fetch marital status options
+  fetchMaritalStatus: async (): Promise<MaritalStatusLookupResponse> => {
+    console.log('fetchMaritalStatus called');
+    try {
+      const payload = {
+        operationType: "MaritalStatus",
+        argument1: 0,
+        argument2: 0
+      };
+      
+      console.log('Marital status payload:', payload);
+      console.log('Sending request to /api/applications/lookup');
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('Marital status API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Marital status response data:', responseData);
+      
+      // Check if the response has the expected structure
+      if (responseData.jsonResult && Array.isArray(responseData.jsonResult)) {
+        console.log('Marital status options count:', responseData.jsonResult.length);
+        console.log('First marital status option:', responseData.jsonResult[0]);
+      } else {
+        console.error('Unexpected response structure:', responseData);
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching marital status options:', error);
+      throw error;
+    }
+  },
+  
+  // Fetch application types
+  fetchApplicationTypes: async (parentTypeId: number = 1): Promise<ApplicationTypeLookupResponse> => {
+    try {
+      const payload: ApplicationTypeLookupRequest = {
+        operationType: "AppType",
+        argument1: parentTypeId,
+        argument2: 0
+      };
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Application types response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error fetching application types:', error);
+      throw error;
+    }
+  },
+  
+  // Generic lookup function for various data types
+  fetchLookup: async (payload: LookupRequest): Promise<LookupResponse> => {
+    try {
+      console.log(`fetchLookup called with operation: ${payload.operationType}`);
+      
+      const response = await fetch('/api/applications/lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log(`${payload.operationType} lookup response:`, responseData);
+      
+      return responseData;
+    } catch (error) {
+      console.error(`Error fetching ${payload.operationType}:`, error);
+      throw error;
+    }
+  },
+
+  // Verify migrant registration
+  verifyRegistration: async (data: VerificationRequest): Promise<VerificationResponse> => {
+    try {
+      // Use the API proxy to avoid CORS issues
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      // Check if the response is OK
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      try {
+        const responseData = await response.json();
+        console.log('Verification response:', responseData);
+        return responseData;
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        const responseText = await response.text();
+        console.error('Response text:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
+    } catch (error) {
+      console.error('Error verifying registration:', error);
+      throw error;
+    }
+  }
+};

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Farm house pattern -->
+    <pattern id="farm-house" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M60,20 L90,40 L90,80 L30,80 L30,40 Z" fill="#8B4513" stroke="#5D2906" stroke-width="2"/>
+      <path d="M60,20 L30,40 L90,40 Z" fill="#A52A2A" stroke="#5D2906" stroke-width="2"/>
+      <rect x="50" y="60" width="20" height="20" fill="#C19A6B"/>
+      <rect x="40" y="50" width="10" height="10" fill="#87CEEB"/>
+      <rect x="70" y="50" width="10" height="10" fill="#87CEEB"/>
+    </pattern>
+    
+    <!-- Wheat crop pattern -->
+    <pattern id="wheat" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M30,50 L30,20 M25,25 L30,20 L35,25 M22,30 L30,20 L38,30 M20,35 L30,20 L40,35 M25,40 L30,20 L35,40" 
+            stroke="#DAA520" stroke-width="1.5" fill="none"/>
+    </pattern>
+    
+    <!-- Field pattern -->
+    <pattern id="field" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="#8B8B00" opacity="0.1"/>
+      <path d="M0,0 L100,100 M0,50 L50,100 M50,0 L100,50 M0,100 L100,0" stroke="#556B2F" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+    
+    <!-- Tree pattern -->
+    <pattern id="tree" width="80" height="80" patternUnits="userSpaceOnUse">
+      <rect x="35" y="50" width="10" height="20" fill="#8B4513"/>
+      <circle cx="40" cy="40" r="15" fill="#228B22"/>
+      <circle cx="30" cy="30" r="10" fill="#228B22"/>
+      <circle cx="50" cy="30" r="10" fill="#228B22"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#F5F5DC" opacity="0.3"/>
+  
+  <!-- Field background -->
+  <rect width="800" height="600" fill="url(#field)" opacity="0.3"/>
+  
+  <!-- Farm houses -->
+  <rect x="50" y="100" width="120" height="120" fill="url(#farm-house)" opacity="0.7"/>
+  <rect x="600" y="400" width="120" height="120" fill="url(#farm-house)" opacity="0.7"/>
+  <rect x="300" y="200" width="120" height="120" fill="url(#farm-house)" opacity="0.7"/>
+  
+  <!-- Wheat crops -->
+  <rect x="200" y="100" width="180" height="60" fill="url(#wheat)" opacity="0.6"/>
+  <rect x="400" y="350" width="180" height="60" fill="url(#wheat)" opacity="0.6"/>
+  <rect x="100" y="400" width="180" height="60" fill="url(#wheat)" opacity="0.6"/>
+  
+  <!-- Trees -->
+  <rect x="50" y="250" width="80" height="80" fill="url(#tree)" opacity="0.8"/>
+  <rect x="650" y="150" width="80" height="80" fill="url(#tree)" opacity="0.8"/>
+  <rect x="400" y="450" width="80" height="80" fill="url(#tree)" opacity="0.8"/>
+  <rect x="200" y="500" width="80" height="80" fill="url(#tree)" opacity="0.8"/>
+  <rect x="500" y="100" width="80" height="80" fill="url(#tree)" opacity="0.8"/>
+</svg>
