@@ -229,7 +229,7 @@ export function ApplicationsTable() {
       validRegions: ['Eastern Region', 'Central Region', 'Northern Region'],
       restrictions: 'None',
       status: app.status === 'approved' ? 'VALID' : 'PENDING APPROVAL',
-      qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PASS${app.id}`
+      barcodeData: `PASS${app.id}`
     }
     
     console.log('Generated Pass PDF Data:', passData)

@@ -93,6 +93,7 @@ export default function BasicInfoPage() {
   const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   
   // Gender options
@@ -539,16 +540,20 @@ export default function BasicInfoPage() {
       const response = await personalInfoEndpoints.submitPersonalInfo(applicationId, data);
       
       if (response.ackCode === 1) {
-        // Success - navigate to next page
+        // Success - show success message
         showSuccess({
           description: "Taarifa zako zimehifadhiwa kikamilifu"
         });
-        router.push(`/application/residence-info?applicationId=${applicationId}`);
+        // The ApplicationLayout will handle the navigation automatically
+        setIsLoading(false);
+        // Set autoNavigateToNext state to true
+        setAutoNavigateToNext(true);
       } else {
         // Handle error
         showError({
           description: response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako"
         });
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error("Error submitting personal info:", error);
@@ -566,6 +571,7 @@ export default function BasicInfoPage() {
       subtitle="Taarifa zako binafsi"
       applicationId={applicationId}
       currentStep="habari-binafsi"
+      autoNavigateToNext={autoNavigateToNext}
     >
       
       <Form {...form}>

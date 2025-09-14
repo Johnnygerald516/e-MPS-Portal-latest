@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { User, Home, Users, FileText, CheckSquare, CheckCircle, File } from "lucide-react";
 
 interface ApplicationLayoutProps {
@@ -9,6 +10,7 @@ interface ApplicationLayoutProps {
   applicationId?: string;
   currentStep: string;
   activeSection?: string;
+  autoNavigateToNext?: boolean;
 }
 
 const navigationItems = [
@@ -21,7 +23,28 @@ const navigationItems = [
   { id: 'complete', label: 'Mafanikio', href: '/application/complete', icon: CheckCircle }
 ];
 
-export default function ApplicationLayout({ children, title, subtitle, applicationId, currentStep, activeSection }: ApplicationLayoutProps) {
+export default function ApplicationLayout({ children, title, subtitle, applicationId, currentStep, activeSection, autoNavigateToNext = false }: ApplicationLayoutProps) {
+  const router = useRouter();
+  
+  // Find the current step index in the navigation items
+  const currentStepIndex = navigationItems.findIndex(item => item.id === currentStep);
+  
+  // Get the next step if it exists
+  const nextStep = currentStepIndex >= 0 && currentStepIndex < navigationItems.length - 1 
+    ? navigationItems[currentStepIndex + 1] 
+    : null;
+    
+  // Effect to handle automatic navigation to the next tab when autoNavigateToNext is true
+  useEffect(() => {
+    if (autoNavigateToNext && nextStep && applicationId) {
+      const timer = setTimeout(() => {
+        router.push(`${nextStep.href}?applicationId=${applicationId}`);
+      }, 1000); // 1 second delay before navigation
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoNavigateToNext, nextStep, applicationId, router]);
+  
   return (
     <div className="container mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">
       {/* Header */}
@@ -42,16 +65,15 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
         <aside className="w-55 bg-white border-r p-2">
           <div className="flex flex-col space-y-2">
             {navigationItems.map((item) => (
-              <Link 
+              <div
                 key={item.id} 
-                href={`${item.href}${applicationId ? `?applicationId=${applicationId}` : ''}`}
                 className={`px-4 py-3 text-sm rounded border transition-all duration-200 flex items-center ${currentStep === item.id 
                   ? 'bg-blue-50 text-blue-800 border-blue-300 font-medium' 
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200 hover:border-gray-300'}`}
+                  : 'bg-white text-gray-600 border-gray-200'}`}
               >
                 {React.createElement(item.icon, { className: `h-4 w-4 mr-2 ${currentStep === item.id ? 'text-blue-600' : 'text-gray-400'}` })}
                 {item.label}
-              </Link>
+              </div>
             ))}
           </div>
         </aside>

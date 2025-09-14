@@ -75,6 +75,7 @@ export default function DependantInfoPage() {
   const searchParams = useSearchParams();
   const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   // State for countries and nationalities
   const [countries, setCountries] = useState<Country[]>([]);
@@ -307,13 +308,15 @@ export default function DependantInfoPage() {
         const response = await dependantInfoEndpoints.submitDependantInfo(applicationId, apiPayload);
         
         if (response.ackCode === 1) {
-          // Success - show success message and navigate to next page
+          // Success - show success message
           toast({
             title: "Success",
             description: "Dependant information saved successfully",
             variant: "default"
           });
-          router.push(`/application/documents?applicationId=${applicationId}`);
+          // Set autoNavigateToNext to true to trigger automatic navigation
+          setIsLoading(false);
+          setAutoNavigateToNext(true);
         } else {
           // Handle error
           console.error('API error:', response.ackMessage);
@@ -370,7 +373,8 @@ export default function DependantInfoPage() {
       title="Dependant Information" 
       subtitle="Enter information about your dependants"
       applicationId={applicationId}
-      currentStep="habari-za-safari"
+      currentStep="habari-za-wategemezi"
+      autoNavigateToNext={autoNavigateToNext}
     >
       
       <Form {...form}>

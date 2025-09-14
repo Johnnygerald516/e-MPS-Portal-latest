@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 
 // Define types for the form data
 export interface MigrantFormData {
@@ -121,12 +121,29 @@ export const imageToBase64 = (imgUrl: string): Promise<string> => {
   });
 };
 
-// Helper function to generate QR code
-export const generateQRCode = async (text: string): Promise<string> => {
+// Helper function to generate barcode
+export const generateBarcode = async (text: string): Promise<string> => {
   try {
-    return await QRCode.toDataURL(text);
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    
+    // Generate barcode on canvas with improved parameters
+    JsBarcode(canvas, text, {
+      format: 'CODE128',
+      displayValue: true,
+      fontSize: 14,       // Increased font size
+      height: 70,         // Increased height
+      width: 1,           // Increased bar width
+      margin: 10,         // Increased margin
+      background: '#ffffff',
+      lineColor: '#000000',
+      textMargin: 8       // Increased text margin
+    });
+    
+    // Convert canvas to data URL with high quality
+    return canvas.toDataURL('image/png', 1.0);
   } catch (err) {
-    console.error('Error generating QR code:', err);
+    console.error('Error generating barcode:', err);
     return '';
   }
 };
@@ -146,8 +163,6 @@ const formatDate = (date: Date | undefined | null): string => {
 export const generateMigrantFormPDF = async (
   doc: any, 
   formData: MigrantFormData,
-  coatOfArmsImage?: string,
-  logoImage?: string,
   applicantPhotoImage?: string
 ) => {
   try {
@@ -167,20 +182,38 @@ export const generateMigrantFormPDF = async (
 doc.setDrawColor(128, 128, 128); // Gray color
 doc.setLineWidth(0.2); // Thin border (~0.2px)
 
-    // Generate QR code for the application ID
-    const qrCodeDataUrl = await generateQRCode(formData.applicationId || 'Application ID not available');
+    // Generate barcode for the application ID
+    const barcodeDataUrl = await generateBarcode(formData.applicationId || 'Application ID not available');
     
-    // Use placeholder for coat of arms instead of trying to add potentially problematic images
-    doc.rect(35, 15, 20, 20);
-    doc.setFontSize(8);
-    doc.text('Coat of Arms', 45, 25, { align: 'center' });
-    console.log('Using placeholder for coat of arms');
+    // Add coat of arms image
+    const coatOfArmsPath = '/images/coat_of_arm.png';
+
+    try {
+      if (coatOfArmsPath) {
+        doc.addImage(coatOfArmsPath, 'PNG', 35, 15, 20, 20);
+      } else {
+        doc.addImage(coatOfArmsPath, 'PNG', 35, 15, 20, 20);
+      }
+    } catch (error) {
+      doc.rect(35, 15, 20, 20);
+      doc.setFontSize(8);
+      doc.text('Coat of Arms', 45, 25, { align: 'center' });
+    }
     
-    // Use placeholder for logo instead of trying to add potentially problematic images
-    doc.rect(155, 15, 20, 20);
-    doc.setFontSize(8);
-    doc.text('Immigration Logo', 165, 25, { align: 'center' });
-    console.log('Using placeholder for logo');
+    // Add immigration logo image
+    const logoPath = '/images/immigration_logo.png';
+    try {
+      if (logoPath) {
+        doc.addImage(logoPath, 'PNG', 155, 15, 20, 20);
+      } else {
+        const logoPath = '/images/immigration_logo.png';
+        doc.addImage(logoPath, 'PNG', 155, 15, 20, 20);
+      }
+    } catch (error) {
+      doc.rect(155, 15, 20, 20);
+      doc.setFontSize(8);
+      doc.text('Immigration Logo', 165, 25, { align: 'center' });
+    }
     
     // Add header text
     doc.setFont('serif', 'bold');
@@ -197,21 +230,40 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     // Note: We don't need to set color and width again as they're already set above
     doc.line(15, 45, 195, 45); // Draw horizontal line from left of QR code to right of profile picture
     
-    // Use placeholder for QR code instead of trying to add potentially problematic images
-    doc.rect(15, 45, 25, 25);
-    doc.setFontSize(8);
-    doc.text('QR CODE', 27.5, 57.5, { align: 'center' });
-    console.log('Using placeholder for QR code');
+    // Add barcode image with increased size
+    try {
+      doc.addImage(barcodeDataUrl, 'PNG', 15, 45, 80, 30);
+      console.log('Barcode added successfully');
+    } catch (error) {
+      console.error('Error adding barcode image:', error);
+      // Use placeholder if image fails
+      doc.rect(15, 45, 80, 30);
+      doc.setFontSize(10);
+      doc.text('BARCODE', 55, 60, { align: 'center' });
+    }
     
-    // Use placeholder for applicant photo instead of trying to add potentially problematic images
-    doc.rect(170, 45, 25, 35);
-    doc.setFontSize(8);
-    doc.text('PHOTO', 182.5, 62.5, { align: 'center' });
-    console.log('Using placeholder for applicant photo');
+    // Add applicant photo image
+    try {
+      if (applicantPhotoImage) {
+        doc.addImage(applicantPhotoImage, 'JPG', 170, 45, 25, 35);
+      } 
+      else {
+        // Fallback to default applicant photo
+        const photoPath = '/images/immigration_logo.png';
+        console.log('Adding applicant photo from path:', photoPath);
+        doc.addImage(photoPath, 'JPG', 170, 45, 25, 35);
+      }
+    } catch (error) {
+      console.error('Error adding applicant photo image:', error);
+      // Use placeholder if image fails
+      doc.rect(170, 45, 25, 35);
+      doc.setFontSize(8);
+      doc.text('PHOTO', 182.5, 62.5, { align: 'center' });
+    }
     
     // Form number
     doc.setFontSize(8);
-    doc.text('Fomu TF30', 190, 15, { align: 'right' });
+    doc.text('Fomu TIF23', 190, 15, { align: 'right' });
     
     // 1. APPLICATION DETAILS section
     doc.setFontSize(11);
@@ -256,9 +308,6 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     drawTableRow('Phone Number (Namba ya Simu):', formData.mobileNumber || 'N/A');
     drawTableRow('Nationality (Uraia):', formData.nationality || 'N/A');
     drawTableRow('Place of Birth (Mahali pa Kuzaliwa):', formData.placeOfBirth || 'N/A');
-    drawTableRow('Passport Number (Namba ya Paspoti):', formData.passportNumber || 'N/A');
-    drawTableRow('Passport Issue Date (Tarehe ya Kutolewa):', formatDate(formData.passportIssueDate));
-    drawTableRow('Passport Expiry Date (Tarehe ya Kuisha):', formatDate(formData.passportExpiryDate));
     drawTableRow('Occupation Type (Aina ya Kazi):', formData.occupationType || 'N/A');
     drawTableRow('Occupation (Kazi):', formData.occupation || 'N/A');
     

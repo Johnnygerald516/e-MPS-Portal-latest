@@ -97,6 +97,7 @@ export default function ResidenceInfoPage() {
   const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   // State for country, region, district, and ward options
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>([]);
@@ -531,12 +532,14 @@ export default function ResidenceInfoPage() {
       console.log('API response received:', response);
       
       if (response.ackCode === 1) {
-        // Success - navigate to next page
+        // Success - show success message
         showSuccess({
           description: "Taarifa za makazi zimehifadhiwa"
         });
-        console.log('Navigating to parents-info page');
-        router.push(`/application/parents-info?applicationId=${applicationId}`);
+        console.log('Setting autoNavigateToNext to true');
+        // Set autoNavigateToNext to true to trigger automatic navigation
+        setIsLoading(false);
+        setAutoNavigateToNext(true);
       } else {
         // Handle error
         console.error('API returned error:', response);
@@ -576,6 +579,7 @@ export default function ResidenceInfoPage() {
       subtitle="Taarifa za makazi yako ya sasa"
       applicationId={applicationId}
       currentStep="anuwani-ya-makazi"
+      autoNavigateToNext={autoNavigateToNext}
     >
       
       <Form {...form}>

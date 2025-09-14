@@ -254,8 +254,6 @@ export default function ApplicationCompletePage() {
       await generateMigrantFormPDF(
         doc, 
         migrantFormData,
-        images.coatOfArms || '', // Pass empty string if image is not available
-        images.logo || '',
         applicantPhoto || images.applicantPhoto || '' // Use real API photo first, then fallback
       );
       

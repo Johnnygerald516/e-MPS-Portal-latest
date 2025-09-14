@@ -4,6 +4,7 @@ import * as React from "react";
 import { Button } from "./button";
 import { LoadingSpinner } from "./loading-spinner";
 import { cn } from "../../lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
@@ -26,7 +27,10 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
         {...props}
       >
         <span className="flex items-center justify-center gap-2">
-          {isLoading && <LoadingSpinner size={spinnerSize} variant={spinnerVariant} className="mr-2" />}
+          {isLoading && 
+          // <LoadingSpinner size={spinnerSize} variant={spinnerVariant} className="mr-2" />
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+         }
           {isLoading ? loadingText : children}
         </span>
       </Button>

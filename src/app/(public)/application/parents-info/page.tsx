@@ -93,6 +93,7 @@ export default function ParentsInfoPage() {
   const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   // State for father's country and region options
   const [fatherCountryOptions, setFatherCountryOptions] = useState<CountryOption[]>([]);
@@ -513,8 +514,13 @@ export default function ParentsInfoPage() {
       const response = await parentsInfoEndpoints.submitParentsInfo(applicationId, apiPayload);
       
       if (response.ackCode === 1) {
-        // Success - navigate to next page
-        router.push(`/application/dependant-info?applicationId=${applicationId}`);
+        // Success - show success message
+        showSuccess({
+          description: "Taarifa za wazazi zimehifadhiwa kikamilifu"
+        });
+        // Set autoNavigateToNext to true to trigger automatic navigation
+        setIsLoading(false);
+        setAutoNavigateToNext(true);
       } else {
         // Handle error
         showError({
@@ -536,7 +542,8 @@ export default function ParentsInfoPage() {
       title="Parents Information" 
       subtitle="Enter your parents' details"
       applicationId={applicationId}
-      currentStep="parents-info"
+      currentStep="habari-za-wazazi"
+      autoNavigateToNext={autoNavigateToNext}
     >
       
       <Form {...form}>

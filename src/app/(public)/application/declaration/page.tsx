@@ -64,6 +64,7 @@ export default function DeclarationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicationId = searchParams.get('applicationId') || '';
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   // State for image viewer dialog
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
@@ -217,51 +218,21 @@ export default function DeclarationPage() {
           }
           
           // Handle applicant photo - attachmentType contains base64 data for 'picha ya muombaji'
-          if (data.jsonResult.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && 
-              data.jsonResult.applicantPhoto.length > 0) {
-            
-            const photoItem = data.jsonResult.applicantPhoto[0];
-            
-            // The attachmentType field contains the base64 data directly
-            if (photoItem.attachmentType && typeof photoItem.attachmentType === 'string') {
-              // Check if it's already a data URL or just base64
-              if (photoItem.attachmentType.startsWith('data:')) {
-                setApplicantPhoto(photoItem.attachmentType);
-                setPhotoError(null); // Clear any previous errors
-                console.log('Photo already has data URL prefix');
-              } else {
-                // It's base64 data, add the data URL prefix
-                const photoUrl = `data:image/jpeg;base64,${photoItem.attachmentType}`;
-                setApplicantPhoto(photoUrl);
-                setPhotoError(null); // Clear any previous errors
-                console.log('Added data URL prefix to photo');
-              }
-            } else if (photoItem.attachmentID) {
-              // Fallback: fetch using attachment ID if no direct base64 data
-              try {
-                const photoResponse = await fetch(`/api/applications/documents/${photoItem.attachmentID}`);
-                if (photoResponse.ok) {
-                  const photoResponseData = await photoResponse.json();
-                  if (photoResponseData.ackCode === 1 && photoResponseData.jsonResult) {
-                    const photoUrl = `data:image/jpeg;base64,${photoResponseData.jsonResult}`;
-                    setApplicantPhoto(photoUrl);
-                    setPhotoError(null); // Clear any previous errors
-                  }
-                } else {
-                  setPhotoError("Imeshindikana kupakua picha");
-                }
-              } catch (error) {
-                console.error('Error fetching applicant photo:', error);
-                setPhotoError("Imeshindikana kupakua picha");
-              }
+          if (Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
+            const rawPhotoItem = data.jsonResult.applicantPhoto[0]; // ✅ get the first item
+            const photoSrc = getBase64ImageSrc(rawPhotoItem);       // ✅ pass single object
+            console.log("Applicant photo src:", photoSrc);
+          
+            if (photoSrc) {
+              setApplicantPhoto(photoSrc);
+              setPhotoError(null);
             } else {
-              console.log("No photo data available in attachmentType or attachmentID");
               setPhotoError("Picha ya muombaji haikupatikana");
             }
           } else {
-            console.log("No applicantPhoto array in response");
             setPhotoError("Picha ya muombaji haikupatikana");
           }
+          
           
           // Process attachments - applicationAttachment contains attachment data
           if (data.jsonResult.applicationAttachment && Array.isArray(data.jsonResult.applicationAttachment)) {
@@ -280,9 +251,7 @@ export default function DeclarationPage() {
                     // Check if attachment has base64 data directly in attachmentType field (like applicantPhoto)
                     if (attachment.attachmentData && typeof attachment.attachmentData === 'string') {
                       // Direct base64 data
-                      attachmentMap[attachmentKey] = attachment.attachmentData.startsWith('data:') 
-                        ? attachment.attachmentData 
-                        : `data:image/jpeg;base64,${attachment.attachmentData}`;
+                      attachmentMap[attachmentKey] = attachment.attachmentData;
                     } else if (attachment.attachmentID) {
                       // Fetch the attachment data using the attachment ID
                       const attachmentResponse = await fetch(`/api/applications/documents/${attachment.attachmentID}`);
@@ -291,7 +260,7 @@ export default function DeclarationPage() {
                         const attachmentData = await attachmentResponse.json();
                         
                         if (attachmentData.ackCode === 1 && attachmentData.jsonResult) {
-                          attachmentMap[attachmentKey] = `data:image/jpeg;base64,${attachmentData.jsonResult}`;
+                          attachmentMap[attachmentKey] = attachmentData.jsonResult;
                         }
                       }
                     }
@@ -411,6 +380,22 @@ export default function DeclarationPage() {
     router.push(`/application/documents?applicationId=${applicationId}`);
   };
 
+  const getBase64ImageSrc = (photoItem: any) => {
+    if (!photoItem) return null;
+  
+    const base64 = photoItem.attachmentType;
+    if (!base64) return null;
+  
+    if (base64.startsWith("data:")) return base64;
+  
+    if (base64.startsWith("/9j/")) return `data:image/jpeg;base64,${base64}`;
+    if (base64.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${base64}`;
+  
+    return `data:image/jpeg;base64,${base64}`;
+  };
+  
+
+
   // Handle save and exit
   const handleSaveAndExit = () => {
     // Save current form state
@@ -481,8 +466,9 @@ export default function DeclarationPage() {
           variant: "default"
         });
         
-        // Navigate to complete page on success
-        router.push(`/application/complete?applicationId=${applicationId}`);
+        // Set autoNavigateToNext to true to trigger automatic navigation
+        setIsLoading(false);
+        setAutoNavigateToNext(true);
       } else {
         toast({
           title: "Error",
@@ -501,13 +487,66 @@ export default function DeclarationPage() {
       setIsLoading(false);
     }
   };
-  
-  return (
+
+   useEffect(() => {
+setTimeout(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`/api/applications/${applicationId}`);
+      if (!response.ok) throw new Error(`${response.status}`);
+      const data = await response.json();
+      
+      // Handle applicantPhoto array structure from real API
+      if (data.ackCode === 1 && data.jsonResult?.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
+        const photoItem = data.jsonResult.applicantPhoto[0];
+        
+        // Check if it has attachmentType with base64 data
+        if (photoItem.attachmentType && typeof photoItem.attachmentType === "string") {
+          setApplicantPhoto(getPhotoSrc(photoItem.attachmentType)); // normalize once
+        } else {
+          setPhotoError("Picha ya muombaji haikupatikana");
+        }
+      } else {
+        setPhotoError("Picha ya muombaji haikupatikana");
+      }
+    } catch (error) {
+      setPhotoError("Imeshindikana kupakua picha");
+    } finally {
+      setIsLoadingPhoto(false);
+    }
+  };
+  fetchData();
+}, 500);
+}, []);
+
+
+
+
+// Helper to normalize photo string
+const getPhotoSrc = (photo?: string) => {
+  if (!photo) return null;
+
+  // Already prefixed
+  if (photo.startsWith("data:image")) {
+    return photo;
+  }
+
+  // Detect by signature
+  if (photo.startsWith("/9j/")) return `data:image/jpeg;base64,${photo}`;
+  if (photo.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${photo}`;
+
+  // Fallback to jpeg
+  return `data:image/jpeg;base64,${photo}`;
+};
+
+console.log(applicantPhoto)
+return (
     <ApplicationLayout 
       title="Declaration" 
       subtitle="Review and submit your application"
       applicationId={applicationId}
-      currentStep="tamko"
+      currentStep="tamko-rasmi"
+      autoNavigateToNext={autoNavigateToNext}
     >
       
       <div className="bg-slate-50 p-6 rounded mb-6 shadow-sm border border-slate-200">
@@ -583,75 +622,34 @@ export default function DeclarationPage() {
               {/* Applicant Photo on the right */}
               <div className="w-40 flex flex-col items-center">
                 <div className="border border-slate-300 rounded-md overflow-hidden w-32 h-40 bg-slate-50 flex items-center justify-center mb-2">
-                  {isLoadingPhoto ? (
-                    <div className="flex items-center justify-center h-full w-full">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                 
+                  {
+                  // isLoadingPhoto ? (
+                  //   <div className="flex items-center justify-center h-full w-full">
+                  //     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  //   </div>
+                  // ) : 
+                  applicantPhoto ? (
+                    <img
+                    // src={getPhotoSrc(applicantPhoto) || ""}
+                    src={applicantPhoto}
+                    alt="Picha ya Muombaji"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      setPhotoError("Imeshindikana kupakua picha");
+                      if (e.currentTarget) e.currentTarget.style.display = "none";
+                    }}
+                  />
+                  
+                   ) : (
+                    <div className="flex flex-col items-center justify-center h-full w-full">
+                      <User className="h-10 w-10 text-slate-400" />
+                      <span className="text-xs text-slate-400 mt-1">Hakuna picha</span>
                     </div>
-                  ) : photoError ? (
-                    <div className="flex flex-col items-center justify-center h-full w-full p-2">
-                      <p className="text-xs text-red-500 text-center">{photoError}</p>
-                      <button 
-                        onClick={() => {
-                          setIsLoadingPhoto(true);
-                          setPhotoError(null);
-                          // Re-trigger the useEffect by forcing a re-render
-                          setTimeout(() => {
-                            const fetchData = async () => {
-                              try {
-                                const response = await fetch(`/api/applications/${applicationId}`);
-                                if (!response.ok) throw new Error(`${response.status}`);
-                                const data = await response.json();
-                                
-                                // Handle applicantPhoto array structure from real API
-                                if (data.ackCode === 1 && data.jsonResult?.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
-                                  const photoItem = data.jsonResult.applicantPhoto[0];
-                                  if (photoItem.attachmentType && typeof photoItem.attachmentType === 'string') {
-                                    const photoUrl = photoItem.attachmentType.startsWith('data:') 
-                                      ? photoItem.attachmentType 
-                                      : `data:image/jpeg;base64,${photoItem.attachmentType}`;
-                                    setApplicantPhoto(photoUrl);
-                                    console.log('Retry: Successfully loaded applicant photo');
-                                  } else {
-                                    setPhotoError("Picha ya muombaji haikupatikana");
-                                  }
-                                } else {
-                                  setPhotoError("Picha ya muombaji haikupatikana");
-                                }
-                              } catch (error) {
-                                setPhotoError("Imeshindikana kupakua picha");
-                              } finally {
-                                setIsLoadingPhoto(false);
-                              }
-                            };
-                            fetchData();
-                          }, 500);
-                        }}
-                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
-                      >
-                        Jaribu tena
-                      </button>
-                    </div>
-                  ) : applicantPhoto ? (
-                    <img 
-                      src={applicantPhoto.startsWith('data:') ? applicantPhoto : `data:image/jpeg;base64,${applicantPhoto}`}
-                      alt="Picha ya Muombaji" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        setPhotoError("Imeshindikana kupakua picha");
-                        if (e.currentTarget) {
-                          e.currentTarget.style.display = 'none';
-                        }
-                      }}
-                    />
-                  ) : (
-                    <img 
-                      src="/images/applicant-photo.jpg" 
-                      alt="Picha ya Muombaji" 
-                      className="w-full h-full object-cover"
-                    />
                   )}
                 </div>
                 <span className="text-xs text-slate-500 text-center">Picha ya Muombaji</span>
+              
               </div>
             </div>
           </div>
@@ -777,162 +775,7 @@ export default function DeclarationPage() {
               </div>
             </div>
           </div>
-          
-          
-          <div className="border border-slate-200 rounded-md p-4 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 text-blue-500 mr-2" />
-                <h3 className="text-md font-medium text-slate-800">Viambatanisho</h3>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={navigateToDocuments}
-                className="border border-green-300 rounded px-3 py-1 flex items-center text-green-600 hover:text-green-800 hover:bg-green-50"
-              >
-                <Edit2 className="h-4 w-4 mr-1" />
-                Hariri
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         {formData.previousPassNumber && (
-                <div>
-                  <h4 className="text-sm font-medium text-slate-600">Namba ya Pasipoti ya Awali</h4>
-                  <p className="text-slate-800 uppercase">{formData.previousPassNumber}</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="mt-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div 
-                  className="border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  onClick={() => openImageViewer('barua_ya_mtendaji')}
-                >
-                  <div className="bg-slate-50 p-2 flex items-center justify-between border-b border-slate-200">
-                    <span className="text-xs font-medium text-slate-700">Barua ya Mtendaji</span>
-                    <Eye className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="h-24 bg-white flex items-center justify-center p-0 overflow-hidden">
-                    {isLoadingAttachments ? (
-                      <div className="flex items-center justify-center h-full w-full">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : attachments['barua_ya_mtendaji'] ? (
-                      <img 
-                        src={attachments['barua_ya_mtendaji']}
-                        alt="Barua ya Mtendaji" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full w-full">
-                        <FileText className="h-10 w-10 text-slate-400" />
-                        <span className="text-xs text-slate-400 mt-1">Hakuna nyaraka</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div 
-                  className="border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  onClick={() => openImageViewer('picha_ya_muombaji')}
-                >
-                  <div className="bg-slate-50 p-2 flex items-center justify-between border-b border-slate-200">
-                    <span className="text-xs font-medium text-slate-700">Picha ya Muombaji</span>
-                    <Eye className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="h-24 bg-white flex items-center justify-center p-0 overflow-hidden">
-                    {isLoadingPhoto ? (
-                      <div className="flex items-center justify-center h-full w-full">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : photoError ? (
-                      <div className="flex flex-col items-center justify-center h-full w-full p-2">
-                        <p className="text-xs text-red-500 text-center">{photoError}</p>
-                      </div>
-                    ) : applicantPhoto ? (
-                      <img 
-                        src={applicantPhoto.startsWith('data:') ? applicantPhoto : `data:image/jpeg;base64,${applicantPhoto}`}
-                        alt="Picha ya Muombaji" 
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          setPhotoError("Imeshindikana kupakua picha");
-                          if (e.currentTarget) {
-                            e.currentTarget.style.display = 'none';
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full w-full">
-                        <User className="h-10 w-10 text-slate-400" />
-                        <span className="text-xs text-slate-400 mt-1">Hakuna picha</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div 
-                  className="border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  onClick={() => openImageViewer('ushahidi_wa_kuingia_nchini')}
-                >
-                  <div className="bg-slate-50 p-2 flex items-center justify-between border-b border-slate-200">
-                    <span className="text-xs font-medium text-slate-700">Ushahidi wa Kuingia</span>
-                    <Eye className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="h-24 bg-white flex items-center justify-center p-0 overflow-hidden">
-                    {isLoadingAttachments ? (
-                      <div className="flex items-center justify-center h-full w-full">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : attachments['ushahidi_wa_kuingia_nchini'] ? (
-                      <img 
-                        src={attachments['ushahidi_wa_kuingia_nchini']}
-                        alt="Ushahidi wa Kuingia Nchini" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full w-full">
-                        <FileText className="h-10 w-10 text-slate-400" />
-                        <span className="text-xs text-slate-400 mt-1">Hakuna nyaraka</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div 
-                  className="border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  onClick={() => openImageViewer('ushahidi_wa_wazazi')}
-                >
-                  <div className="bg-slate-50 p-2 flex items-center justify-between border-b border-slate-200">
-                    <span className="text-xs font-medium text-slate-700">Ushahidi wa Wazazi</span>
-                    <Eye className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="h-24 bg-white flex items-center justify-center p-0 overflow-hidden">
-                    {isLoadingAttachments ? (
-                      <div className="flex items-center justify-center h-full w-full">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : attachments['ushahidi_wa_wazazi'] ? (
-                      <img 
-                        src={`data:image/jpeg;base64,${attachments['ushahidi_wa_wazazi']}`}
-                        alt="Ushahidi wa Wazazi" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full w-full">
-                        <FileText className="h-10 w-10 text-slate-400" />
-                        <span className="text-xs text-slate-400 mt-1">Hakuna nyaraka</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Dependants Section */}
+            {/* Dependants Section */}
           {formData.dependants && formData.dependants.length > 0 && (
             <div className="border border-slate-200 rounded-md p-4 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
@@ -958,11 +801,11 @@ export default function DeclarationPage() {
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Jina</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Mahusiano</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Tarehe ya Kuzaliwa</th>
-                      <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Passport Number</th>
+                      <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Namba ya Hati</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Tarehe Kuisha</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Taifa</th>
                     </tr>
-                  </thead>
+                  </thead> 
                   <tbody>
                     {formData.dependants.map((dependant, index) => (
                       <tr key={`dependant-${index}-${dependant.name || dependant.passportNumber || index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
@@ -1046,72 +889,6 @@ export default function DeclarationPage() {
     </div>
   </form>
 </Form>
-
-{/* Image Viewer Dialog */}
-<Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
-  <DialogContent className="sm:max-w-2xl">
-    {currentDocument && (
-      <>
-        <DialogHeader>
-          <DialogTitle className="text-center text-lg font-semibold text-slate-800">
-            {currentDocument.title}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="mt-4 flex flex-col items-center">
-          <div className="border border-slate-200 rounded-md overflow-hidden max-h-[60vh] w-full">
-            {currentDocument.title === 'Picha ya Muombaji' ? (
-              applicantPhoto ? (
-                <img 
-                  src={applicantPhoto.startsWith('data:') ? applicantPhoto : `data:image/jpeg;base64,${applicantPhoto}`} 
-                  alt={currentDocument.title} 
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    setPhotoError("Imeshindikana kupakua picha");
-                    if (e.currentTarget) {
-                      e.currentTarget.style.display = 'none';
-                    }
-                  }}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full w-full p-8">
-                  <User className="h-16 w-16 text-slate-400" />
-                  <span className="text-sm text-slate-500 mt-2">Hakuna picha ya muombaji</span>
-                </div>
-              )
-            ) : currentDocument.imagePath ? (
-              <img 
-                src={currentDocument.imagePath} 
-                alt={currentDocument.title} 
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full w-full p-8">
-                <FileText className="h-16 w-16 text-slate-400" />
-                <span className="text-sm text-slate-500 mt-2">Hakuna nyaraka</span>
-              </div>
-            )}
-          </div>
-          
-          <p className="mt-4 text-sm text-slate-600 text-center">
-            {currentDocument.description}
-          </p>
-        </div>
-        
-        <div className="mt-6 flex justify-center">
-          <Button 
-            variant="outline" 
-            onClick={() => setIsImageViewerOpen(false)}
-            className="px-6"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Funga
-          </Button>
-        </div>
-      </>
-    )}
-  </DialogContent>
-</Dialog>
 
 </ApplicationLayout>
 );

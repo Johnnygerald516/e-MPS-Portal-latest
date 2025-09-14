@@ -84,6 +84,7 @@ export default function DocumentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
+  const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
   // Get applicationId from URL params or from context
   const applicationId = searchParams.get('applicationId') || formData.applicationId || '';
@@ -482,8 +483,9 @@ export default function DocumentsPage() {
         }
       }
 
-      // Always proceed to the declaration page regardless of API call success or nextStageId availability
-      router.push(`/application/declaration?applicationId=${applicationId}`);
+      // Set autoNavigateToNext to true to trigger automatic navigation
+      setIsLoading(false);
+      setAutoNavigateToNext(true);
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -502,6 +504,7 @@ export default function DocumentsPage() {
       subtitle="Tafadhali pakia nyaraka zote zinazohitajika kwa ajili ya maombi yako."
       applicationId={applicationId}
       currentStep="viambatanisho"
+      autoNavigateToNext={autoNavigateToNext}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
