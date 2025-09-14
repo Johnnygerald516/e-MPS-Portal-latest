@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Info, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,19 @@ interface ApplicationType {
 
 export default function ApplicationPage() {
   const router = useRouter();
-  const { showError, showSuccess } = useApplication();
+  const { showError, showSuccess, clearApplicationData } = useApplication();
+  
+  // Use a ref to track if initialization has been done
+  const initializedRef = useRef(false);
+  
+  // Clear application data only once when the page loads
+  useEffect(() => {
+    // Only run once on mount
+    if (!initializedRef.current) {
+      clearApplicationData();
+      initializedRef.current = true;
+    }
+  }, []);
   const [formData, setFormData] = useState({
     applicationType: "",
     applicationTypeId: 0,
@@ -164,12 +176,14 @@ export default function ApplicationPage() {
   const handleVerificationComplete = (verifiedApplicationId: string) => {
     console.log('Verification complete with application ID:', verifiedApplicationId);
     setApplicationId(verifiedApplicationId);
-    // Navigate to basic info page with the application ID
+    // Navigate to basic info page without including applicationId in URL
     showSuccess("Uthibitisho umefanikiwa! Inaendelea na hatua inayofuata.");
     
     // Ensure we have a valid application ID before navigating
     if (verifiedApplicationId) {
-      router.push(`/application/basic-info?applicationId=${verifiedApplicationId}`);
+      // Store the applicationId in context via the MigrantVerificationDialog
+      // and navigate without including it in the URL
+      router.push('/application/basic-info');
     } else {
       showError("Kuna tatizo katika kupata namba ya utambulisho. Tafadhali jaribu tena.");
     }
@@ -178,12 +192,14 @@ export default function ApplicationPage() {
   const handleRenewalComplete = (verifiedApplicationId: string) => {
     console.log('Renewal verification complete with application ID:', verifiedApplicationId);
     setApplicationId(verifiedApplicationId);
-    // Navigate to declaration page with the application ID for renewal applications
+    // Navigate to declaration page without including applicationId in URL
     showSuccess("Uthibitisho wa kibali umefanikiwa! Inaendelea na hatua inayofuata.");
     
     // Ensure we have a valid application ID before navigating
     if (verifiedApplicationId) {
-      router.push(`/application/declaration?applicationId=${verifiedApplicationId}`);
+      // Store the applicationId in context via the PassportRenewalDialog
+      // and navigate without including it in the URL
+      router.push('/application/declaration');
     } else {
       showError("Kuna tatizo katika kupata namba ya utambulisho. Tafadhali jaribu tena.");
     }

@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Home, Users, FileText, CheckSquare, CheckCircle, File } from "lucide-react";
+import { useApplication } from "@/contexts/application-context";
 
 interface ApplicationLayoutProps {
   children: React.ReactNode;
@@ -23,8 +24,13 @@ const navigationItems = [
   { id: 'complete', label: 'Mafanikio', href: '/application/complete', icon: CheckCircle }
 ];
 
-export default function ApplicationLayout({ children, title, subtitle, applicationId, currentStep, activeSection, autoNavigateToNext = false }: ApplicationLayoutProps) {
+export default function ApplicationLayout({ children, title, subtitle, applicationId: propApplicationId, currentStep, activeSection, autoNavigateToNext = false }: ApplicationLayoutProps) {
   const router = useRouter();
+  const { formData } = useApplication();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Use applicationId from context if available, otherwise use the prop
+  const applicationId = formData.applicationId || propApplicationId;
   
   // Find the current step index in the navigation items
   const currentStepIndex = navigationItems.findIndex(item => item.id === currentStep);
@@ -34,45 +40,56 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
     ? navigationItems[currentStepIndex + 1] 
     : null;
     
+  // Set isMounted to true after component mounts to enable client-side rendering
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+    
   // Effect to handle automatic navigation to the next tab when autoNavigateToNext is true
   useEffect(() => {
-    if (autoNavigateToNext && nextStep && applicationId) {
+    if (autoNavigateToNext && nextStep) {
       const timer = setTimeout(() => {
-        router.push(`${nextStep.href}?applicationId=${applicationId}`);
-      }, 1000); // 1 second delay before navigation
+        router.push(nextStep.href);
+      }, 300); // 300ms delay before navigation - faster response
       
       return () => clearTimeout(timer);
     }
-  }, [autoNavigateToNext, nextStep, applicationId, router]);
+  }, [autoNavigateToNext, nextStep, router]);
   
   return (
     <div className="container mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">
-      {/* Header */}
-      {/* <header className="border-b border-zinc-200 text-white p-2 flex justify-between items-center">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center px-4 py-1 bg-blue-700 hover:bg-blue-700 rounded ">
-            <Home className="h-4 w-4 mr-2" />
-            Home 
-          </Link>
-        </div>
-        <div className="text-right pr-4">
-          <span className="text-sm bg-white text-blue-800 px-2 py-1 rounded">{applicationId || '25PA-PG9H-GW04'}</span>
-        </div>
-      </header> */}
+      {/* Header - Only show when mounted and applicationId exists */}
+      {/* {isMounted && applicationId && (
+        <header className="border-b border-slate-200 p-2 flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <Link href="/application" className="flex items-center px-4 py-1 text-blue-700 hover:text-blue-800">
+              <Home className="h-4 w-4 mr-2" />
+              Home 
+            </Link>
+          </div>
+          <div className="text-right pr-4">
+            <div className="flex items-center">
+              <span className="text-xs font-medium text-slate-500 mr-2">Application ID:</span>
+              <span className="text-sm font-medium bg-blue-50 text-blue-800 px-3 py-1 rounded border border-blue-200">{applicationId}</span>
+            </div>
+          </div>
+        </header>
+      )} */}
 
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-55 bg-white border-r p-2">
           <div className="flex flex-col space-y-2">
             {navigationItems.map((item) => (
-              <div
-                key={item.id} 
-                className={`px-4 py-3 text-sm rounded border transition-all duration-200 flex items-center ${currentStep === item.id 
-                  ? 'bg-blue-50 text-blue-800 border-blue-300 font-medium' 
-                  : 'bg-white text-gray-600 border-gray-200'}`}
-              >
-                {React.createElement(item.icon, { className: `h-4 w-4 mr-2 ${currentStep === item.id ? 'text-blue-600' : 'text-gray-400'}` })}
-                {item.label}
+              <div key={item.id}>
+                <div 
+                  className={`px-4 py-3 text-sm rounded border transition-all duration-200 flex items-center ${currentStep === item.id 
+                    ? 'bg-blue-50 text-blue-800 border-blue-300 font-medium' 
+                    : 'bg-white text-gray-600 border-gray-200'}`}
+                >
+                  {React.createElement(item.icon, { className: `h-4 w-4 mr-2 ${currentStep === item.id ? 'text-blue-600' : 'text-gray-400'}` })}
+                  {item.label}
+                </div>
               </div>
             ))}
           </div>
@@ -86,7 +103,8 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
                 <h1 className="text-lg font-semibold text-gray-600">{title}</h1>
                 {/* {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>} */}
               </div>
-              {applicationId && (
+              {/* Only render applicationId on client-side to prevent hydration errors */}
+              {isMounted && applicationId && (
                 <div className="bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
                   <span className="text-xs font-medium text-gray-500">Application ID:</span>
                   <span className="text-sm font-medium text-blue-600 ml-1">{applicationId}</span>

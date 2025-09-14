@@ -159,7 +159,7 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
             <Button
               variant="ghost"
               className="flex items-center text-slate-600 hover:text-slate-900 mr-4"
-              onClick={() => router.push(`/application/progress`)}
+              onClick={() => router.push('/application/progress')}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Status
@@ -197,7 +197,7 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
                     </p>
                     <div className="flex gap-4">
                       <Button
-                        onClick={() => router.push("/application/progress")}
+                        onClick={() => router.push('/application/progress')}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
                       >
                         Check Status

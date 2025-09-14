@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, Search, Loader2, CheckCircle } from "lucide-react";
 import { verificationEndpoints } from "@/lib/api";
+import { useApplication } from "@/contexts/application-context";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export default function MigrantVerificationDialog({
   onVerificationComplete,
   applicationTypeId
 }: MigrantVerificationDialogProps) {
+  const { updateFormData } = useApplication();
   const [subjectId, setSubjectId] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -103,8 +105,18 @@ export default function MigrantVerificationDialog({
       if (response.ackCode === 1) {
         setVerificationSuccess(true);
         // Use the correct property name (applicationID instead of applicationId)
-        setApplicationId(response.jsonResult.applicationID);
-        console.log('Application ID received:', response.jsonResult.applicationID);
+        const appId = response.jsonResult.applicationID;
+        setApplicationId(appId);
+        console.log('Application ID received:', appId);
+        
+        // Store the applicationId in the application context
+        updateFormData({
+          applicationId: appId,
+          // Also save other relevant information
+          applicationType: applicationTypeId === 1 ? "new" : "renew",
+          // Store phone number if available
+          mobileNumber: response.jsonResult.phoneNo || phoneNumber || ""
+        });
       } else {
         setError(`Uthibitisho umeshindikana: ${response.ackMessage}`);
       }

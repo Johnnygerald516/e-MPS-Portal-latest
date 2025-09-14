@@ -82,12 +82,11 @@ type ExtendedApplicationFormData = {
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   
-  // Get applicationId from URL params or from context
-  const applicationId = searchParams.get('applicationId') || formData.applicationId || '';
+  // Get applicationId from context
+  const applicationId = formData.applicationId || '';
   
   // Reset isLoading state on component mount and handle missing applicationId
   useEffect(() => {
@@ -396,14 +395,14 @@ export default function DocumentsPage() {
         console.log('API response:', responseData);
         
         if (responseData.ackCode === 1) {
-          // Navigate to the declaration page
-          router.push(`/application/declaration?applicationId=${applicationId}`);
+          // Navigate to the declaration page without URL parameters
+          router.push('/application/declaration');
           return;
         }
       }
       
       // If API call fails or returns non-success code, still navigate to declaration page
-      router.push(`/application/declaration?applicationId=${applicationId}`);
+      router.push('/application/declaration');
     } catch (error) {
       console.error("Error navigating to next page:", error);
       toast({
@@ -412,7 +411,7 @@ export default function DocumentsPage() {
         variant: "outline-blue",
       });
       // Even if there's an error, still navigate to declaration page
-      router.push(`/application/declaration?applicationId=${applicationId}`);
+      router.push('/application/declaration');
     } finally {
       setIsLoading(false);
     }

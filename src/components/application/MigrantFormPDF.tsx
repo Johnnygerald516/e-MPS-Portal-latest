@@ -245,7 +245,7 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     // Add applicant photo image
     try {
       if (applicantPhotoImage) {
-        doc.addImage(applicantPhotoImage, 'JPG', 170, 45, 25, 35);
+        doc.addImage(applicantPhotoImage, 'PNG', 170, 45, 25, 35);
       } 
       else {
         // Fallback to default applicant photo

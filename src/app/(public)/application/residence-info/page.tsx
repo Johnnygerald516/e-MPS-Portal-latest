@@ -93,11 +93,12 @@ type ResidenceInfoFormValues = z.infer<typeof residenceInfoSchema>;
 
 export default function ResidenceInfoPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Get applicationId from context instead of URL parameters
+  const applicationId = formData.applicationId || '';
   
   // State for country, region, district, and ward options
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>([]);

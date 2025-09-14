@@ -72,10 +72,11 @@ interface Nationality {
 
 export default function DependantInfoPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Get applicationId from context instead of URL parameters
+  const applicationId = formData.applicationId || '';
   
   // State for countries and nationalities
   const [countries, setCountries] = useState<Country[]>([]);

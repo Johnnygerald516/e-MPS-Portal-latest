@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, Search, Loader2, CheckCircle, ArrowRight } from "lucide-react";
+import { useApplication } from "@/contexts/application-context";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export default function PassportRenewalDialog({
   renewalReason,
   applicationTypeId
 }: PassportRenewalDialogProps) {
+  const { updateFormData } = useApplication();
   const [passNumber, setPassNumber] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -168,6 +170,18 @@ export default function PassportRenewalDialog({
 
   const handleContinue = () => {
     console.log('Passport renewal complete with application ID:', passInfo.applicationID);
+    
+    // Store the applicationId in the application context
+    updateFormData({
+      applicationId: passInfo.applicationID,
+      // Also save other relevant information
+      applicationType: "renew",
+      // Cast renewalReason to the correct type
+      renewalReason: renewalReason as "expired" | "lost" | "damaged" | undefined,
+      // Store passport number
+      previousPassNumber: passNumber || ""
+    });
+    
     onVerificationComplete(passInfo.applicationID);
     onClose();
   };

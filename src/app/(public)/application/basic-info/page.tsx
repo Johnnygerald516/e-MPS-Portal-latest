@@ -89,11 +89,11 @@ type BasicInfoFormValues = z.infer<typeof basicInfoSchema>;
 
 export default function BasicInfoPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams.get('applicationId') || '';
-  const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
-  const { showError, showSuccess } = useCustomToast();
+  const { formData, updateFormData, isLoading, setIsLoading, showError, showSuccess } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Get applicationId from context only
+  const applicationId = formData.applicationId || '';
   
   
   // Gender options
@@ -541,25 +541,19 @@ export default function BasicInfoPage() {
       
       if (response.ackCode === 1) {
         // Success - show success message
-        showSuccess({
-          description: "Taarifa zako zimehifadhiwa kikamilifu"
-        });
+        showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
         // The ApplicationLayout will handle the navigation automatically
         setIsLoading(false);
         // Set autoNavigateToNext state to true
         setAutoNavigateToNext(true);
       } else {
         // Handle error
-        showError({
-          description: response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako"
-        });
+        showError(response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
         setIsLoading(false);
       }
     } catch (error: any) {
       console.error("Error submitting personal info:", error);
-      showError({
-        description: error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako"
-      });
+      showError(error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
     } finally {
       setIsLoading(false);
     }

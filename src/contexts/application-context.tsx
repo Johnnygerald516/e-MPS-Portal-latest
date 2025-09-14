@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 
 // Define application types
@@ -28,6 +28,11 @@ export interface ApplicationFormData {
   
   // Application Progress
   currentStep?: ApplicationStep;
+  
+  // Submission Status
+  submissionStatus?: 'loading' | 'success' | 'error';
+  submissionMessage?: string;
+  submissionError?: string;
   
   // Basic Information
   applicationType: ApplicationType;
@@ -128,32 +133,42 @@ export interface ApplicationFormData {
 
 // Default values for the form
 export const defaultApplicationValues: ApplicationFormData = {
+  // Reset all values to empty or default values
   applicationId: "",
   currentStep: 10,
+  
+  // Reset submission status
+  submissionStatus: undefined,
+  submissionMessage: "",
+  submissionError: "",
+  
+  // Basic Information
   applicationType: "new",
-  renewalReason: "expired",
+  renewalReason: undefined,
   serviceOffice: "dar_es_salaam",
   firstName: "",
   middleName: "",
   lastName: "",
-  surname: "", // Added for the new form
-  otherName: "", // Added for the new form
+  surname: "", 
+  otherName: "", 
   dateOfBirth: new Date(),
   gender: "male",
   nationality: "Tanzanian",
-  birthCountry: 0, // Country of birth ID
-  birthCountryName: "", // Country of birth name
-  birthRegion: 0, // Region of birth ID
-  birthRegionName: "", // Region of birth name
-  maritalStatus: "", // Added for the new form
-  maritalStatusId: 0, // Added for the marital status ID from API
-  occupationType: "", // Added for the new form
-  occupationTypeId: 0, // Added for the occupation type ID from API
-  occupation: "", // Added for specific occupation
-  occupationId: 0, // Added for the occupation ID from API
-  occupationDescription: "", // Added for occupation description
-  occupationDetail: "", // Added for occupation detail parameter in API
-  employmentStatus: "", // Added for employment status
+  birthCountry: 0,
+  birthCountryName: "",
+  birthRegion: 0,
+  birthRegionName: "",
+  maritalStatus: "",
+  maritalStatusId: 0,
+  occupationType: "",
+  occupationTypeId: 0,
+  occupation: "",
+  occupationId: 0,
+  occupationDescription: "",
+  occupationDetail: "",
+  employmentStatus: "",
+  
+  // Residence Information
   countryOfResidence: "tanzania",
   countryId: 0,
   countryName: "",
@@ -169,6 +184,8 @@ export const defaultApplicationValues: ApplicationFormData = {
   mobileNumber: "",
   email: "",
   address: "",
+  
+  // Parents Information
   fatherName: "",
   fatherDateOfBirth: new Date(),
   fatherCountryOfBirth: "",
@@ -187,11 +204,17 @@ export const defaultApplicationValues: ApplicationFormData = {
   motherRegionId: 0,
   motherRegionName: "",
   motherNationality: "",
+  
+  // Dependants Information
   hasDependants: false,
   dependants: [],
+  
+  // Document Information
   identificationType: "national_id",
   identificationNumber: "",
   previousPassNumber: "",
+  
+  // Declaration
   agreeTerms: false,
 };
 
@@ -199,6 +222,7 @@ export const defaultApplicationValues: ApplicationFormData = {
 interface ApplicationContextType {
   formData: ApplicationFormData;
   updateFormData: (data: Partial<ApplicationFormData>) => void;
+  clearApplicationData: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   showError: (message: string, title?: string) => void;
@@ -212,13 +236,115 @@ const ApplicationContext = createContext<ApplicationContextType | undefined>(und
 
 // Context provider component
 export function ApplicationProvider({ children }: { children: ReactNode }) {
+  // Helper function to restore date objects from localStorage
+  const restoreDatesFromJSON = (data: any): ApplicationFormData => {
+    const result = { ...data };
+    
+    // Convert date strings back to Date objects
+    if (typeof result.dateOfBirth === 'string' && result.dateOfBirth) {
+      try { result.dateOfBirth = new Date(result.dateOfBirth); } catch (e) {}
+    }
+    
+    if (typeof result.dateOfEntry === 'string' && result.dateOfEntry) {
+      try { result.dateOfEntry = new Date(result.dateOfEntry); } catch (e) {}
+    }
+    
+    if (typeof result.fatherDateOfBirth === 'string' && result.fatherDateOfBirth) {
+      try { result.fatherDateOfBirth = new Date(result.fatherDateOfBirth); } catch (e) {}
+    }
+    
+    if (typeof result.motherDateOfBirth === 'string' && result.motherDateOfBirth) {
+      try { result.motherDateOfBirth = new Date(result.motherDateOfBirth); } catch (e) {}
+    }
+    
+    // Handle dependants array if it exists
+    if (Array.isArray(result.dependants)) {
+      result.dependants = result.dependants.map((dep: any) => {
+        const newDep = { ...dep };
+        if (typeof newDep.dateOfBirth === 'string' && newDep.dateOfBirth) {
+          try { newDep.dateOfBirth = new Date(newDep.dateOfBirth); } catch (e) {}
+        }
+        if (typeof newDep.passportExpiryDate === 'string' && newDep.passportExpiryDate) {
+          try { newDep.passportExpiryDate = new Date(newDep.passportExpiryDate); } catch (e) {}
+        }
+        return newDep;
+      });
+    }
+    
+    return result as ApplicationFormData;
+  };
+  
+  // Initialize with default values for server-side rendering
   const [formData, setFormData] = useState<ApplicationFormData>(defaultApplicationValues);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Load only applicationId from localStorage on client-side after initial render
+  useEffect(() => {
+    try {
+      // Try to get applicationId from dedicated storage
+      const storedApplicationId = localStorage.getItem('applicationId');
+      
+      if (storedApplicationId) {
+        // Only update the applicationId in the form data
+        setFormData(prev => ({
+          ...prev,
+          applicationId: storedApplicationId
+        }));
+        console.log('ApplicationId loaded from localStorage:', storedApplicationId);
+      }
+    } catch (error) {
+      console.error('Error loading applicationId from localStorage:', error);
+    }
+  }, []);
 
-  // Update form data
+  // Update form data, handling applicationId separately
   const updateFormData = (data: Partial<ApplicationFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    // Check if applicationId is being updated
+    if (data.applicationId) {
+      try {
+        // Store applicationId separately in localStorage
+        localStorage.setItem('applicationId', data.applicationId);
+        console.log('ApplicationId saved to localStorage:', data.applicationId);
+      } catch (error) {
+        console.error('Error saving applicationId to localStorage:', error);
+      }
+    }
+    
+    // Update the form data state
+    setFormData((prev) => {
+      return { ...prev, ...data };
+    });
   };
+  
+  // Clear application data but preserve applicationId
+  const clearApplicationData = () => {
+    // Get current applicationId before reset
+    const currentApplicationId = formData.applicationId;
+    
+    // Reset to default values but keep applicationId
+    setFormData({
+      ...defaultApplicationValues,
+      applicationId: currentApplicationId // Preserve applicationId
+    });
+    
+    // Update localStorage with just the applicationId
+    try {
+      if (currentApplicationId) {
+        localStorage.setItem('applicationId', currentApplicationId);
+        console.log('ApplicationId preserved:', currentApplicationId);
+      }
+      localStorage.removeItem('applicationFormData');
+      console.log('Form data cleared, applicationId preserved');
+    } catch (error) {
+      console.error('Error updating localStorage:', error);
+    }
+  };
+  
+  // We don't need to save all form data to localStorage anymore
+  // The applicationId is saved separately in the updateFormData function
+  // and loaded in the initial useEffect
+  
+  // Remove the old effects that were saving all form data
   
   // Show error toast notification
   const showError = useCallback((message: string, title: string = "Error") => {
@@ -259,6 +385,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       value={{
         formData,
         updateFormData,
+        clearApplicationData,
         isLoading,
         setIsLoading,
         showError,

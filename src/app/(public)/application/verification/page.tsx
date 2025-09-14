@@ -71,45 +71,67 @@ export default function VerificationPage() {
     setIsLoading(true);
     
     try {
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Prepare the verification payload based on application type
+      const verificationPayload = applicationType === "renew" 
+        ? {
+            passNumber: formData.passNumber,
+            subjectId: formData.subjectId,
+            phoneNumber: formData.phoneNumber
+          }
+        : {
+            subjectId: formData.subjectId,
+            dateOfBirth: formData.dateOfBirth,
+            region: formData.region
+          };
       
-      if (applicationType === "renew") {
-        // For renewal applications, verify existing user data
-        // Simulate database check for Pass Number, Subject ID, and Phone Number
-        const isValidUser = await verifyExistingUser(formData.passNumber, formData.subjectId, formData.phoneNumber);
-        
-        if (!isValidUser) {
-          alert("Taarifa ulizoweka hazipatikani kwenye mfumo. Tafadhali hakikisha umeweka taarifa sahihi.");
-          setIsLoading(false);
-          return;
-        }
+      // Make the actual API call to verify the user
+      const response = await fetch('/api/applications/verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(verificationPayload)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Verification failed with status: ${response.status}`);
       }
       
-      // Generate application ID and get mobile number
-      const generatedApplicationId = applicationType === "renew" 
-        ? `REN${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
-        : `APP${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
+      const responseData = await response.json();
+      console.log('Verification API response:', responseData);
       
-      const mobileNumber = applicationType === "renew" 
-        ? formData.phoneNumber 
-        : `+255${formData.subjectId.slice(-9) || '621234567'}`;
-      
-      setApplicationData({
-        applicationId: generatedApplicationId,
-        mobileNumber: mobileNumber
-      });
-      
-      // Save applicationId to the application context
-      updateFormData({
-        applicationId: generatedApplicationId,
-        // Also save other relevant information
-        applicationType: applicationType === "renew" ? "renew" : "new"
-      });
-      
-      setShowApplicationId(true);
+      // Check if the verification was successful
+      if (responseData.ackCode === 1) {
+        // Extract applicationID and phoneNo from the response
+        const applicationId = responseData.jsonResult?.applicationID;
+        const phoneNo = responseData.jsonResult?.phoneNo;
+        
+        if (!applicationId) {
+          throw new Error('Application ID not found in response');
+        }
+        
+        // Set the application data from the API response
+        setApplicationData({
+          applicationId: applicationId,
+          mobileNumber: phoneNo || ''
+        });
+        
+        // Save applicationId to the application context
+        updateFormData({
+          applicationId: applicationId,
+          // Also save other relevant information
+          applicationType: applicationType === "renew" ? "renew" : "new",
+          mobileNumber: phoneNo || ''
+        });
+        
+        setShowApplicationId(true);
+      } else {
+        // Handle verification failure
+        alert(responseData.ackMessage || "Taarifa ulizoweka hazipatikani kwenye mfumo. Tafadhali hakikisha umeweka taarifa sahihi.");
+      }
     } catch (error) {
       console.error("Error during verification:", error);
+      alert("Kuna hitilafu imetokea wakati wa kuthibitisha taarifa zako. Tafadhali jaribu tena.");
     } finally {
       setIsLoading(false);
     }
@@ -128,11 +150,12 @@ export default function VerificationPage() {
   
   // Handle continue to application form
   const handleContinueToDashboard = () => {
-    // Navigate to the appropriate page based on application type
+    // Navigate to the appropriate page based on application type without using URL parameters
+    // ApplicationId is already stored in context
     if (applicationType === "renew") {
-      router.push(`/application/basic-info?applicationId=${applicationData.applicationId}`);
+      router.push(`/application/basic-info`);
     } else {
-      router.push(`/application/personal-info?applicationId=${applicationData.applicationId}`);
+      router.push(`/application/personal-info`);
     }
   };
   

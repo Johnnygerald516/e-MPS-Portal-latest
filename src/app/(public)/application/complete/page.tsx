@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Download, CheckCircle, Home, Eye } from "lucide-react";
+import { Download, CheckCircle, Home, Eye, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApplication } from "@/contexts/application-context";
@@ -36,20 +36,41 @@ export default function ApplicationCompletePage() {
   // Add state for real API data like declaration page
   const [applicationData, setApplicationData] = useState<any>(null);
   const [applicantPhoto, setApplicantPhoto] = useState<string | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true); // Start with loading state
+  
+  // Add state for submission status from context
+  const [submissionStatus, setSubmissionStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [submissionMessage, setSubmissionMessage] = useState<string>('');
   
   useEffect(() => {
-    // Set application ID from URL parameter if available
-    if (applicationIdParam) {
+    // Set application ID from context or URL parameter
+    const contextApplicationId = formData.applicationId;
+    if (contextApplicationId) {
+      setApplicationId(contextApplicationId);
+      console.log('Application ID set from context:', contextApplicationId);
+    } else if (applicationIdParam) {
       setApplicationId(applicationIdParam);
       console.log('Application ID set from URL:', applicationIdParam);
     } else {
-      console.warn('No application ID found in URL parameters');
+      console.warn('No application ID found in context or URL parameters');
     }
     
     // Set submission date on client-side
     setSubmissionDate(new Date().toLocaleDateString());
-  }, [applicationIdParam]);
+    
+    // Check submission status from context
+    if (formData.submissionStatus === 'success') {
+      setSubmissionStatus('success');
+      setSubmissionMessage(formData.submissionMessage || 'Application submitted successfully');
+    } else if (formData.submissionError) {
+      setSubmissionStatus('error');
+      setSubmissionMessage(formData.submissionError);
+    } else {
+      // Default to loading if no status is available
+      setSubmissionStatus('loading');
+      setSubmissionMessage('Processing your application...');
+    }
+  }, [applicationIdParam, formData]);
 
   // Fetch real application data like declaration page
   useEffect(() => {
@@ -285,19 +306,55 @@ export default function ApplicationCompletePage() {
         transition={{ duration: 0.6 }}
         className="space-y-8"
       >
-        {/* Success Header */}
+        {/* Status Header - Shows different content based on submission status */}
         <div className="text-center space-y-6">
-          <div className="flex justify-center">
-            <div className="bg-green-100 p-4 rounded-full">
-              <CheckCircle className="h-16 w-16 text-green-600" />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Hongera! Maombi Yako Yamefanikiwa</h2>
-            <p className="text-gray-600 mt-2">
-              Maombi yako yamewasilishwa kwa mafanikio na yatashughulikiwa hivi karibuni.
-            </p>
-          </div>
+          {/* {submissionStatus === 'loading' && (
+            <>
+              <div className="flex justify-center">
+                <div className="bg-blue-100 p-4 rounded-full">
+                  <div className="h-16 w-16 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Inasubiri Uthibitisho...</h2>
+                <p className="text-gray-600 mt-2">
+                  Tunashughulikia maombi yako, tafadhali subiri...
+                </p>
+              </div>
+            </>
+          )} */}
+          
+          {/* {submissionStatus === 'success' && ( */}
+            <>
+              <div className="flex justify-center">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <CheckCircle className="h-16 w-16 text-green-600" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Hongera! Maombi Yako Yamefanikiwa</h2>
+                <p className="text-gray-600 mt-2">
+                  {submissionMessage || 'Maombi yako yamewasilishwa kwa mafanikio na yatashughulikiwa hivi karibuni.'}
+                </p>
+              </div>
+            </>
+          {/* )} */}
+          
+          {/* {submissionStatus === 'error' && (
+            <>
+              <div className="flex justify-center">
+                <div className="bg-red-100 p-4 rounded-full">
+                  <AlertTriangle className="h-16 w-16 text-red-600" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Kuna Tatizo Limetokea</h2>
+                <p className="text-red-600 mt-2">
+                  {submissionMessage || 'Kumekuwa na hitilafu wakati wa kuwasilisha maombi yako. Tafadhali jaribu tena.'}
+                </p>
+              </div>
+            </>
+          )} */}
         </div>
 
         {/* Application Details Card */}

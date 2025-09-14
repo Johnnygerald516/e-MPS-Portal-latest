@@ -89,11 +89,12 @@ type ParentsInfoFormValues = z.infer<typeof parentsInfoSchema>;
 
 export default function ParentsInfoPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams.get('applicationId') || '';
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Get applicationId from context instead of URL parameters
+  const applicationId = formData.applicationId || '';
   
   // State for father's country and region options
   const [fatherCountryOptions, setFatherCountryOptions] = useState<CountryOption[]>([]);

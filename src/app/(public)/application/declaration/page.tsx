@@ -62,9 +62,10 @@ interface LookupResponse {
 export default function DeclarationPage() {
   const { formData, updateFormData, setIsLoading, isLoading } = useApplication();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams.get('applicationId') || '';
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Get applicationId from context instead of URL parameters
+  const applicationId = formData.applicationId || '';
   
   // State for image viewer dialog
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
@@ -361,23 +362,23 @@ export default function DeclarationPage() {
   
   // Navigation functions for edit buttons
   const navigateToBasicInfo = () => {
-    router.push(`/application/basic-info?applicationId=${applicationId}`);
+    router.push('/application/basic-info');
   };
 
   const navigateToResidenceInfo = () => {
-    router.push(`/application/residence-info?applicationId=${applicationId}`);
+    router.push('/application/residence-info');
   };
 
   const navigateToParentsInfo = () => {
-    router.push(`/application/parents-info?applicationId=${applicationId}`);
+    router.push('/application/parents-info');
   };
 
   const navigateToDependantInfo = () => {
-    router.push(`/application/dependant-info?applicationId=${applicationId}`);
+    router.push('/application/dependant-info');
   };
 
   const navigateToDocuments = () => {
-    router.push(`/application/documents?applicationId=${applicationId}`);
+    router.push('/application/documents');
   };
 
   const getBase64ImageSrc = (photoItem: any) => {
@@ -411,11 +412,22 @@ export default function DeclarationPage() {
   const onSubmit = async (data: DeclarationFormValues) => {
     setIsLoading(true);
     
-    // Update form data
+    // Update form data immediately
     updateFormData(data);
     
+    // Show immediate feedback to user
+    toast({
+      title: "Submitting Application",
+      description: "Please wait while we process your submission...",
+      variant: "default"
+    });
+    
+    // Trigger navigation immediately to improve perceived performance
+    // This will show the complete page with a loading state while the API call completes
+    setAutoNavigateToNext(true);
+    
     try {
-      // Check if all required information is present
+      // Check if all required information is present - do this check in parallel with navigation
       const requiredFields = [
         { field: formData.firstName, name: 'First Name' },
         { field: formData.lastName, name: 'Last Name' },
@@ -435,53 +447,56 @@ export default function DeclarationPage() {
         .map(item => item.name);
       
       if (missingFields.length > 0) {
-        toast({
-          title: "Missing Information",
-          description: `Please complete the following information: ${missingFields.join(', ')}`,
-          variant: "destructive"
+        // If there are missing fields, we'll handle this on the complete page
+        // Store the error in context to display on the complete page
+        updateFormData({
+          submissionError: `Missing information: ${missingFields.join(', ')}`
         });
-        setIsLoading(false);
         return;
       }
       
-      // Submit the declaration - only passing applicationId in the URL, no payload
-      const response = await fetch(`/api/applications/${applicationId}/declaration`, {
+      // Submit the declaration in the background - don't wait for it to complete before navigation
+      fetch(`/api/applications/${applicationId}/declaration`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to submit declaration: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.ackCode === 1) {
+          // Store success status in context
+          updateFormData({
+            submissionStatus: 'success',
+            submissionMessage: "Application submitted successfully"
+          });
+        } else {
+          // Store error in context
+          updateFormData({
+            submissionStatus: 'error',
+            submissionError: result.ackMessage || "Failed to submit declaration"
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error submitting application:", error);
+        // Store error in context
+        updateFormData({
+          submissionStatus: 'error',
+          submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
+        });
       });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to submit declaration: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.ackCode === 1) {
-        // Show success toast
-        toast({
-          title: "Success",
-          description: "Application submitted successfully",
-          variant: "default"
-        });
-        
-        // Set autoNavigateToNext to true to trigger automatic navigation
-        setIsLoading(false);
-        setAutoNavigateToNext(true);
-      } else {
-        toast({
-          title: "Error",
-          description: result.ackMessage || "Failed to submit declaration",
-          variant: "destructive"
-        });
-      }
     } catch (error) {
-      console.error("Error submitting application:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit declaration",
-        variant: "destructive"
+      console.error("Error in submission process:", error);
+      // Store error in context
+      updateFormData({
+        submissionStatus: 'error',
+        submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
       });
     } finally {
       setIsLoading(false);

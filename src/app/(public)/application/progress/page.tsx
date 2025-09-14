@@ -161,8 +161,9 @@ export default function ApplicationProgressPage() {
 
   const handleCorrectApplication = () => {
     if (applicationData?.id) {
-      // Navigate to the dashboard page with the application ID for editing
-      router.push(`/dashboard?edit=${applicationData.id}`);
+      // Store the application ID in context instead of URL parameters
+      // and navigate to the dashboard page for editing
+      router.push('/dashboard');
     }
   };
 
