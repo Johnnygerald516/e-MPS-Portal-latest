@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Download, CheckCircle, Home, Eye, AlertTriangle } from "lucide-react";
@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export default function ApplicationCompletePage() {
+function ApplicationCompleteContent() {
   const searchParams = useSearchParams();
   // Get applicationId from URL parameter
   const applicationIdParam = searchParams.get('applicationId') || '';
@@ -460,5 +460,13 @@ export default function ApplicationCompletePage() {
         </div>
       </motion.div>
     </ApplicationLayout>
+  );
+}
+
+export default function ApplicationCompletePage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+      <ApplicationCompleteContent />
+    </Suspense>
   );
 }

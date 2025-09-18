@@ -125,6 +125,7 @@ export function CustomDateInput({
   // Handle date change from the date picker
   const handleDateChange = (e: React.FormEvent<HTMLInputElement> | React.ChangeEvent<HTMLInputElement>) => {
     const dateValue = e.currentTarget.value;
+    console.log('Date input value changed to:', dateValue);
     
     if (dateValue) {
       try {
@@ -140,6 +141,7 @@ export function CustomDateInput({
           
           // Create a corrected date string
           const correctedDateValue = `${year}-${month}-${day}`;
+          console.log('Corrected date value:', correctedDateValue);
           
           // Update the input value
           if (e.currentTarget.type === 'date') {
@@ -149,9 +151,10 @@ export function CustomDateInput({
         
         // Create a proper ISO date string (YYYY-MM-DD)
         const isoDateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        console.log('ISO date string to be saved:', isoDateString);
         
         // Update the form field with the ISO string, not a Date object
-        // This is important because the residence-info page expects a string
+        // This is important because the API expects a string
         field.onChange(isoDateString);
         
         // Format for display
@@ -169,17 +172,20 @@ export function CustomDateInput({
         // If there's an error parsing, try to salvage the date
         try {
           // Just use the raw value as a fallback
+          console.log('Using raw date value as fallback:', dateValue);
           field.onChange(dateValue);
           setDisplayValue(dateValue);
         } catch (e) {
           // Last resort - use today's date
           const today = new Date();
           const todayIso = today.toISOString().split('T')[0];
+          console.log('Using today as last resort:', todayIso);
           field.onChange(todayIso);
           setDisplayValue(formatDateToMMDDYYYY(today));
         }
       }
     } else {
+      console.log('Empty date value, clearing field');
       field.onChange('');
       setDisplayValue('');
     }

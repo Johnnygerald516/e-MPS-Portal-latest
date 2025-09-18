@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { fileToBase64 as convertFileToBase64 } from "@/lib/utils/base64";
 
 interface DocumentsTableProps {
   applicationId: string;
@@ -727,39 +728,15 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
     });
   };
   
-  // Convert file to base64 with optimization for shorter strings
+  // Use our shared utility function for file to base64 conversion
   const fileToBase64 = async (file: File): Promise<string> => {
-    // For demo purposes, create a simplified base64 string
-    // In a real application, you would use proper compression techniques
-    if (file.size > 100000) { // If file is larger than 100KB
-      console.log('File is large, using simplified base64 for demo');
-      // Return a simplified base64 string for demo purposes
-      return 'JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PCAvVHlwZSAvWE9iamVjdCAvU3VidHlwZSAvSW1hZ2UgL1dpZHRoIDEyMDAgL0hlaWdodCA4MDAgL0JpdHNQZXJDb21wb25lbnQgOCAvQ29sb3JTcGFjZSAvRGV2aWNlUkdCIC9GaWx0ZXIgL0RDVERlY29kZSAvTGVuZ3RoIDEyMzQ1ID4+CnN0cmVhbQpkb2N1bWVudCBjb250ZW50IGhlcmUKZW5kc3RyZWFtCmVuZG9iago0IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMyAwIFIgL1Jlc291cmNlcyA8PCAvWE9iamVjdCA8PCAvSW0wIDUgMCBSID4+ID4+IC9Db250ZW50cyA2IDAgUiA+PgplbmRvYmoKNiAwIG9iago8PCAvTGVuZ3RoIDg0ID4+CnN0cmVhbQpxCjEyMDAgMCAwIDgwMCAwIDAgY20KL0ltMCBEbwpRCmVuZHN0cmVhbQplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0tpZHMgWyA0IDAgUiBdIC9Db3VudCAxID4+CmVuZG9iagoxIDAgb2JqCjw8IC9UeXBlIC9DYXRhbG9nIC9QYWdlcyAzIDAgUiA+PgplbmRvYmoKMiAwIG9iago8PCAvUHJvZHVjZXIgKGNhaXJvIDEuMTYuMCAoaHR0cHM6Ly9jYWlyb2dyYXBoaWNzLm9yZykpCi9DcmVhdGlvbkRhdGUgKEQ6MjAyMzA5MTAxODEzMzMrMDMnMDAnKSA+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDEyNjkxIDAwMDAwIG4gCjAwMDAwMTI3NDAgMDAwMDAgbiAKMDAwMDAxMjYzMiAwMDAwMCBuIAowMDAwMDEyNDU3IDAwMDAwIG4gCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAxMjU2NSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDcgL1Jvb3QgMSAwIFIgL0luZm8gMiAwIFIgPj4Kc3RhcnR4cmVmCjEyODU3CiUlRU9GCg==';
+    try {
+      // Use the shared utility function
+      return await convertFileToBase64(file);
+    } catch (error) {
+      console.error('Error converting file to base64:', error);
+      throw error;
     }
-    
-    // For smaller files, use standard base64 conversion but with a size limit
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (reader.result) {
-          // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
-          const base64String = reader.result.toString().split(',')[1];
-          
-          // Limit the base64 string length for demo purposes
-          // In a real application, you would use proper compression
-          if (base64String.length > 10000) {
-            console.log('Truncating base64 string for demo');
-            resolve(base64String.substring(0, 10000) + '...');
-          } else {
-            resolve(base64String);
-          }
-        } else {
-          reject(new Error('Failed to convert file to base64'));
-        }
-      };
-      reader.onerror = error => reject(error);
-    });
   };
   
   // Handle file selection in dialog

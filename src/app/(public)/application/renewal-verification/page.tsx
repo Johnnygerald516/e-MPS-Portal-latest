@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Search, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
@@ -31,7 +31,7 @@ const verificationQuestions = {
   ]
 };
 
-export default function RenewalVerificationPage() {
+function RenewalVerificationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [passNumber, setPassNumber] = useState("");
@@ -236,5 +236,13 @@ export default function RenewalVerificationPage() {
         renewalReason={renewalReason}
       />
     </div>
+  );
+}
+
+export default function RenewalVerificationPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+      <RenewalVerificationContent />
+    </Suspense>
   );
 }

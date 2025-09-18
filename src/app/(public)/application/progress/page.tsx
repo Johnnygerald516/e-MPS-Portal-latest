@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion, Variants } from "framer-motion";
 import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,7 +39,7 @@ interface ApplicationStatusData {
   assessorComments?: string;
 }
 
-export default function ApplicationProgressPage() {
+function ApplicationProgressContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [applicationId, setApplicationId] = useState("");
@@ -384,5 +384,13 @@ export default function ApplicationProgressPage() {
         </motion.div>
       </div>
     </motion.div>
+  );
+}
+
+export default function ApplicationProgressPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+      <ApplicationProgressContent />
+    </Suspense>
   );
 }

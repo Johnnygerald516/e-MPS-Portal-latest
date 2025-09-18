@@ -379,8 +379,13 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response when fetching countries:', errorText);
+        // Return empty result instead of throwing
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch countries. Please try again later.",
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
@@ -388,7 +393,12 @@ export const verificationEndpoints = {
       return responseData;
     } catch (error) {
       console.error('Error fetching countries:', error);
-      throw error;
+      // Return empty result instead of throwing
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch countries. Please try again later.",
+        jsonResult: []
+      };
     }
   },
   
@@ -401,7 +411,11 @@ export const verificationEndpoints = {
       const numericCountryId = Number(countryId);
       if (isNaN(numericCountryId)) {
         console.error('Invalid countryId provided:', countryId);
-        throw new Error('Invalid countryId provided');
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid country ID provided",
+          jsonResult: []
+        };
       }
       
       const payload = {
@@ -425,8 +439,12 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response when fetching regions:', errorText);
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch regions. Please try again later.",
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
@@ -435,6 +453,11 @@ export const verificationEndpoints = {
       // Validate response structure
       if (!responseData.jsonResult) {
         console.error('Invalid response structure - missing jsonResult:', responseData);
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: []
+        };
       } else {
         console.log('Region results count:', responseData.jsonResult.length);
         if (responseData.jsonResult.length > 0) {
@@ -445,7 +468,11 @@ export const verificationEndpoints = {
       return responseData;
     } catch (error) {
       console.error('Error fetching regions:', error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch regions. Please try again later.",
+        jsonResult: []
+      };
     }
   },
   
@@ -458,7 +485,11 @@ export const verificationEndpoints = {
       const numericRegionId = Number(regionId);
       if (isNaN(numericRegionId)) {
         console.error('Invalid regionId provided:', regionId);
-        throw new Error('Invalid regionId provided');
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid region ID provided",
+          jsonResult: []
+        };
       }
       
       const payload = {
@@ -482,8 +513,12 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response when fetching districts:', errorText);
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch districts. Please try again later.",
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
@@ -492,6 +527,11 @@ export const verificationEndpoints = {
       // Validate response structure
       if (!responseData.jsonResult) {
         console.error('Invalid response structure - missing jsonResult:', responseData);
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: []
+        };
       } else {
         console.log('District results count:', responseData.jsonResult.length);
         if (responseData.jsonResult.length > 0) {
@@ -502,7 +542,11 @@ export const verificationEndpoints = {
       return responseData;
     } catch (error) {
       console.error('Error fetching districts:', error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch districts. Please try again later.",
+        jsonResult: []
+      };
     }
   },
   
@@ -515,7 +559,11 @@ export const verificationEndpoints = {
       const numericDistrictId = Number(districtId);
       if (isNaN(numericDistrictId)) {
         console.error('Invalid districtId provided:', districtId);
-        throw new Error('Invalid districtId provided');
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid district ID provided",
+          jsonResult: []
+        };
       }
       
       const payload = {
@@ -539,8 +587,12 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response when fetching wards:', errorText);
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch wards. Please try again later.",
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
@@ -549,6 +601,11 @@ export const verificationEndpoints = {
       // Validate response structure
       if (!responseData.jsonResult) {
         console.error('Invalid response structure - missing jsonResult:', responseData);
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: []
+        };
       } else {
         console.log('Ward results count:', responseData.jsonResult.length);
         if (responseData.jsonResult.length > 0) {
@@ -559,7 +616,11 @@ export const verificationEndpoints = {
       return responseData;
     } catch (error) {
       console.error('Error fetching wards:', error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch wards. Please try again later.",
+        jsonResult: []
+      };
     }
   },
   
@@ -588,8 +649,12 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response when fetching nationalities:', errorText);
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to fetch nationalities. Please try again later.",
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
@@ -600,6 +665,11 @@ export const verificationEndpoints = {
       // Validate response structure
       if (!responseData.jsonResult) {
         console.error('Invalid response structure - missing jsonResult:', responseData);
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: []
+        };
       } else {
         console.log('Nationality results count:', responseData.jsonResult.length);
         if (responseData.jsonResult.length > 0) {
@@ -616,7 +686,11 @@ export const verificationEndpoints = {
       return responseData;
     } catch (error) {
       console.error('Error fetching nationalities:', error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to fetch nationalities. Please try again later.",
+        jsonResult: []
+      };
     }
   },
   
@@ -800,17 +874,35 @@ export const verificationEndpoints = {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn(`API error response for ${payload.operationType}:`, errorText);
+        return {
+          ackCode: 0,
+          ackMessage: `Failed to fetch ${payload.operationType}. Please try again later.`,
+          jsonResult: []
+        };
       }
       
       const responseData = await response.json();
       console.log(`${payload.operationType} lookup response:`, responseData);
       
+      // Validate response structure
+      if (!responseData.jsonResult) {
+        console.error(`Invalid response structure for ${payload.operationType} - missing jsonResult:`, responseData);
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: []
+        };
+      }
+      
       return responseData;
     } catch (error) {
       console.error(`Error fetching ${payload.operationType}:`, error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: `Failed to fetch ${payload.operationType}. Please try again later.`,
+        jsonResult: []
+      };
     }
   },
 
@@ -829,8 +921,12 @@ export const verificationEndpoints = {
       // Check if the response is OK
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        console.warn('API error response for verification:', errorText);
+        return {
+          ackCode: 0,
+          ackMessage: "Failed to verify registration. Please try again later.",
+          jsonResult: { applicationID: "", phoneNo: "" }
+        };
       }
       
       // Try to parse the response as JSON
@@ -842,11 +938,19 @@ export const verificationEndpoints = {
         console.error('Failed to parse JSON response:', parseError);
         const responseText = await response.text();
         console.error('Response text:', responseText);
-        throw new Error('Invalid JSON response from server');
+        return {
+          ackCode: 0,
+          ackMessage: "Invalid response format from server",
+          jsonResult: { applicationID: "", phoneNo: "" }
+        };
       }
     } catch (error) {
       console.error('Error verifying registration:', error);
-      throw error;
+      return {
+        ackCode: 0,
+        ackMessage: "Failed to verify registration. Please try again later.",
+        jsonResult: { applicationID: "", phoneNo: "" }
+      };
     }
   }
 };

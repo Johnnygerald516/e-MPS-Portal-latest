@@ -19,6 +19,7 @@ import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { fileToBase64 } from "@/lib/utils/base64";
 
 // Lazy load components that aren't needed immediately
 const DocumentsTable = lazy(() => import("@/components/datatables/DocumentsTable"));
@@ -198,21 +199,7 @@ export default function DocumentsPage() {
     }
   };
   
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        // Extract the base64 string from the DataURL
-        const base64String = reader.result as string;
-        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
-        const base64 = base64String.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = error => reject(error);
-    });
-  };
+  // Note: Using shared fileToBase64 utility from @/lib/utils/base64
   
   // Upload file to server
   const uploadFile = async (documentId: string) => {

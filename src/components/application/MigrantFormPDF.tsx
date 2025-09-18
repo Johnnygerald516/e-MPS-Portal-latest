@@ -55,6 +55,7 @@ export interface MigrantFormData {
   attachments?: any[];
 }
 
+
 // Define the component props
 interface MigrantFormPDFProps {
   formData: MigrantFormData;
@@ -132,7 +133,7 @@ export const generateBarcode = async (text: string): Promise<string> => {
       format: 'CODE128',
       displayValue: true,
       fontSize: 14,       // Increased font size
-      height: 70,         // Increased height
+      height: 50,         // Increased height
       width: 1,           // Increased bar width
       margin: 10,         // Increased margin
       background: '#ffffff',
@@ -307,7 +308,6 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     drawTableRow('Region (Mkoa):', formData.region?.toUpperCase() || 'N/A');
     drawTableRow('Phone Number (Namba ya Simu):', formData.mobileNumber || 'N/A');
     drawTableRow('Nationality (Uraia):', formData.nationality || 'N/A');
-    drawTableRow('Place of Birth (Mahali pa Kuzaliwa):', formData.placeOfBirth || 'N/A');
     drawTableRow('Occupation Type (Aina ya Kazi):', formData.occupationType || 'N/A');
     drawTableRow('Occupation (Kazi):', formData.occupation || 'N/A');
     
@@ -323,7 +323,6 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     drawTableRow('Region (Mkoa):', formData.residenceRegion || 'N/A');
     drawTableRow('District (Wilaya):', formData.district || 'N/A');
     drawTableRow('Street (Mtaa):', formData.street || 'N/A');
-    drawTableRow('Permanent Address (Makazi ya Kudumu):', formData.permanentAddress || 'N/A');
     drawTableRow('Date of Entry in Tz (Tarehe ya Kuingia Nchini):', formatDate(formData.dateOfEntry));
     
     // 3. PARENTS INFORMATION section

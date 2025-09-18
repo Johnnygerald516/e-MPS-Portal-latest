@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, Variants } from "framer-motion";
 import { ArrowLeft, User, Calendar, MapPin, ChevronRight } from "lucide-react";
@@ -22,7 +22,7 @@ interface VerificationFormData {
   phoneNumber: string;
 }
 
-export default function VerificationPage() {
+function VerificationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { updateFormData } = useApplication();
@@ -464,5 +464,13 @@ export default function VerificationPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function VerificationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <VerificationContent />
+    </Suspense>
   );
 }

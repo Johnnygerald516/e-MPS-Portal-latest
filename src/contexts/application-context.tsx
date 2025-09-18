@@ -118,6 +118,7 @@ export interface ApplicationFormData {
     relationship: string;
     dateOfBirth: Date | string;
     passportNumber?: string;
+    passportIssuedDate?: Date | string;
     passportExpiryDate?: Date | string;
     nationality?: string;
   }[];
@@ -266,6 +267,9 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         }
         if (typeof newDep.passportExpiryDate === 'string' && newDep.passportExpiryDate) {
           try { newDep.passportExpiryDate = new Date(newDep.passportExpiryDate); } catch (e) {}
+        }
+        if (typeof newDep.passportIssuedDate === 'string' && newDep.passportIssuedDate) {
+          try { newDep.passportIssuedDate = new Date(newDep.passportIssuedDate); } catch (e) {}
         }
         return newDep;
       });

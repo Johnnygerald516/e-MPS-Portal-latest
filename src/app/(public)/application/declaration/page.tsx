@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import Image from "next/image";
 import { CheckCircle, Loader2, Edit2, User, Home, Users, FileText, Upload, Calendar, Globe, Save, Eye, X } from "lucide-react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { InteractiveCheckbox } from "@/components/ui/interactive-checkbox";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
@@ -15,6 +16,9 @@ import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { processApiImageData, debugBase64Image } from "@/lib/utils/base64";
+import Base64Image from "@/components/ui/base64-image";
 
 // Form validation schema
 const declarationSchema = z.object({
@@ -212,6 +216,7 @@ export default function DeclarationPage() {
                   gender: dep.dependantGender || "",
                   nationality: dep.dependantNationality?.toString() || "",
                   passportNumber: dep.documentNumber || "",
+                  passportIssuedDate: dep.issueDate ? new Date(dep.issueDate) : undefined,
                   passportExpiryDate: dep.expireDate ? new Date(dep.expireDate) : undefined,
                   dateOfBirth: dep.issueDate ? new Date(dep.issueDate) : undefined
                 })) : []
@@ -220,15 +225,18 @@ export default function DeclarationPage() {
           
           // Handle applicant photo - attachmentType contains base64 data for 'picha ya muombaji'
           if (Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
-            const rawPhotoItem = data.jsonResult.applicantPhoto[0]; // ✅ get the first item
-            const photoSrc = getBase64ImageSrc(rawPhotoItem);       // ✅ pass single object
-            console.log("Applicant photo src:", photoSrc);
+            const rawPhotoItem = data.jsonResult.applicantPhoto[0];
+            const photoSrc = getBase64ImageSrc(rawPhotoItem);
+            
+            // Debug the photo data
+            debugBase64Image(photoSrc, 'Applicant Photo from API');
           
             if (photoSrc) {
               setApplicantPhoto(photoSrc);
-              setPhotoError(null);
+              console.log("✅ Applicant photo set successfully");
             } else {
-              setPhotoError("Picha ya muombaji haikupatikana");
+              console.log("❌ Failed to process applicant photo");
+              setPhotoError("Imeshindwa kusindika picha");
             }
           } else {
             setPhotoError("Picha ya muombaji haikupatikana");
@@ -381,18 +389,9 @@ export default function DeclarationPage() {
     router.push('/application/documents');
   };
 
+  // Use the shared utility function for processing API image data
   const getBase64ImageSrc = (photoItem: any) => {
-    if (!photoItem) return null;
-  
-    const base64 = photoItem.attachmentType;
-    if (!base64) return null;
-  
-    if (base64.startsWith("data:")) return base64;
-  
-    if (base64.startsWith("/9j/")) return `data:image/jpeg;base64,${base64}`;
-    if (base64.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${base64}`;
-  
-    return `data:image/jpeg;base64,${base64}`;
+    return processApiImageData(photoItem);
   };
   
 
@@ -546,15 +545,49 @@ const getPhotoSrc = (photo?: string) => {
     return photo;
   }
 
+  // Clean the base64 string (remove whitespace)
+  const cleanPhoto = photo.replace(/\s/g, '');
+
   // Detect by signature
-  if (photo.startsWith("/9j/")) return `data:image/jpeg;base64,${photo}`;
-  if (photo.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${photo}`;
+  if (cleanPhoto.startsWith("/9j/")) return `data:image/jpeg;base64,${cleanPhoto}`;
+  if (cleanPhoto.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${cleanPhoto}`;
 
   // Fallback to jpeg
-  return `data:image/jpeg;base64,${photo}`;
+  return `data:image/jpeg;base64,${cleanPhoto}`;
 };
 
-console.log(applicantPhoto)
+// Simple component to test base64 image display
+const SimpleBase64Image = ({ base64, alt, className }: { base64: string; alt: string; className?: string }) => {
+  const src = getPhotoSrc(base64);
+  
+  if (!src) {
+    return (
+      <div className="flex items-center justify-center bg-gray-100 text-gray-500 text-xs p-2">
+        No Image
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={(e) => {
+        console.error('Image failed to load:', src.substring(0, 100));
+        e.currentTarget.style.display = 'none';
+      }}
+      onLoad={() => {
+        console.log('Image loaded successfully');
+      }}
+    />
+  );
+};
+
+// Debug the current applicant photo state
+debugBase64Image(applicantPhoto, 'Current Applicant Photo State');
+
+
 return (
     <ApplicationLayout 
       title="Declaration" 
@@ -645,16 +678,15 @@ return (
                   //   </div>
                   // ) : 
                   applicantPhoto ? (
-                    <img
-                    // src={getPhotoSrc(applicantPhoto) || ""}
-                    src={applicantPhoto}
-                    alt="Picha ya Muombaji"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      setPhotoError("Imeshindikana kupakua picha");
-                      if (e.currentTarget) e.currentTarget.style.display = "none";
-                    }}
-                  />
+                    <div className="relative flex items-center justify-center w-full h-full">
+                      <Base64Image
+                        base64={applicantPhoto}
+                        alt="Picha ya Muombaji"
+                        width={128}
+                        height={160}
+                        className="w-full h-full object-cover rounded"
+                      />
+                    </div>
                   
                    ) : (
                     <div className="flex flex-col items-center justify-center h-full w-full">
@@ -707,12 +739,6 @@ return (
                 <h4 className="text-sm font-medium text-slate-600">Mtaa</h4>
                 <p className="text-slate-800 uppercase">{formData.street}</p>
               </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-slate-600">Anwani ya Kudumu</h4>
-                <p className="text-slate-800 uppercase">{formData.permanentAddressOrigin || "Sawa na anwani ya sasa"}</p>
-              </div>
-              
               <div>
                 <h4 className="text-sm font-medium text-slate-600">Tarehe ya Kuingia Nchini</h4>
                 <p className="text-slate-800 uppercase">{formData.dateOfEntry instanceof Date ? format(formData.dateOfEntry, "PPP") : "Haijajazwa"}</p>
@@ -815,8 +841,8 @@ return (
                     <tr className="bg-slate-50">
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Jina</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Mahusiano</th>
-                      <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Tarehe ya Kuzaliwa</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Namba ya Hati</th>
+                      <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Tarehe ya Kutolewa</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Tarehe Kuisha</th>
                       <th className="text-left p-2 text-xs font-medium text-slate-600 border-b border-slate-200">Taifa</th>
                     </tr>
@@ -826,10 +852,10 @@ return (
                       <tr key={`dependant-${index}-${dependant.name || dependant.passportNumber || index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                         <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">{dependant.name}</td>
                         <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">{dependant.relationship}</td>
-                        <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">
-                          {dependant.dateOfBirth instanceof Date ? format(dependant.dateOfBirth, "PPP") : "Haijajazwa"}
-                        </td>
                         <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">{dependant.passportNumber}</td>
+                        <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">
+                          {dependant.passportIssuedDate instanceof Date ? format(dependant.passportIssuedDate, "PPP") : "Haijajazwa"}
+                        </td>
                         <td className="p-2 text-sm text-slate-800 border-b border-slate-100 uppercase">
                           {dependant.passportExpiryDate instanceof Date ? format(dependant.passportExpiryDate, "PPP") : "Haijajazwa"}
                         </td>
@@ -900,7 +926,7 @@ return (
       >
         <CheckCircle className="h-4 w-4 mr-2" />
         Submit Application
-      </LoadingButton>
+      </LoadingButton> 
     </div>
   </form>
 </Form>

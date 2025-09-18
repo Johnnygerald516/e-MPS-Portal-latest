@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: migrant-fe-portal-service
+spec:
+  selector:
+    app: migrant-fe-portal
+  ports:
+  - name: http
+    port: 3100
+    targetPort: 3100
+  type: LoadBalancer
+  # Specify the loadBalancerIP if you want to use a specific IP
+  loadBalancerIP: 10.6.0.157
+---
+# NodePort service for external access if needed
+apiVersion: v1
+kind: Service
+metadata:
+  name: migrant-fe-portal-nodeport
+spec:
+  selector:
+    app: migrant-fe-portal
+  ports:
+  - name: http
+    port: 3100
+    targetPort: 3100
+    nodePort: 30000
+  type: NodePort

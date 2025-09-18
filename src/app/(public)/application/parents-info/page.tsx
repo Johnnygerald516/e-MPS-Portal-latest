@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -87,7 +87,7 @@ const parentsInfoSchema = z.object({
 
 type ParentsInfoFormValues = z.infer<typeof parentsInfoSchema>;
 
-export default function ParentsInfoPage() {
+function ParentsInfoContent() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
@@ -467,19 +467,30 @@ export default function ParentsInfoPage() {
         motherNationalityId: formValues.motherNationalityId
       });
       
+      // Log the raw date values from the form to debug
+      console.log('Raw father date of birth from form:', formValues.fatherDateOfBirth);
+      console.log('Raw mother date of birth from form:', formValues.motherDateOfBirth);
+      
+      // Get the date values directly from the form values, not from the converted data object
+      const fatherDOB = formValues.fatherDateOfBirth || '';
+      const motherDOB = formValues.motherDateOfBirth || '';
+      
+      console.log('Father DOB to be used in API payload:', fatherDOB);
+      console.log('Mother DOB to be used in API payload:', motherDOB);
+      
       // Prepare API payload according to the required format
       const apiPayload = {
         fatherFullName: String(data.fatherName || ''),
-        // Format date with validation to ensure valid year
-        fatherDateOfBirth: formatValidDate(data.fatherDateOfBirth),
+        // Use the raw date string from the form values
+        fatherDateOfBirth: fatherDOB,
         // Use the exact IDs from the form values
         fatherCountryOfBirthId: Number(formValues.fatherCountryId) || 0,
         fatherCountryOfResidentId: Number(formValues.fatherCountryOfResidenceId) || 0,
         fatherNationalityId: Number(formValues.fatherNationalityId) || 0,
         fatherRegionOfBirthId: Number(formValues.fatherRegionId) || 0,
         motherFullName: String(data.motherName || ''),
-        // Format date with validation to ensure valid year
-        motherDateOfBirth: formatValidDate(data.motherDateOfBirth),
+        // Use the raw date string from the form values
+        motherDateOfBirth: motherDOB,
         motherRegionOfBirthId: Number(formValues.motherRegionId) || 0,
         motherCountryOfBirthId: Number(formValues.motherCountryId) || 0,
         motherCountryOfResidentId: Number(formValues.motherCountryOfResidenceId) || 0,
@@ -699,12 +710,27 @@ export default function ParentsInfoPage() {
                 control={form.control}
                 name="fatherDateOfBirth"
                 render={({ field }) => (
-                  <CustomDateInput
-                    field={field}
-                    label="Tarehe ya Kuzaliwa"
-                    required={true}
-                    id="fatherDateOfBirth"
-                  />
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-neutral-500">
+                      Tarehe ya Kuzaliwa <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                        <Input
+                          id="fatherDateOfBirth"
+                          type="date"
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            console.log('Father date input changed to:', e.target.value);
+                            field.onChange(e.target.value);
+                          }}
+                          className="pl-10 rounded bg-white border border-gray-300 px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
               
@@ -980,12 +1006,27 @@ export default function ParentsInfoPage() {
                 control={form.control}
                 name="motherDateOfBirth"
                 render={({ field }) => (
-                  <CustomDateInput
-                    field={field}
-                    label="Tarehe ya Kuzaliwa"
-                    required={true}
-                    id="motherDateOfBirth"
-                  />
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-neutral-500">
+                      Tarehe ya Kuzaliwa <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                        <Input
+                          id="motherDateOfBirth"
+                          type="date"
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            console.log('Mother date input changed to:', e.target.value);
+                            field.onChange(e.target.value);
+                          }}
+                          className="pl-10 rounded bg-white border border-gray-300 px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
               
@@ -1137,5 +1178,13 @@ export default function ParentsInfoPage() {
         </form>
       </Form>
     </ApplicationLayout>
+  );
+}
+
+export default function ParentsInfoPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+      <ParentsInfoContent />
+    </Suspense>
   );
 }

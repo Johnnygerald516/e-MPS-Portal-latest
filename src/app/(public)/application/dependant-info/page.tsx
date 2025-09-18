@@ -286,8 +286,18 @@ export default function DependantInfoPage() {
         // Include document fields with proper defaults
         dependantData.documentTypeID = Number(dep.documentTypeId) || 0;
         dependantData.documentNo = dep.documentNumber || '';
+        
+        // Ensure dates are properly formatted and included in the API payload
+        console.log('Document issued date before formatting:', dep.documentIssuedDate);
+        console.log('Document expiry date before formatting:', dep.documentExpiryDate);
+        
+        // Format dates and assign to the correct API field names
         dependantData.issuedDate = formatDate(dep.documentIssuedDate) || '';
         dependantData.expireDate = formatDate(dep.documentExpiryDate) || '';
+        
+        console.log('Formatted issued date for API:', dependantData.issuedDate);
+        console.log('Formatted expiry date for API:', dependantData.expireDate);
+        
         dependantData.issuedCountryID = Number(dep.issuedCountryId) || 0;
         
         return dependantData;

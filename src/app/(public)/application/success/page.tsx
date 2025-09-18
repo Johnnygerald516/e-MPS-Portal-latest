@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,7 +11,7 @@ import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { format } from "date-fns";
 
-export default function ApplicationSuccessPage() {
+function ApplicationSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const referenceId = searchParams.get('referenceId') || '';
@@ -22,7 +22,7 @@ export default function ApplicationSuccessPage() {
   const submissionDate = new Date().toLocaleDateString();
   
   // Format dates for display
-  const formatDate = (date: Date | null | undefined) => {
+  const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'Not provided';
     return format(new Date(date), 'dd MMM yyyy');
   };
@@ -39,7 +39,7 @@ export default function ApplicationSuccessPage() {
       Full Name: ${formData.firstName || ''} ${formData.middleName || ''} ${formData.lastName || ''}
       Email: ${formData.email || ''}
       Phone: ${formData.mobileNumber || ''}
-      Date of Birth: ${formatDate(formData.dateOfBirth)}
+      Date of Birth: ${formData.dateOfBirth ? formatDate(formData.dateOfBirth) : 'Not provided'}
       Gender: ${formData.gender || ''}
       Marital Status: ${formData.maritalStatus || ''}
       
@@ -53,12 +53,12 @@ export default function ApplicationSuccessPage() {
       
       PARENT INFORMATION
       Father's Name: ${formData.fatherName || ''}
-      Father's DOB: ${formatDate(formData.fatherDateOfBirth)}
+      Father's DOB: ${formData.fatherDateOfBirth ? formatDate(formData.fatherDateOfBirth) : 'Not provided'}
       Father's Place of Birth: ${formData.fatherCountryOfBirth || ''}, ${formData.fatherRegionOfBirth || ''}
       Father's Nationality: ${formData.fatherNationality || ''}
       
       Mother's Name: ${formData.motherName || ''}
-      Mother's DOB: ${formatDate(formData.motherDateOfBirth)}
+      Mother's DOB: ${formData.motherDateOfBirth ? formatDate(formData.motherDateOfBirth) : 'Not provided'}
       Mother's Place of Birth: ${formData.motherCountryOfBirth || ''}, ${formData.motherRegionOfBirth || ''}
       Mother's Nationality: ${formData.motherNationality || ''}
       
@@ -90,7 +90,7 @@ export default function ApplicationSuccessPage() {
     <ApplicationLayout 
       title="Application Submitted" 
       subtitle="Your application has been submitted successfully"
-      referenceId={applicationId}
+      applicationId={applicationId}
       currentStep="mafanikio"
     >
         <motion.div
@@ -187,7 +187,7 @@ export default function ApplicationSuccessPage() {
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Date of Birth</p>
-                          <p className="font-medium">{formData.dateOfBirth ? format(new Date(formData.dateOfBirth), 'dd MMM yyyy') : ''}</p>
+                          <p className="font-medium">{formData.dateOfBirth ? formatDate(formData.dateOfBirth) : ''}</p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Gender</p>
@@ -253,7 +253,7 @@ export default function ApplicationSuccessPage() {
                           <h5 className="font-medium text-slate-700">Father's Information</h5>
                           <div className="space-y-1">
                             <div><span className="font-medium text-slate-600">Name:</span> {formData.fatherName}</div>
-                            <div><span className="font-medium text-slate-600">DOB:</span> {formData.fatherDateOfBirth ? format(new Date(formData.fatherDateOfBirth), 'dd MMM yyyy') : ''}</div>
+                            <div><span className="font-medium text-slate-600">DOB:</span> {formData.fatherDateOfBirth ? formatDate(formData.fatherDateOfBirth) : ''}</div>
                             <div><span className="font-medium text-slate-600">Place of Birth:</span> {formData.fatherCountryOfBirth}, {formData.fatherRegionOfBirth}</div>
                             <div><span className="font-medium text-slate-600">Nationality:</span> {formData.fatherNationality}</div>
                             <div><span className="font-medium text-slate-600">Country of Residence:</span> {formData.countryOfResidence}</div>
@@ -263,7 +263,7 @@ export default function ApplicationSuccessPage() {
                           <h5 className="font-medium text-slate-700">Mother's Information</h5>
                           <div className="space-y-1">
                             <div><span className="font-medium text-slate-600">Name:</span> {formData.motherName}</div>
-                            <div><span className="font-medium text-slate-600">DOB:</span> {formData.motherDateOfBirth ? format(new Date(formData.motherDateOfBirth), 'dd MMM yyyy') : ''}</div>
+                            <div><span className="font-medium text-slate-600">DOB:</span> {formData.motherDateOfBirth ? formatDate(formData.motherDateOfBirth) : ''}</div>
                             <div><span className="font-medium text-slate-600">Place of Birth:</span> {formData.motherCountryOfBirth}, {formData.motherRegionOfBirth}</div>
                             <div><span className="font-medium text-slate-600">Nationality:</span> {formData.motherNationality}</div>
                             <div><span className="font-medium text-slate-600">Country of Residence:</span> {formData.countryOfResidence}</div>
@@ -365,5 +365,13 @@ export default function ApplicationSuccessPage() {
           </div>
         </motion.div>
     </ApplicationLayout>
+  );
+}
+
+export default function ApplicationSuccessPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+      <ApplicationSuccessContent />
+    </Suspense>
   );
 }
