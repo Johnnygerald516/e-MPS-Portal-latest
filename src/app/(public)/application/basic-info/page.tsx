@@ -305,8 +305,8 @@ export default function BasicInfoPage() {
       surname: formData.surname || '',
       otherName: formData.otherName || '',
       gender: formData.gender || 'M', // Default to Male
-      // Keep the date as is - our custom component will handle the formatting
-      dateOfBirth: formData.dateOfBirth || undefined,
+      // Don't set a default value for dateOfBirth
+      dateOfBirth: formData.dateOfBirth || '',
       birthCountry: formData.birthCountry || 0,
       birthCountryName: formData.birthCountryName || '',
       birthRegion: formData.birthRegion || 0,
@@ -682,33 +682,12 @@ export default function BasicInfoPage() {
                 control={form.control}
                 name="dateOfBirth"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-neutral-500">Tarehe ya Kuzaliwa <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                    <div className="relative">
-  <Input
-    id="dateOfBirth"
-    type="date"
-    value={
-      field.value
-        ? typeof field.value === "string"
-          ? field.value
-          : field.value.toISOString().split("T")[0]
-        : ""
-    }
-    onChange={(e) => field.onChange(e.target.value)}
-    className="bg-white border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
-  />
-  {!field.value && (
-    <span className="absolute left-3 top-2 text-gray-500 pointer-events-none">
-      MM/DD/YYYY
-    </span>
-  )}
-</div>
-
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <CustomDateInput
+                    field={field}
+                    label="Tarehe ya Kuzaliwa"
+                    required={true}
+                    id="dateOfBirth"
+                  />
                 )}
               />
               

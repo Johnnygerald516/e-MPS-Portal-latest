@@ -219,3 +219,10 @@
     color: #9ca3af; /* text-gray-400 */
   }
 }
+
+/* hide next icon css */
+#__next-build-watcher,
+nextjs-portal {
+  display: none !important;
+}
+

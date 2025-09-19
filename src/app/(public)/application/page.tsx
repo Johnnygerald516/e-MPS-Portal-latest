@@ -206,19 +206,18 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <h1 className="text-lg font-bold text-slate-500 mb-4 border-b border-slate-200 pb-1">Kibali cha walowezi</h1>
-          <p className="text-slate-600 mb-6">
+    <div className="max-w-7xl mx-auto py-8 px-6 border border-slate-200 rounded mt-2 bg-white shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="md:pr-6">
+          <h1 className="text-xl font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2">Kibali cha walowezi</h1>
+          <p className="text-slate-600 mb-6 leading-relaxed">
             Wakati wa ujazaji wa fomu ya maombi ya kibali cha walowezi, Mwombaji anatakiwa kujaza taarifa zake kwa usahihi na ukamilifu, na mara atakapomilisha atapatiwa Namba ya Utambulisho (Application ID) pamoja na kupakua fomu yenye taarifa za ombi lake.
           </p>
-          
         </div>
 
         {/* Right column - Form */}
-        <div className="">
-          <h2 className="text-lg font-bold text-slate-500 mb-6 border-b border-slate-200 pb-1">Taarifa za Msingi</h2>
+        <div className="bg-slate-50 p-6 rounded-md shadow-sm border border-slate-100">
+          <h2 className="text-xl font-bold text-slate-700 mb-6 border-b border-slate-200 pb-2">Taarifa za Msingi</h2>
           
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

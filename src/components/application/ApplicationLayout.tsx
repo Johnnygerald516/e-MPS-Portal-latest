@@ -57,7 +57,7 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
   }, [autoNavigateToNext, nextStep, router]);
   
   return (
-    <div className="container mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">
+    <div className="max-w-7xl mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">
       {/* Header - Only show when mounted and applicationId exists */}
       {/* {isMounted && applicationId && (
         <header className="border-b border-slate-200 p-2 flex justify-between items-center mb-4">

@@ -34,16 +34,17 @@ export function PDFViewer({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="w-[70vw] h-[90vh] max-w-[95vw] sm:max-w-[800px] md:max-w-[1000px] lg:max-w-[1200px]">
- <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-full mb-50">
-            <iframe
-              src={pdfPath}
-              className="w-full h-full"
-              title={title}
-            />
+      <DialogContent className="w-[95vw] h-[90vh] max-w-[650px] md:max-w-[700px] lg:max-w-[750px] p-3 pt-3 shadow-lg border border-gray-200">
+          <div className="flex flex-col space-y-0">
+            <DialogTitle className="text-lg font-semibold mb-0 pb-0">{title}</DialogTitle>
+            <div className="w-full h-[calc(100%-1.5rem)] mt-1 overflow-hidden rounded">
+              <iframe
+                src={pdfPath}
+                className="w-full h-full border-0 shadow-sm"
+                title={title}
+                loading="eager"
+              />
+            </div>
           </div>
         </DialogContent>
       </Dialog>

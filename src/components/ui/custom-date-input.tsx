@@ -112,15 +112,37 @@ export function CustomDateInput({
   required = false,
   id,
 }: CustomDateInputProps) {
-  // Format the initial value if it exists
-  const [displayValue, setDisplayValue] = useState<string>(
-    formatDateToMMDDYYYY(field.value)
-  );
+  // Initialize with empty value - never use default values
+  const [displayValue, setDisplayValue] = useState<string>('');
   
-  // Update display value when field.value changes
+  // Update display value when field.value changes, but only if user has explicitly set it
   useEffect(() => {
-    setDisplayValue(formatDateToMMDDYYYY(field.value));
-  }, [field.value]);
+    // Reset the field value to empty on component mount
+    if (field.value) {
+      // Check if this is a default value (today's date or close to it)
+      const today = new Date();
+      const todayString = today.toISOString().split('T')[0];
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().split('T')[0];
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowString = tomorrow.toISOString().split('T')[0];
+      
+      // If it's today, yesterday or tomorrow, it's likely a default value - clear it
+      if (field.value === todayString || 
+          field.value === yesterdayString || 
+          field.value === tomorrowString ||
+          (typeof field.value === 'string' && field.value.includes(today.getFullYear().toString()))) {
+        // Clear the default value
+        field.onChange('');
+        setDisplayValue('');
+      } else {
+        // If it's not a default value, keep it (user might have selected it before)
+        setDisplayValue(formatDateToMMDDYYYY(field.value));
+      }
+    }
+  }, []);
   
   // Handle date change from the date picker
   const handleDateChange = (e: React.FormEvent<HTMLInputElement> | React.ChangeEvent<HTMLInputElement>) => {
@@ -176,12 +198,10 @@ export function CustomDateInput({
           field.onChange(dateValue);
           setDisplayValue(dateValue);
         } catch (e) {
-          // Last resort - use today's date
-          const today = new Date();
-          const todayIso = today.toISOString().split('T')[0];
-          console.log('Using today as last resort:', todayIso);
-          field.onChange(todayIso);
-          setDisplayValue(formatDateToMMDDYYYY(today));
+          // Don't use today's date as fallback, just clear the field
+          console.log('Error handling date, clearing field');
+          field.onChange('');
+          setDisplayValue('');
         }
       }
     } else {
@@ -200,12 +220,34 @@ export function CustomDateInput({
       )}
       <FormControl>
         <div className="relative">
-          <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+          <div className="absolute left-3 top-2.5 h-5 w-5 text-blue-600 z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="absolute right-0 top-0 h-full flex items-center pr-2">
+            <button 
+              type="button" 
+              className="h-full px-2 text-blue-600 focus:outline-none"
+              onClick={() => {
+                const inputElement = document.getElementById(id || '');
+                if (inputElement) {
+                  inputElement.focus();
+                  inputElement.click();
+                }
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <path d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+                <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
          
           <Input
             id={id}
             type="text" 
-            className="pl-10 rounded"
+            className="pl-10 pr-10 border border-blue-500 rounded h-10"
             placeholder="mm/dd/yyyy"
             value={displayValue}
             onChange={(e) => setDisplayValue(e.target.value)}
@@ -219,6 +261,11 @@ export function CustomDateInput({
                 if (isoDate) {
                   e.currentTarget.value = isoDate;
                 }
+              }
+              
+              // Clear any default value that might be set
+              if (e.currentTarget.value === new Date().toISOString().split('T')[0]) {
+                e.currentTarget.value = '';
               }
               
               // Don't call showPicker() here as it requires a user gesture

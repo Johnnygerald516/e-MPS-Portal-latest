@@ -420,8 +420,8 @@ export default function ResidenceInfoPage() {
       countryOfOriginId: formData.countryOfOriginId || 0,
       countryOfOriginName: formData.countryOfOriginName || '',
       
-      // Date of entry
-      dateOfEntry: formData.dateOfEntry ? new Date(formData.dateOfEntry).toISOString().split('T')[0] : '',
+      // Date of entry - ensure no default value is used
+      dateOfEntry: '',
     },
   });
   
@@ -432,7 +432,7 @@ export default function ResidenceInfoPage() {
     // Convert date string to Date object
     const data = {
       ...formValues,
-      dateOfEntry: formValues.dateOfEntry ? new Date(formValues.dateOfEntry) : new Date(),
+      dateOfEntry: formValues.dateOfEntry ? new Date(formValues.dateOfEntry) : undefined,
       // Ensure IDs are numbers
       countryId: ensureValidId(formValues.countryId),
       regionId: ensureValidId(formValues.regionId),
@@ -489,13 +489,13 @@ export default function ResidenceInfoPage() {
               dateOfEntry = currentDate.toISOString().split('T')[0];
             }
           } catch (e) {
-            // If parsing fails, use current date
-            dateOfEntry = currentDate.toISOString().split('T')[0];
+            // If parsing fails, leave it empty
+            dateOfEntry = '';
           }
         }
       } else {
-        // If no date provided, use current date
-        dateOfEntry = currentDate.toISOString().split('T')[0];
+        // If no date provided, leave it empty
+        dateOfEntry = '';
       }
       
       const data = {

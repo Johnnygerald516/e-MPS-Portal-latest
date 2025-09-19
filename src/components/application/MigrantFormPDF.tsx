@@ -320,7 +320,7 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     
     // Add RESIDENCE INFORMATION
     drawTableRow('Country of Residence (Nchi ya Makazi):', formData.countryOfResidence || 'N/A');
-    drawTableRow('Region (Mkoa):', formData.residenceRegion || 'N/A');
+    // drawTableRow('Region (Mkoa):', formData.residenceRegion || 'N/A');
     drawTableRow('District (Wilaya):', formData.district || 'N/A');
     drawTableRow('Street (Mtaa):', formData.street || 'N/A');
     drawTableRow('Date of Entry in Tz (Tarehe ya Kuingia Nchini):', formatDate(formData.dateOfEntry));

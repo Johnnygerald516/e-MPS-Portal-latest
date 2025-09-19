@@ -53,33 +53,33 @@ export function SharedLayout({ children }: SharedLayoutProps) {
         className="text-white w-full sticky top-0 z-50 max-w-[100vw] overflow-x-hidden">
         {/* Upper header with logos and title - with radial gradient */}
         <div className="w-full bg-gradient-to-r from-[#1a4a78] via-[#2a6095] to-[#1a4a78] border-b border-[#3a70a5]/30 shadow-md">
-          <div className="container mx-auto flex flex-col md:flex-row items-center py-2 px-4">
-            {/* Left logo - positioned as in reference design */}
-            <div className="flex-shrink-0 mb-1 md:mb-0 md:mr-auto">
+          <div className="container mx-auto flex flex-col md:flex-row items-center justify-between py-2 px-4">
+            {/* Left logo - with consistent spacing */}
+            <div className="flex-shrink-0 mb-1 md:mb-0 w-[120px] flex justify-center">
               <Image 
                 src="/images/coat_of_arm.png" 
                 alt="Tanzania Logo" 
                 width={60} 
                 height={38}
-                className="object-contain ml-20"
+                className="object-contain"
               />
             </div>
             
             {/* Center title - wizara-header - responsive text sizes */}
-            <div className="wizara-header text-center max-w-2xl mx-4">
+            <div className="wizara-header text-center flex-grow max-w-2xl">
               <h1 className="text-base md:text-xl font-bold text-white leading-tight tracking-wide">The United Republic of Tanzania</h1>
               <p className="text-sm md:text-base text-[#f0e7c3] leading-tight font-medium mt-0.5">Ministry of Home Affairs</p>
               <p className="text-sm text-gray-100 leading-tight">Immigration Services Department</p>
             </div>
             
-            {/* Right logo - positioned as in reference design */}
-            <div className="flex-shrink-0 mt-1 md:mt-0 md:ml-auto">
+            {/* Right logo - with consistent spacing */}
+            <div className="flex-shrink-0 mt-1 md:mt-0 w-[120px] flex justify-center">
               <Image 
                 src="/images/immigration_logo.png" 
                 alt="Immigration Logo" 
                 width={60} 
                 height={38}
-                className="object-contain mr-30"
+                className="object-contain"
               />
             </div>
           </div>

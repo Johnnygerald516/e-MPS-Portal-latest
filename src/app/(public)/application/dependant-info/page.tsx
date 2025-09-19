@@ -93,6 +93,12 @@ export default function DependantInfoPage() {
         const formatDateToString = (dateValue: any): string => {
           if (!dateValue) return '';
           
+          // Check if it's a default date (current year)
+          const currentYear = new Date().getFullYear();
+          if (typeof dateValue === 'string' && dateValue.includes(currentYear.toString())) {
+            return '';
+          }
+          
           // If already a string in ISO format
           if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
             return dateValue;
@@ -172,6 +178,40 @@ export default function DependantInfoPage() {
     
     fetchData();
   }, []);
+  
+  // Update country and nationality display names when data is loaded
+  useEffect(() => {
+    if (!isLoadingData && countries.length > 0 && nationalities.length > 0) {
+      // Get current form values
+      const currentValues = form.getValues();
+      
+      // Only proceed if we have dependants
+      if (currentValues.dependants && currentValues.dependants.length > 0) {
+        console.log('Updating country and nationality display names for dependants');
+        
+        // Update each dependant's country and nationality display names
+        currentValues.dependants.forEach((dep, index) => {
+          // Update country name if ID is set
+          if (dep.issuedCountryId) {
+            const selectedCountry = countries.find(c => c.EntryId === dep.issuedCountryId);
+            if (selectedCountry) {
+              form.setValue(`dependants.${index}.issuedCountry`, selectedCountry.CountryName);
+              console.log(`Updated country for dependant ${index + 1} to ${selectedCountry.CountryName}`);
+            }
+          }
+          
+          // Update nationality name if ID is set
+          if (dep.nationalityId) {
+            const selectedNationality = nationalities.find(n => n.EntryId === dep.nationalityId);
+            if (selectedNationality) {
+              form.setValue(`dependants.${index}.nationality`, selectedNationality.Nationality);
+              console.log(`Updated nationality for dependant ${index + 1} to ${selectedNationality.Nationality}`);
+            }
+          }
+        });
+      }
+    }
+  }, [isLoadingData, countries, nationalities, form]);
   
   // Handle save and exit
   const handleSaveAndExit = () => {
@@ -365,13 +405,13 @@ export default function DependantInfoPage() {
       gender: "M", // Default to Male
       relationship: "",
       relationshipTypeId: 0,
-      dateOfBirth: todayFormatted,
+      dateOfBirth: "",
       // Explicitly set as boolean to avoid type issues
       hasDocument: false as boolean, 
       documentNumber: "",
       documentTypeId: 0,
-      documentIssuedDate: todayFormatted,
-      documentExpiryDate: todayFormatted,
+      documentIssuedDate: "",
+      documentExpiryDate: "",
       nationality: "",
       nationalityId: 0,
       issuedCountry: "",
@@ -558,7 +598,15 @@ export default function DependantInfoPage() {
                               field.onChange(numValue);
                               // Set the nationality name based on the selected ID
                               const selectedNationality = nationalities.find(n => n.EntryId === numValue);
-                              form.setValue(`dependants.${index}.nationality`, selectedNationality?.Nationality || "");
+                              const nationalityName = selectedNationality?.Nationality || "";
+                              form.setValue(`dependants.${index}.nationality`, nationalityName);
+                              
+                              // Debug log for nationality selection
+                              console.log(`Selected nationality for dependant ${index + 1}:`, {
+                                nationalityId: numValue,
+                                nationalityName,
+                                foundNationality: !!selectedNationality
+                              });
                             }} 
                             value={field.value?.toString() || ""}
                           >
@@ -566,7 +614,13 @@ export default function DependantInfoPage() {
                               <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                                 <div className="flex items-center">
                                   <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                                  <SelectValue placeholder="Select nationality" />
+                                  {field.value ? (
+                                    <span>
+                                      {nationalities.find(n => n.EntryId === field.value)?.Nationality || "Select nationality"}
+                                    </span>
+                                  ) : (
+                                    <SelectValue placeholder="Select nationality" />
+                                  )}
                                 </div>
                               </SelectTrigger>
                             </FormControl>
@@ -685,7 +739,15 @@ export default function DependantInfoPage() {
                               field.onChange(numValue);
                               // Set the country name based on the selected ID
                               const selectedCountry = countries.find(c => c.EntryId === numValue);
-                              form.setValue(`dependants.${index}.issuedCountry`, selectedCountry?.CountryName || "");
+                              const countryName = selectedCountry?.CountryName || "";
+                              form.setValue(`dependants.${index}.issuedCountry`, countryName);
+                              
+                              // Debug log for country selection
+                              console.log(`Selected country for dependant ${index + 1}:`, {
+                                countryId: numValue,
+                                countryName,
+                                foundCountry: !!selectedCountry
+                              });
                             }} 
                             value={field.value?.toString() || ""}
                           >
@@ -693,7 +755,13 @@ export default function DependantInfoPage() {
                               <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                                 <div className="flex items-center">
                                   <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                                  <SelectValue placeholder="Select country" />
+                                  {field.value ? (
+                                    <span>
+                                      {countries.find(c => c.EntryId === field.value)?.CountryName || "Select country"}
+                                    </span>
+                                  ) : (
+                                    <SelectValue placeholder="Select country" />
+                                  )}
                                 </div>
                               </SelectTrigger>
                             </FormControl>
