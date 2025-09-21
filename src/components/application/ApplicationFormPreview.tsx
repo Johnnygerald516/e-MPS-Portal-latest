@@ -8,11 +8,13 @@ import { MigrantFormData } from './MigrantFormPDF';
 interface ApplicationFormPreviewProps {
   formData: MigrantFormData;
   onDownloadPDF: () => void;
+  photoUrl?: string;
 }
 
 const ApplicationFormPreview: React.FC<ApplicationFormPreviewProps> = ({ 
   formData, 
-  onDownloadPDF 
+  onDownloadPDF,
+  photoUrl
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -146,7 +148,15 @@ const ApplicationFormPreview: React.FC<ApplicationFormPreviewProps> = ({
   return (
     <>
       <Button 
-        onClick={() => setIsOpen(true)} 
+        onClick={() => {
+          console.log('Opening preview dialog...');
+          try {
+            setIsOpen(true);
+            console.log('Dialog state set to open');
+          } catch (error) {
+            console.error('Error opening dialog:', error);
+          }
+        }} 
         variant="outline" 
         className="flex items-center gap-2 rounded"
       >
@@ -154,15 +164,29 @@ const ApplicationFormPreview: React.FC<ApplicationFormPreviewProps> = ({
         Preview Form
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Dialog 
+        open={isOpen} 
+        onOpenChange={(open) => {
+          console.log('Dialog onOpenChange:', open);
+          setIsOpen(open);
+        }}
+      >
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-y-auto"
+          onEscapeKeyDown={() => {
+            console.log('Escape key pressed');
+          }}
+          onPointerDownOutside={() => {
+            console.log('Clicked outside dialog');
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Application Form Preview</DialogTitle>
           </DialogHeader>
           
           <div className="mt-4">
             <div id="printable-form">
-              <MigrantFormHTML formData={formData} printable={true} />
+              <MigrantFormHTML formData={formData} printable={true} photoUrl={photoUrl} />
             </div>
             
             <div className="flex justify-end gap-4 mt-6">

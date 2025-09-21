@@ -10,7 +10,7 @@ import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { format } from "date-fns";
 import { MigrantFormData, generateMigrantFormPDF, imageToBase64 } from '@/components/application/MigrantFormPDF';
-import ApplicationFormPreview from '@/components/application/ApplicationFormPreview';
+import PDFPreview from '@/components/application/PDFPreview';
 
 // Import jsPDF dynamically to avoid SSR issues
 let jsPDF: any;
@@ -403,9 +403,10 @@ function ApplicationCompleteContent(): React.ReactNode {
         {/* Action Buttons */}
         <div className="flex justify-center space-x-6">
           {/* Preview Form Button */}
-          <ApplicationFormPreview 
+          <PDFPreview 
             formData={migrantFormData}
             onDownloadPDF={handleDownloadPDF}
+            photoUrl={applicantPhoto || images.applicantPhoto || ''}
           />
           
           {/* Download PDF Button */}

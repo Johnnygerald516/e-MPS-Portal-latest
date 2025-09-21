@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 interface MigrantFormHTMLProps {
   formData: MigrantFormData;
   printable?: boolean;
+  photoUrl?: string;
 }
 
 // Format dates for display
@@ -14,7 +15,7 @@ const formatDate = (date: Date | null | undefined): string => {
   return format(new Date(date), 'dd-MM-yyyy');
 };
 
-const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable = false }) => {
+const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable = false, photoUrl }) => {
   return (
     <div className={`migrant-form-container ${printable ? 'printable' : ''}`}>
       <style jsx>{`
@@ -87,13 +88,15 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
         }
         
         .qr-code {
-          width: 80px;
+          width: 160px;
           height: 80px;
           border: 1px solid #000;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 10px;
+          background-color: #fff;
+          padding: 5px;
         }
         
         .applicant-photo {
@@ -104,6 +107,8 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
           align-items: center;
           justify-content: center;
           font-size: 10px;
+          background-color: #fff;
+          overflow: hidden;
         }
         
         .section-title {
@@ -128,7 +133,29 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
         
         .form-table th {
           font-weight: bold;
+          background-color: #f8f9fa;
+        }
+        
+        .form-table thead th {
+          text-align: center;
+          background-color: #e9ecef;
+        }
+        
+        /* For regular tables with label columns */
+        .form-table tbody th {
           width: 40%;
+        }
+        
+        /* For dependants table */
+        .form-table.dependants-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        
+        .form-table.dependants-table th,
+        .form-table.dependants-table td {
+          padding: 6px;
+          font-size: 11px;
         }
         
         .declaration-section {
@@ -249,25 +276,17 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
       
       {/* Photo and QR Code Section */}
       <div className="photo-qr-section">
-        <div className="qr-code">QR CODE</div>
+        <div className="qr-code">
+          {/* Simple barcode display */}
+          <div className="text-center p-2 text-xs">
+            BARCODE: {formData.applicationId || 'Application ID'}
+          </div>
+        </div>
         <div className="applicant-photo">
-          {/* Use a placeholder image since we don't have a photoUrl property */}
-          <Image
-            src="/images/user.png"
-            alt="Applicant Photo"
-            width={80}
-            height={100}
-            style={{ objectFit: 'cover' }}
-            onError={(e) => {
-              // If user.png fails, try applicant-photo.jpg
-              e.currentTarget.src = '/images/applicant-photo.jpg';
-              // If that fails too, use a placeholder
-              e.currentTarget.onerror = () => {
-                e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCA4MCAxMDAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlZWUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgYWxpZ25tZW50LWJhc2VsaW5lPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZpbGw9IiM5OTkiPlBIT1RPPC90ZXh0Pjwvc3ZnPg==';
-                e.currentTarget.onerror = null; // Prevent infinite loop
-              };
-            }}
-          />
+          {/* Simple photo placeholder */}
+          <div className="flex items-center justify-center h-full w-full bg-gray-100 text-gray-500 text-xs">
+            Applicant Photo
+          </div>
         </div>
       </div>
       
@@ -400,7 +419,7 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
           </tr>
           <tr>
             <th>Region (Mkoa):</th>
-            <td>{formData.motherRegion || 'N/A'}</td>
+            <td>{formData.motherRegionOfBirth || 'N/A'}</td>
           </tr>
           <tr>
             <th>Nationality (Taifa):</th>
@@ -415,42 +434,70 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
       
       {/* Dependants Information Section */}
       <div className="section-title">4. Dependants Information</div>
-      <table className="form-table">
-        <tbody>
-          <tr>
-            <th>Name (Jina):</th>
-            <td>{formData.dependantName || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Relationship (Mahusiano):</th>
-            <td>{formData.dependantRelationship || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Passport Number (Namba ya Pasipoti):</th>
-            <td>{formData.dependantPassportNumber || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Issue Date (Tarehe ya Kuanza):</th>
-            <td>{formatDate(formData.dependantIssueDate)}</td>
-          </tr>
-          <tr>
-            <th>End Date (Tarehe ya Kumaliza):</th>
-            <td>{formatDate(formData.dependantEndDate)}</td>
-          </tr>
-        </tbody>
-      </table>
+      
+      {formData.dependants && formData.dependants.length > 0 ? (
+        <table className="form-table dependants-table">
+          <thead>
+            <tr>
+              <th>Name (Jina)</th>
+              <th>Relationship (Mahusiano)</th>
+              <th>Nationality (Taifa)</th>
+              <th>Document Number</th>
+              <th>Issue Date</th>
+              <th>Expiry Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formData.dependants.map((dependant: any, index: number) => (
+              <tr key={`dependant-${index}`}>
+                <td>{dependant.dependantFullName || dependant.name || 'N/A'}</td>
+                <td>{dependant.dependantRelationType || dependant.relationship || 'N/A'}</td>
+                <td>{dependant.dependantNationality || dependant.nationality || 'N/A'}</td>
+                <td>{dependant.documentNumber || dependant.passportNumber || 'N/A'}</td>
+                <td>{formatDate(dependant.issueDate || dependant.passportIssuedDate)}</td>
+                <td>{formatDate(dependant.expireDate || dependant.passportExpiryDate)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <table className="form-table">
+          <tbody>
+            <tr>
+              <th>Name (Jina):</th>
+              <td>{formData.dependantName || 'No dependants'}</td>
+            </tr>
+            <tr>
+              <th>Relationship (Mahusiano):</th>
+              <td>{formData.dependantRelationship || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th>Passport Number (Namba ya Pasipoti):</th>
+              <td>{formData.dependantPassportNumber || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th>Issue Date (Tarehe ya Kuanza):</th>
+              <td>{formatDate(formData.dependantIssueDate)}</td>
+            </tr>
+            <tr>
+              <th>End Date (Tarehe ya Kumaliza):</th>
+              <td>{formatDate(formData.dependantEndDate)}</td>
+            </tr>
+          </tbody>
+        </table>
+      )}
      
        {/* Migrant Declaration */}
       <div className="declaration-section">
         <div className="section-title">5. Migrant Declaration</div>
         <div className="declaration-text">
-          I __________________________________ declare that the information I have provided above is correct and I am ready to be held legally accountable for the information I have given.
+          I <strong>{`${formData.firstName || ''} ${formData.middleName || ''} ${formData.lastName || ''}`.trim()}</strong> declare that the information I have provided above is correct and I am ready to be held legally accountable for the information I have given.
         </div>
         
         <div className="declaration-swahili">
           <strong>TAMKO LA MHAMIAJI</strong>
           <p>
-            Mimi __________________________________ ninathibitisha ya kwamba taarifa
+            Mimi <strong>{`${formData.firstName || ''} ${formData.middleName || ''} ${formData.lastName || ''}`.trim()}</strong> ninathibitisha ya kwamba taarifa
             nilizozitoa hapo juu ni sahihi na nipo tayari kuwajibika kisheria kutokana na taarifa nilizozitoa.
           </p>
         </div>

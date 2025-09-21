@@ -135,16 +135,17 @@ export const generateBarcode = async (text: string): Promise<string> => {
     
     // Generate barcode on canvas with improved parameters
     JsBarcode(canvas, text, {
-      format: 'CODE128',
-      displayValue: true,
-      fontSize: 14,       // Increased font size
-      height: 50,         // Increased height
-      width: 1,           // Increased bar width
-      margin: 10,         // Increased margin
-      background: '#ffffff',
-      lineColor: '#000000',
-      textMargin: 8       // Increased text margin
+      format: "CODE128",
+      displayValue: false, // Don't display the value below the barcode
+      fontSize: 10,       // small but still readable
+      height: 30,         // shorter barcode
+      width: 1,           // thin bars
+      margin: 4,          // tight spacing around
+      background: "#ffffff",
+      lineColor: "#000000",
+      textMargin: 4       // compact text spacing
     });
+    
     
     // Convert canvas to data URL with high quality
     return canvas.toDataURL('image/png', 1.0);
@@ -234,16 +235,16 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     
     // Add horizontal line from QR code to profile picture
     // Note: We don't need to set color and width again as they're already set above
-    doc.line(15, 45, 195, 45); // Draw horizontal line from left of QR code to right of profile picture
+   // doc.line(15, 45, 195, 45); // Draw horizontal line from left of QR code to right of profile picture
     
     // Add barcode image with increased size
     try {
-      doc.addImage(barcodeDataUrl, 'PNG', 15, 45, 80, 30);
+      doc.addImage(barcodeDataUrl, 'PNG', 15, 45, 60, 25);
       console.log('Barcode added successfully');
     } catch (error) {
       console.error('Error adding barcode image:', error);
       // Use placeholder if image fails
-      doc.rect(15, 45, 80, 30);
+      doc.rect(15, 45, 60, 25);
       doc.setFontSize(10);
       doc.text('BARCODE', 55, 60, { align: 'center' });
     }
@@ -251,18 +252,18 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     // Add applicant photo image
     try {
       if (applicantPhotoImage) {
-        doc.addImage(applicantPhotoImage, 'PNG', 170, 45, 25, 35);
+        doc.addImage(applicantPhotoImage, 'PNG', 170, 45, 25, 30);
       } 
-      else {
-        // Fallback to default applicant photo
-        const photoPath = '/images/immigration_logo.png';
-        console.log('Adding applicant photo from path:', photoPath);
-        doc.addImage(photoPath, 'JPG', 170, 45, 25, 35);
-      }
+      // else {
+      //   // Fallback to default applicant photo
+      //   const photoPath = '/images/immigration_logo.png';
+      //   console.log('Adding applicant photo from path:', photoPath);
+      //   doc.addImage(photoPath, 'JPG', 170, 45, 25, 35);
+      // }
     } catch (error) {
       console.error('Error adding applicant photo image:', error);
       // Use placeholder if image fails
-      doc.rect(170, 45, 25, 35);
+      doc.rect(170, 45, 25, 30);
       doc.setFontSize(8);
       doc.text('PHOTO', 182.5, 62.5, { align: 'center' });
     }
