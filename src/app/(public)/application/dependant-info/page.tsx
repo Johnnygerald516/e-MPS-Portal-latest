@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { InteractiveCheckbox } from "@/components/ui/interactive-checkbox";
 import { RelationshipTypeSelect } from "@/components/ui/relationship-type-select";
 import { DocumentTypeSelect } from "@/components/ui/document-type-select";
@@ -559,28 +559,12 @@ export default function DependantInfoPage() {
                       control={form.control}
                       name={`dependants.${index}.dateOfBirth`}
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium text-neutral-500">
-                            Date of Birth <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input
-                                id={`dependantDateOfBirth-${index}`}
-                                type="date"
-                                value={field.value ? (typeof field.value === 'string' ? field.value : field.value.toISOString().split('T')[0]) : ''}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className="bg-white border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
-                              />
-                              {!field.value && (
-                                <span className="absolute left-3 top-2 text-gray-500 pointer-events-none">
-                                  MM/DD/YYYY
-                                </span>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                        <DatePickerFormField
+                          field={field}
+                          label="Date of Birth"
+                          required={true}
+                          placeholder="Select date of birth"
+                        />
                       )}
                     />
                     
@@ -704,10 +688,10 @@ export default function DependantInfoPage() {
                       control={form.control}
                       name={`dependants.${index}.documentIssuedDate`}
                       render={({ field }) => (
-                        <CustomDateInput
+                        <DatePickerFormField
                           field={field}
                           label="Document Issued Date"
-                          id={`documentIssuedDate-${index}`}
+                          placeholder="Select issued date"
                         />
                       )}
                     />
@@ -716,10 +700,10 @@ export default function DependantInfoPage() {
                       control={form.control}
                       name={`dependants.${index}.documentExpiryDate`}
                       render={({ field }) => (
-                        <CustomDateInput
+                        <DatePickerFormField
                           field={field}
                           label="Document Expiry Date"
-                          id={`documentExpiryDate-${index}`}
+                          placeholder="Select expiry date"
                         />
                       )}
                     />

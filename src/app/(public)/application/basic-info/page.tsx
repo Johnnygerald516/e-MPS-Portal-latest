@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { ArrowRight, Save } from "lucide-react";
 import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
@@ -682,11 +682,11 @@ export default function BasicInfoPage() {
                 control={form.control}
                 name="dateOfBirth"
                 render={({ field }) => (
-                  <CustomDateInput
+                  <DatePickerFormField
                     field={field}
                     label="Tarehe ya Kuzaliwa"
                     required={true}
-                    id="dateOfBirth"
+                    placeholder="Chagua tarehe ya kuzaliwa"
                   />
                 )}
               />

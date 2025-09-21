@@ -16,7 +16,7 @@ import { parentsInfoEndpoints } from "@/lib/api";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
 import { useCustomToast } from "@/hooks/use-custom-toast";
 import { format } from "date-fns";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import {
   Select,
   SelectContent,
@@ -710,27 +710,12 @@ function ParentsInfoContent() {
                 control={form.control}
                 name="fatherDateOfBirth"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-neutral-500">
-                      Tarehe ya Kuzaliwa <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                        <Input
-                          id="fatherDateOfBirth"
-                          type="date"
-                          value={field.value || ''}
-                          onChange={(e) => {
-                            console.log('Father date input changed to:', e.target.value);
-                            field.onChange(e.target.value);
-                          }}
-                          className="pl-10 rounded bg-white border border-gray-300 px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <DatePickerFormField
+                    field={field}
+                    label="Tarehe ya Kuzaliwa"
+                    required={true}
+                    placeholder="Chagua tarehe ya kuzaliwa"
+                  />
                 )}
               />
               
@@ -1006,27 +991,12 @@ function ParentsInfoContent() {
                 control={form.control}
                 name="motherDateOfBirth"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-neutral-500">
-                      Tarehe ya Kuzaliwa <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                        <Input
-                          id="motherDateOfBirth"
-                          type="date"
-                          value={field.value || ''}
-                          onChange={(e) => {
-                            console.log('Mother date input changed to:', e.target.value);
-                            field.onChange(e.target.value);
-                          }}
-                          className="pl-10 rounded bg-white border border-gray-300 px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <DatePickerFormField
+                    field={field}
+                    label="Tarehe ya Kuzaliwa"
+                    required={true}
+                    placeholder="Chagua tarehe ya kuzaliwa"
+                  />
                 )}
               />
               

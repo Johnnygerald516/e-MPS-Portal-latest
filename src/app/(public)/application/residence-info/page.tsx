@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Mail, Phone, MapPin, ArrowRight, Calendar, Globe, Save } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CustomDateInput } from "@/components/ui/custom-date-input";
+import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { useApplication } from "@/contexts/application-context";
@@ -834,6 +834,26 @@ export default function ResidenceInfoPage() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="street"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-neutral-500">Mtaa <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                        <Input 
+                          placeholder="Ingiza Mtaa" 
+                          className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
+                          {...field} 
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
           
@@ -969,29 +989,6 @@ export default function ResidenceInfoPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-neutral-500">Mtaa <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                        <Input 
-                          placeholder="Ingiza Mtaa" 
-                          className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Removed duplicate Uraia field */}
-              
-              <FormField
-                control={form.control}
                 name="countryOfOrigin"
                 render={({ field }) => (
                   <FormItem>
@@ -1072,11 +1069,11 @@ export default function ResidenceInfoPage() {
                 control={form.control}
                 name="dateOfEntry"
                 render={({ field }) => (
-                  <CustomDateInput
+                  <DatePickerFormField
                     field={field}
                     label="Tarehe ya Kuingia Tanzania"
                     required={true}
-                    id="dateOfEntryTanzania"
+                    placeholder="Chagua tarehe ya kuingia Tanzania"
                   />
                 )}
               />

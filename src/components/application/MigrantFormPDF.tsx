@@ -53,6 +53,11 @@ export interface MigrantFormData {
   // Arrays for multiple dependants and attachments
   dependants?: any[];
   attachments?: any[];
+  // Declaration information
+  agreeTerms?: boolean;
+  declarationTimestamp?: Date | null;
+  declarationText?: string;
+  submissionDate?: string;
 }
 
 

@@ -89,25 +89,6 @@ export default function DocumentsPage() {
   // Get applicationId from context
   const applicationId = formData.applicationId || '';
   
-  // Reset isLoading state on component mount and handle missing applicationId
-  useEffect(() => {
-    // Reset loading state to ensure button shows correctly
-    setIsLoading(false);
-    
-    if (!applicationId) {
-      console.log('No applicationId found, redirecting to start page');
-      router.push('/application/start');
-    }
-  }, [applicationId, router, setIsLoading]);
-  
-  // Log for debugging
-  useEffect(() => {
-    if (!applicationId) {
-      console.warn('No applicationId found in URL or context');
-    } else {
-      console.log(`Using applicationId: ${applicationId}`);
-    }
-  }, [applicationId]);
   
   // State for tracking uploaded files
   const [documentFiles, setDocumentFiles] = useState<DocumentFiles>({
@@ -136,9 +117,9 @@ export default function DocumentsPage() {
   const form = useForm<DocumentsFormValues>({
     resolver: zodResolver(documentsSchema),
     defaultValues: {
-      identificationType: formData?.identificationType || "national_id",
-      identificationNumber: formData?.identificationNumber || "",
-      previousPassNumber: formData?.previousPassNumber || "",
+      identificationType: formData?.identificationType,
+      identificationNumber: formData?.identificationNumber,
+      previousPassNumber: formData?.previousPassNumber,
     },
   });
   

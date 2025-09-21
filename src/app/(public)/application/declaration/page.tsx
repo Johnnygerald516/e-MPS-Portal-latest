@@ -451,28 +451,38 @@ export default function DeclarationPage() {
         updateFormData({
           submissionError: `Missing information: ${missingFields.join(', ')}`
         });
+        // Keep loading state active for better user experience
+        // Will be cleared after navigation to complete page
         return;
       }
       
-      // Submit the declaration in the background - don't wait for it to complete before navigation
-      fetch(`/api/applications/${applicationId}/declaration`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      .then(response => {
+      // Submit the declaration - using async/await for better control of loading state
+      try {
+        const response = await fetch(`/api/applications/${applicationId}/declaration`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
         if (!response.ok) {
           throw new Error(`Failed to submit declaration: ${response.status} ${response.statusText}`);
         }
-        return response.json();
-      })
-      .then(result => {
+        
+        const result = await response.json();
+        
         if (result.ackCode === 1) {
           // Store success status in context
           updateFormData({
             submissionStatus: 'success',
             submissionMessage: "Application submitted successfully"
+          });
+          
+          // Show success toast
+          toast({
+            title: "Success",
+            description: "Application submitted successfully",
+            variant: "default"
           });
         } else {
           // Store error in context
@@ -480,16 +490,29 @@ export default function DeclarationPage() {
             submissionStatus: 'error',
             submissionError: result.ackMessage || "Failed to submit declaration"
           });
+          
+          // Show error toast
+          toast({
+            title: "Error",
+            description: result.ackMessage || "Failed to submit declaration",
+            variant: "destructive"
+          });
         }
-      })
-      .catch(error => {
+      } catch (error) {
         console.error("Error submitting application:", error);
         // Store error in context
         updateFormData({
           submissionStatus: 'error',
           submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
         });
-      });
+        
+        // Show error toast
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to submit declaration",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error("Error in submission process:", error);
       // Store error in context
@@ -497,9 +520,19 @@ export default function DeclarationPage() {
         submissionStatus: 'error',
         submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
       });
-    } finally {
+      
+      // Show error toast
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit declaration",
+        variant: "destructive"
+      });
+      
+      // Only set loading to false if we're not navigating away
       setIsLoading(false);
     }
+    // Remove the finally block to keep loading state active during navigation
+    // The loading state will be handled by the complete page after navigation
   };
 
    useEffect(() => {
@@ -920,9 +953,11 @@ return (
       <LoadingButton 
         type="submit" 
         isLoading={isLoading}
-        loadingText="Inaendelea..."
-        disabled={!form.formState.isValid}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+        loadingText="Inawasilisha Maombi..."
+        spinnerVariant="primary"
+        disabled={!form.formState.isValid || isLoading}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center min-w-[180px] justify-center"
+        title="Click to submit your application"
       >
         <CheckCircle className="h-4 w-4 mr-2" />
         Submit Application
