@@ -601,7 +601,7 @@ export default function Home() {
                 <motion.div 
                   variants={scaleInVariants}
                   className="bg-slate-100/70 dark:bg-slate-900/60 rounded-lg p-6 backdrop-blur-sm">
-                  <h3 className="font-bold text-lg mb-4">{t('landing.ourServices')}</h3>
+                  {/* <h3 className="font-bold text-lg mb-4">{t('landing.ourServices')}</h3> */}
                   
                   <motion.div 
                     variants={staggerCardVariants}
@@ -656,7 +656,7 @@ export default function Home() {
                             ) : service.title === "Endeleza Ombi" ? (
                                 <Link href="/application/continue">
                                   <motion.button 
-                                    className="text-sm text-green-600 font-medium hover:text-green-800 flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-50 hover:bg-green-100 transition-colors duration-200"
+                                    className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ type: "spring", stiffness: 400 }}
                                   >
