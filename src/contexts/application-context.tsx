@@ -46,6 +46,7 @@ export interface ApplicationFormData {
   surname: string; // Added for the new form
   otherName?: string; // Added for the new form
   dateOfBirth: Date | string;
+  formattedDateOfBirth?: string; // Added for formatted date display
   gender: Gender;
   nationality: string;
   birthCountry?: number; // Country of birth ID
@@ -314,9 +315,28 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       }
     }
     
+    // Process date fields before updating state
+    const processedData = { ...data };
+    
+    // Handle dateOfBirth specially
+    if (processedData.dateOfBirth) {
+      console.log('Processing dateOfBirth in context:', processedData.dateOfBirth);
+      console.log('dateOfBirth type:', typeof processedData.dateOfBirth);
+      
+      // Ensure it's a Date object
+      if (typeof processedData.dateOfBirth === 'string') {
+        try {
+          processedData.dateOfBirth = new Date(processedData.dateOfBirth);
+          console.log('Converted string to Date object:', processedData.dateOfBirth);
+        } catch (e) {
+          console.error('Error converting dateOfBirth to Date:', e);
+        }
+      }
+    }
+    
     // Update the form data state
     setFormData((prev) => {
-      return { ...prev, ...data };
+      return { ...prev, ...processedData };
     });
   };
   

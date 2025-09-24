@@ -25,12 +25,13 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
-import { ArrowRight, Save } from "lucide-react";
+import { ArrowRight, Save, Calendar } from "lucide-react";
 import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { personalInfoEndpoints } from "@/lib/api";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
 import { useCustomToast } from "@/hooks/use-custom-toast";
+import { format } from "date-fns";
 
 // Application type options with icons
 const applicationTypes = [
@@ -68,9 +69,15 @@ const basicInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required"),
   otherName: z.string().optional(),
   gender: z.string().min(1, "Gender is required"), // Added gender field
-  dateOfBirth: z.union([z.string(), z.date()]).refine(val => val !== undefined && val !== null && val !== "", {
+  dateOfBirth: z.union([z.string(), z.date(), z.any()]).refine(val => {
+    // Debug the value being validated
+    console.log('Validating dateOfBirth:', val, typeof val);
+    
+    // Allow any non-empty value for read-only field
+    return val !== undefined && val !== null && val !== "";
+  }, {
     message: "Date of birth is required",
-  }),  // Will handle both string (MM/DD/YYYY) and Date objects
+  }),  // Will handle string, Date objects, and other formats
   birthCountry: z.number().optional(),
   birthCountryName: z.string().optional(),
   birthRegion: z.number().optional(),
@@ -91,6 +98,7 @@ export default function BasicInfoPage() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading, showError, showSuccess } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  // No need for verification dialog state
   
   // Get applicationId from context only
   const applicationId = formData.applicationId || '';
@@ -296,6 +304,46 @@ export default function BasicInfoPage() {
     }
   };
   
+  // Debug logging for date of birth format
+  console.log('Date of birth from formData:', formData.dateOfBirth);
+  console.log('Date of birth type:', typeof formData.dateOfBirth);
+  
+  // Try to get the debug value from localStorage
+  try {
+    const debugDob = localStorage.getItem('debug_dob');
+    console.log('DEBUG DOB from localStorage:', debugDob);
+  } catch (e) {}
+  
+  if (formData.dateOfBirth instanceof Date) {
+    console.log('Date of birth as ISO string:', formData.dateOfBirth.toISOString());
+    console.log('Date of birth as local string:', formData.dateOfBirth.toString());
+  } else if (typeof formData.dateOfBirth === 'string') {
+    console.log('Date of birth as string:', formData.dateOfBirth);
+  }
+  
+  // Simple date formatter
+  const formatDateOfBirth = (dateValue: Date | string | undefined) => {
+    if (!dateValue) return '';
+    
+    try {
+      // If it's a string in YYYY-MM-DD format, convert to DD/MM/YYYY
+      if (typeof dateValue === 'string' && dateValue.includes('-')) {
+        const [year, month, day] = dateValue.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // If it's a Date object
+      if (dateValue instanceof Date) {
+        return format(dateValue, 'dd/MM/yyyy');
+      }
+      
+      // Return as is for any other format
+      return String(dateValue);
+    } catch (e) {
+      return String(dateValue);
+    }
+  };
+  
   // Initialize form with React Hook Form and Zod validation
   const form = useForm<BasicInfoFormValues>({
     resolver: zodResolver(basicInfoSchema),
@@ -304,8 +352,8 @@ export default function BasicInfoPage() {
       middleName: formData.middleName || '',
       surname: formData.surname || '',
       otherName: formData.otherName || '',
-      gender: formData.gender || 'M', // Default to Male
-      // Don't set a default value for dateOfBirth
+      gender: formData.gender, // Default to Male
+      // Use the date of birth directly from context
       dateOfBirth: formData.dateOfBirth || '',
       birthCountry: formData.birthCountry || 0,
       birthCountryName: formData.birthCountryName || '',
@@ -322,8 +370,33 @@ export default function BasicInfoPage() {
     },
   });
   
+  // Debug logging for form values
+  console.log('Date of birth in form:', form.getValues().dateOfBirth);
+  
   // Effect to fetch occupations when occupationTypeId changes
   useEffect(() => {
+    // Try to get the phone number from localStorage
+    try {
+      const phoneNumber = localStorage.getItem('user_phone');
+      if (phoneNumber) {
+        form.setValue('mobileNumber', phoneNumber);
+      }
+    } catch (e) {}
+    
+    // Try to get the date of birth from verification
+    try {
+      const verificationDob = localStorage.getItem('verification_dob');
+      if (verificationDob) {
+        console.log('Found date of birth from verification:', verificationDob);
+        form.setValue('dateOfBirth', verificationDob);
+      } else if (formData.dateOfBirth) {
+        console.log('Using date of birth from context:', formData.dateOfBirth);
+        form.setValue('dateOfBirth', formData.dateOfBirth);
+      }
+    } catch (e) {
+      console.error('Error setting date of birth:', e);
+    }
+    
     const occupationTypeId = form.getValues().occupationTypeId;
     if (occupationTypeId) {
       fetchOccupationsForType(occupationTypeId);
@@ -385,12 +458,6 @@ export default function BasicInfoPage() {
         
         // Check if the API is returning a different property name for the ID
         const firstRegion = response.jsonResult[0];
-        console.log('First region EntryId:', firstRegion.EntryId);
-        console.log('First region ID:', firstRegion.ID);
-        console.log('First region Id:', firstRegion.Id);
-        console.log('First region id:', firstRegion.id);
-        console.log('First region RegionID:', firstRegion.RegionID);
-        console.log('First region RegionId:', firstRegion.RegionId);
         
         // Determine the correct ID property name
         let idPropertyName = 'EntryId';
@@ -408,13 +475,9 @@ export default function BasicInfoPage() {
           idPropertyName = 'RegionId';
         }
         
-        console.log('Using ID property name:', idPropertyName);
         
         const options = response.jsonResult.map(region => {
-          console.log('Processing region:', region);
-          
-          // Check for EntryID (uppercase ID) first, then fall back to other property names
-          const regionId = region.EntryID !== undefined ? region.EntryID : 
+         const regionId = region.EntryID !== undefined ? region.EntryID : 
                           region.EntryId !== undefined ? region.EntryId :
                           region.ID !== undefined ? region.ID :
                           region.Id !== undefined ? region.Id :
@@ -433,10 +496,8 @@ export default function BasicInfoPage() {
         
         console.log('Mapped region options:', options);
         setRegionOptions(options);
-        console.log(`Loaded ${options.length} regions for country ID ${countryId}`);
       } else {
-        console.log('No regions found or invalid response:', response);
-        setRegionOptions([]);
+       setRegionOptions([]);
       }
     } catch (error) {
       console.error("Error fetching regions:", error);
@@ -457,17 +518,23 @@ export default function BasicInfoPage() {
     
     // Find the selected occupation type option to ensure we have the correct ID
     const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);
-    console.log('Selected occupation type option for save:', selectedOccupationType);
-    
-    // Find the selected occupation option to ensure we have the correct ID
+  
     const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
     console.log('Selected occupation option for save:', selectedOccupation);
+    // Use the date directly as entered by the user
+    const dateOfBirthValue = formValues.dateOfBirth;
     
-    // Convert date string to Date object
+    // Save the entered date to localStorage for future reference
+    try {
+      if (typeof dateOfBirthValue === 'string' && dateOfBirthValue) {
+        localStorage.setItem('user_entered_dob', dateOfBirthValue);
+      }
+    } catch (e) {}
+    
     const data = {
       ...formValues,
-      // Keep the date as is - our custom component will handle the formatting
-      dateOfBirth: formValues.dateOfBirth || undefined,
+      // Use the date as entered by the user
+      dateOfBirth: dateOfBirthValue || undefined,
       // Map surname to lastName for compatibility with existing code
       lastName: formValues.surname,
       // Explicitly include gender field with proper validation
@@ -509,11 +576,20 @@ export default function BasicInfoPage() {
       const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
       console.log('Selected occupation option:', selectedOccupation);
       
-      // Convert date string to Date object
+      // Use the date directly as entered by the user
+      const dateOfBirthValue = formValues.dateOfBirth;
+      
+      // Save the entered date to localStorage for future reference
+      try {
+        if (typeof dateOfBirthValue === 'string' && dateOfBirthValue) {
+          localStorage.setItem('user_entered_dob', dateOfBirthValue);
+        }
+      } catch (e) {}
+      
       const data = {
         ...formValues,
-        // Keep the date as is - our custom component will handle the formatting
-        dateOfBirth: formValues.dateOfBirth || undefined,
+        // Use the date as entered by the user
+        dateOfBirth: dateOfBirthValue || undefined,
         // Map surname to lastName for compatibility with existing code
         lastName: formValues.surname,
         // Explicitly include gender field with proper validation
@@ -559,6 +635,8 @@ export default function BasicInfoPage() {
     }
   };
   
+  // No verification dialog handlers needed
+
   return (
     <ApplicationLayout 
       title="Taarifa Binafsi" 
@@ -687,6 +765,7 @@ export default function BasicInfoPage() {
                     label="Tarehe ya Kuzaliwa"
                     required={true}
                     placeholder="Chagua tarehe ya kuzaliwa"
+                    className="w-full"
                   />
                 )}
               />
@@ -995,9 +1074,10 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Namba ya Simu <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Mfano: 0712345678" 
-                        className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
-                        {...field} 
+                        {...field}
+                        className="border border-gray-300 rounded px-3 py-2 w-full bg-gray-50"
+                        disabled={true}
+                        readOnly={true}
                       />
                     </FormControl>
                     <FormMessage />

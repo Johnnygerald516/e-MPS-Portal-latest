@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { callExternalApi, getExternalApiUrl, createErrorResponse } from "../../../../../lib/utils/api-route-helpers";
 
 export async function POST(
   request: NextRequest,
@@ -6,51 +7,42 @@ export async function POST(
 ) {
   try {
     const { applicationId } = params;
-    
-    // Check if API URL is configured
-    if (!process.env.NEXT_PUBLIC_API_URL) {
-      console.error('NEXT_PUBLIC_API_URL is not configured');
-      return NextResponse.json(
-        { 
-          ackCode: 0, 
-          ackMessage: "API URL not configured. Please set NEXT_PUBLIC_API_URL environment variable."
-        },
-        { status: 500 }
-      );
-    }
-    
-    // Call the real external API endpoint
-    const externalApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/applications/${applicationId}/declaration`;
+    console.log(`Processing declaration request for application ID: ${applicationId}`);
     
     try {
-      const response = await fetch(externalApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any required authentication headers here
-          // 'Authorization': 'Bearer your-token',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`External API error: ${response.status}`);
-      }
-
-      const externalData = await response.json();
+      // Get the base API URL
+      const apiUrl = getExternalApiUrl();
       
-      // Return the external API response
-      return NextResponse.json(externalData);
+      // Get request body if any
+      let body = {};
+      try {
+        body = await request.json();
+        console.log('Request body:', body);
+      } catch (e) {
+        console.log('No request body or invalid JSON');
+      }
+      
+      // Construct the full external API URL
+      const externalApiUrl = `${apiUrl}/applications/${applicationId}/declaration`;
+      console.log(`Calling external API at: ${externalApiUrl}`);
+      
+      // Call the external API using our helper
+      const result = await callExternalApi(externalApiUrl, 'POST', body);
+      
+      if (!result.success) {
+        // Return the error response from the external API
+        return NextResponse.json(result.data, { status: result.status });
+      }
+      
+      // Return the successful response
+      return NextResponse.json(result.data);
       
     } catch (externalError) {
       console.error('External API call failed:', externalError);
       
-      return NextResponse.json(
-        { 
-          ackCode: 0, 
-          ackMessage: "Failed to connect to external API",
-          error: externalError instanceof Error ? externalError.message : "Network error"
-        },
-        { status: 503 }
+      return createErrorResponse(
+        `Failed to connect to external API: ${externalError instanceof Error ? externalError.message : "Network error"}`,
+        503
       );
     }
     

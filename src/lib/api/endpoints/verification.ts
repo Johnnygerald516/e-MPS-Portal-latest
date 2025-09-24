@@ -193,6 +193,7 @@ interface LookupResponse {
   jsonResult: any[];
 }
 
+
 export const verificationEndpoints = {
   // Fetch occupation types
   fetchOccupationTypes: async (): Promise<OccupationTypeLookupResponse> => {
@@ -203,7 +204,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/api/applications/lookup', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

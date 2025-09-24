@@ -1,45 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
-import { ArrowRight, Sun, Moon, ChevronRight, Globe, LogIn, UserPlus, Mail, Lock, Eye, EyeOff, FileText, Briefcase, Users, CheckCircle2, BookOpen } from "lucide-react";
-import { NavLink } from "../../components/ui/nav-link";
-import { Button } from "../../components/ui/button";
+import { ChevronRight,UserPlus,FileText, Briefcase, Users, CheckCircle2} from "lucide-react";
 import { PDFViewer } from "../../components/ui/pdf-viewer";
-import { AgriculturalBackground } from "../../components/ui/agricultural-background";
 import { motion, Variants, useScroll, useTransform } from "framer-motion";
-import { Card, CardContent } from "../../components/ui/card";
-import { Label } from "../../components/ui/label";
-import { Input } from "../../components/ui/input";
-import { LoadingButton } from "../../components/ui/loading-button";
-import { authEndpoints } from "../../lib/api/endpoints/auth";
-import { Checkbox } from "../../components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "../../components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
 
 // Service types for the landing page
 interface Service {
@@ -60,20 +28,6 @@ const containerVariants: Variants = {
       delayChildren: 0.2,
       duration: 0.5,
       ease: "easeOut"
-    }
-  }
-};
-
-// Scroll animation variants
-const scrollFadeUpVariants: Variants = {
-  offscreen: { y: 50, opacity: 0 },
-  onscreen: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      bounce: 0.4,
-      duration: 0.8
     }
   }
 };
@@ -184,13 +138,6 @@ const iconVariants: Variants = {
   }
 };
 
-const buttonHoverVariants: Variants = {
-  initial: { scale: 1 },
-  hover: { 
-    scale: 1.05,
-    transition: { type: "spring", stiffness: 400, damping: 10 }
-  }
-};
 
 const services: Service[] = [
   {
@@ -237,308 +184,8 @@ export default function Home() {
   
   // Scroll animations
   const { scrollY } = useScroll();
-  const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.95]);
-  const headerScale = useTransform(scrollY, [0, 100], [1, 0.98]);
   
-  // Since we only have the landing page, we don't redirect authenticated users
-  // Just keep them on the landing page
-  useEffect(() => {
-    // No redirects needed as we only have the landing page
-  }, []);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [showPassword, setShowPassword] = useState({
-    login: false,
-    register: false
-  });
-  const [formErrors, setFormErrors] = useState({
-    login: '',
-    register: '',
-    otp: ''
-  });
-  const [accountForm, setAccountForm] = useState({
-    login: {
-      email: '',
-      password: ''
-    },
-    register: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      accountType: 'individual',
-      agreeTerms: false
-    },
-    otp: {
-      code: '',
-      email: ''
-    }
-  });
   
-  // OTP verification state
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [otpExpired, setOtpExpired] = useState(false);
-  
-  const getCurrentDate = () => {
-    const now = new Date();
-    return now.toLocaleDateString('sw-TZ', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
-  
-  // Password validation function
-  const validatePassword = (password: string): boolean => {
-    // Check for at least one uppercase letter
-    const hasUpperCase = /[A-Z]/.test(password);
-    // Check for at least one lowercase letter
-    const hasLowerCase = /[a-z]/.test(password);
-    // Check for at least one digit
-    const hasDigit = /[0-9]/.test(password);
-    // Check for at least one special character
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    
-    return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar;
-  };
-
-  const togglePasswordVisibility = (field: 'login' | 'register') => {
-    setShowPassword(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-  
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Clear previous errors
-    setFormErrors(prev => ({ ...prev, login: '' }));
-    
-    try {
-      // Use auth endpoint for login
-      const result = await authEndpoints.signin(
-        accountForm.login.email,
-        accountForm.login.password
-      );
-      
-      // Check if the login was successful based on API response
-      if (result && result.status) {
-        console.log('Login successful:', result);
-        // If successful, redirect to dashboard
-        // The token is already stored in localStorage by the signin function
-        router.push('/dashboard');
-      } else {
-        // API returned success: false
-        const errorMessage = result?.message || 'Login failed. Please check your credentials.';
-        setFormErrors(prev => ({ ...prev, login: errorMessage }));
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      // Handle login errors
-      console.error('Login failed:', error);
-      
-      // Extract error message from API response if available
-      let errorMessage = 'Login failed. Please check your credentials.';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setFormErrors(prev => ({ ...prev, login: errorMessage }));
-      setIsLoading(false);
-    }
-  };
-  
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Clear previous errors
-    setFormErrors(prev => ({ ...prev, register: '' }));
-    
-    // Validate passwords match
-    if (accountForm.register.password !== accountForm.register.confirmPassword) {
-      setFormErrors(prev => ({ ...prev, register: 'Passwords do not match' }));
-      setIsLoading(false);
-      return;
-    }
-    
-    // Validate terms agreement
-    if (!accountForm.register.agreeTerms) {
-      setFormErrors(prev => ({ ...prev, register: 'You must agree to the terms and conditions' }));
-      setIsLoading(false);
-      return;
-    }
-    
-    // Validate password strength
-    if (!validatePassword(accountForm.register.password)) {
-      setFormErrors(prev => ({ 
-        ...prev, 
-        register: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' 
-      }));
-      setIsLoading(false);
-      return;
-    }
-    
-    try {
-      // Use auth endpoint for registration
-      const result = await authEndpoints.signup(
-        accountForm.register.email,
-        accountForm.register.password
-      );
-      
-      console.log('Registration result:', result);
-      
-      if (result.status) {
-        // After successful registration, show OTP verification
-        setAccountForm(prev => ({
-          ...prev,
-          otp: {
-            ...prev.otp,
-            email: accountForm.register.email
-          }
-        }));
-        
-        // Set OTP verification state
-        setShowOtpVerification(true);
-        
-        // Start OTP timer (5 minutes = 300 seconds)
-        setOtpTimer(300);
-        setOtpExpired(false);
-        setIsLoading(false);
-      } else {
-        // Registration failed with API error
-        const errorMessage = result.message || 'Registration failed. Please try again.';
-        setFormErrors(prev => ({ ...prev, register: errorMessage }));
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      // Handle registration errors
-      console.error('Registration failed:', error);
-      
-      // Extract error message from API response if available
-      let errorMessage = 'Registration failed. Please try again.';
-      
-      // Check for specific error types
-      if (error.isEmailTaken) {
-        // Email already exists error (409 Conflict)
-        errorMessage = error.message;
-        // Optionally switch to login tab or provide a link
-        // setActiveTab('login');
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setFormErrors(prev => ({ ...prev, register: errorMessage }));
-      setIsLoading(false);
-    }
-  };
-  
-  // OTP verification handler
-  const handleOtpVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Clear previous errors
-    setFormErrors(prev => ({ ...prev, otp: '' }));
-    
-    try {
-      // Use auth endpoint for OTP verification
-      const result = await authEndpoints.verifyOTP(
-        accountForm.otp.email,
-        accountForm.otp.code
-      );
-      
-      if (result.status) {
-        // OTP verification successful, redirect to dashboard
-        router.push('/dashboard');
-      } else {
-        // OTP verification failed
-        const errorMessage = result.message || 'OTP verification failed. Please try again.';
-        setFormErrors(prev => ({ ...prev, otp: errorMessage }));
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      // Handle OTP verification errors
-      console.error('OTP verification failed:', error);
-      
-      // Extract error message from API response if available
-      let errorMessage = 'OTP verification failed. Please try again.';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setFormErrors(prev => ({ ...prev, otp: errorMessage }));
-      setIsLoading(false);
-    }
-  };
-  
-  // Resend OTP handler
-  const handleResendOtp = async () => {
-    setIsLoading(true);
-    
-    try {
-      // Use auth endpoint to resend OTP
-      const result = await authEndpoints.resendOTP(accountForm.otp.email);
-      
-      if (result.status) {
-        // Reset OTP timer
-        setOtpTimer(300);
-        setOtpExpired(false);
-        setIsLoading(false);
-      } else {
-        // Resend OTP failed
-        const errorMessage = result.message || 'Failed to resend OTP. Please try again.';
-        setFormErrors(prev => ({ ...prev, otp: errorMessage }));
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      // Handle resend OTP errors
-      console.error('Resend OTP failed:', error);
-      
-      // Extract error message from API response if available
-      let errorMessage = 'Failed to resend OTP. Please try again.';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setFormErrors(prev => ({ ...prev, otp: errorMessage }));
-      setIsLoading(false);
-    }
-  };
-  
-  // OTP timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (showOtpVerification && otpTimer > 0) {
-      interval = setInterval(() => {
-        setOtpTimer(prevTimer => {
-          if (prevTimer <= 1) {
-            setOtpExpired(true);
-            clearInterval(interval);
-            return 0;
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showOtpVerification, otpTimer]);
-
   return (
     <>
       {/* Hero section with softer government blue background */}
@@ -566,8 +213,8 @@ export default function Home() {
                   initial="hidden"
                   animate="visible"
                 >
-                  <motion.span variants={itemVariants} className="block">{t('landing.managing')}</motion.span>
-                  <motion.span variants={itemVariants} className="block">Migrant (Walowezi)</motion.span>
+                  {/* <motion.span variants={itemVariants} className="block">{t('landing.managing')}</motion.span> */}
+                  <motion.span variants={itemVariants} className="block">Mfumo wa Walowezi</motion.span>
                   <motion.span variants={itemVariants} className="block text-blue-600">{t('landing.inTanzania')}</motion.span>
                 </motion.h2>
                 
@@ -575,7 +222,9 @@ export default function Home() {
                   className="text-slate-600 mb-4 max-w-md"
                   variants={itemVariants}
                 >
-                  {t('landing.description')}
+                  {/* {t('landing.description')} */}
+                  Hii ni huduma inayomuwezesha muombaji kujaza Fomu ya Maombi ya Kibali cha Walowezi kwa njia ya Kielektroniki akiwa mahali popote. Baada ya kujaza fomu hiyo, atatakiwa kuichapisha (Print) na kuiwasilisha pamoja na vielelezo vingine katika Ofisi ya Uhamiaji iliyo karibu naye kwa ajili ya kushughulikiwa maombi yake ya Kibali cha Walowezi.
+               
                 </motion.p>
                 
                 <motion.div

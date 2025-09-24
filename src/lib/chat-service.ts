@@ -1,4 +1,4 @@
-// Real AI chat service that connects to the API
+// Chat service that connects to our OpenAI-powered API
 
 export type ChatMessage = {
   id: string;
@@ -8,16 +8,25 @@ export type ChatMessage = {
 };
 
 export const chatService = {
-  // Function to get a real AI response from the API
-  getResponse: async (message: string): Promise<ChatMessage> => {
+  // Function to get an AI response from our API
+  getResponse: async (message: string, conversationHistory: ChatMessage[] = []): Promise<ChatMessage> => {
     try {
+      // Convert conversation history to the format expected by the API
+      const apiConversationHistory = conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
       // Call our API endpoint
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          conversationHistory: apiConversationHistory 
+        }),
       });
       
       if (!response.ok) {

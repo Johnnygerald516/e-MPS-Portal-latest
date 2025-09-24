@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { callExternalApi, getExternalApiUrl } from "../../../../../lib/utils/api-route-helpers";
 
 export async function GET(
   request: NextRequest,

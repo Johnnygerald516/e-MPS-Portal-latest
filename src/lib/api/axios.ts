@@ -1,8 +1,17 @@
 import axios from 'axios';
 
 // Create a base axios instance with default configuration
+console.log('===== API Configuration =====');
+console.log('API URL from env:', process.env.NEXT_PUBLIC_API_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Running in browser:', typeof window !== 'undefined');
+
+// Make sure we have a valid API URL, with fallback for development
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+console.log('Final API URL being used:', apiUrl);
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: apiUrl,
   headers: {
     'Content-Type': 'application/json',
   },

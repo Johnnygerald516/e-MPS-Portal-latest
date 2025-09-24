@@ -79,17 +79,17 @@ const translations: Translations = {
   // Landing page specific
   landing: {
     en: {
-      managing: "Managing",
-      seasonalMigrant: "Walowezi Migrant",
+      managing: "Migrant",
+      seasonalMigrant: "System",
       inTanzania: "in Tanzania",
-      description: "Access the Walowezi Migrant Portal and apply for a migrant pass, which allows you to participate in various activities upon approval by the Immigration Services Department.",
+      description: "This is a service that enables an applicant to fill out the Settlement Permit Application Form electronically from anywhere. After completing the form, they will be required to print it and submit it together with other supporting documents to the nearest Immigration Office for processing of their Settlement Permit application",
       ourServices: "Our Services"
     },
     sw: {
-      managing: "Usimamizi wa",
+      managing: "Mfumo wa",
       seasonalMigrant: "Walowezi",
       inTanzania: "Tanzania",
-      description: "Fikia Portal ya Walowezi na omba kibali, ambacho kinakuruhusu kushiriki katika shughuli mbalimbali baada ya kupata idhini kutoka Idara ya Huduma za Uhamiaji.",
+      description: "Hii ni huduma inayomuwezesha muombaji kujaza Fomu ya Maombi ya Kibali cha Walowezi kwa njia ya Kielektroniki akiwa mahali popote. Baada ya kujaza fomu hiyo, atatakiwa kuichapisha (Print) na kuiwasilisha pamoja na vielelezo vingine katika Ofisi ya Uhamiaji iliyo karibu naye kwa ajili ya kushughulikiwa maombi yake ya Kibali cha Walowezi.",
       ourServices: "Huduma Zetu"
     }
   },

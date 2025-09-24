@@ -29,7 +29,7 @@ import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { dependantInfoEndpoints } from "@/lib/api/endpoints/dependant-info";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 // Form validation schema
 const dependantSchema = z.object({
@@ -37,9 +37,29 @@ const dependantSchema = z.object({
   gender: z.string().min(1, "Gender is required"),
   relationship: z.string().min(2, "Relationship is required"),
   relationshipTypeId: z.number().optional(),
-  dateOfBirth: z.union([z.string(), z.date()]).refine(val => !!val, {
-    message: "Date of birth is required",
-  }),
+  dateOfBirth: z.union([z.string(), z.date()])
+    .refine(val => !!val, {
+      message: "Date of birth is required",
+    })
+    .refine(val => {
+      if (!val) return false;
+      
+      // Calculate age based on the date of birth
+      const dob = val instanceof Date ? val : new Date(val);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      
+      // Adjust age if birthday hasn't occurred yet this year
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      
+      // Ensure age is 18 or younger
+      return age <= 18;
+    }, {
+      message: "Dependant must be 18 years old or younger",
+    }),
   // Make hasDocument a required boolean to match the expected type
   hasDocument: z.boolean(),
   documentNumber: z.string().optional(),
@@ -74,6 +94,7 @@ export default function DependantInfoPage() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  const { toast } = useToast(); // Get toast function from hook
   
   // Get applicationId from context instead of URL parameters
   const applicationId = formData.applicationId || '';
@@ -166,6 +187,7 @@ export default function DependantInfoPage() {
         }
       } catch (error) {
         console.error('Error fetching lookup data:', error);
+        // Use the toast function from the hook
         toast({
           title: "Error",
           description: "Failed to load countries and nationalities",
@@ -224,6 +246,47 @@ export default function DependantInfoPage() {
     router.push('/application');
   };
 
+  // Helper function to validate age
+  const validateDependantAge = (dateOfBirth: string | Date | undefined): boolean => {
+    if (!dateOfBirth) {
+      console.log('validateDependantAge: No date of birth provided');
+      return false;
+    }
+    
+    try {
+      // Calculate age based on the date of birth
+      const dob = dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth);
+      console.log('validateDependantAge: Date of birth:', dob);
+      
+      // Check if date is valid
+      if (isNaN(dob.getTime())) {
+        console.log('validateDependantAge: Invalid date');
+        return false;
+      }
+      
+      const today = new Date();
+      console.log('validateDependantAge: Today:', today);
+      
+      let age = today.getFullYear() - dob.getFullYear();
+      console.log('validateDependantAge: Initial age calculation:', age);
+      
+      // Adjust age if birthday hasn't occurred yet this year
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+        console.log('validateDependantAge: Adjusted age after birthday check:', age);
+      }
+      
+      // Ensure age is 18 or younger
+      const isValid = age <= 18;
+      console.log('validateDependantAge: Final age:', age, 'Is valid (≤18):', isValid);
+      return isValid;
+    } catch (e) {
+      console.error('Error validating dependant age:', e);
+      return false;
+    }
+  };
+  
   // Handle form submission
   const onSubmit = async (data: DependantInfoFormValues) => {
     // If hasDependants is false, clear the dependants array
@@ -233,34 +296,47 @@ export default function DependantInfoPage() {
       // Validate required fields for each dependant
       const invalidDependants = data.dependants.filter((dep, index) => {
         const missingFields = [];
-        
-        if (!dep.name || dep.name.trim() === '') missingFields.push('Full Name');
+        if (!dep.name || dep.name.trim() === '') missingFields.push('Name');
         if (!dep.gender) missingFields.push('Gender');
         if (!dep.relationship || dep.relationship.trim() === '') missingFields.push('Relationship');
         if (!dep.relationshipTypeId) missingFields.push('Relationship Type');
         if (!dep.dateOfBirth) missingFields.push('Date of Birth');
         
+        // Validate age (must be 18 or younger)
+        if (dep.dateOfBirth && !validateDependantAge(dep.dateOfBirth)) {
+          // Use the toast function from the hook
+          toast({
+            title: `Dependant ${index + 1} has invalid age`,
+            description: `Dependant must be 18 years old or younger`,
+            variant: "destructive",
+          });
+          console.log(`Dependant ${index + 1} age validation failed - above 18 years old`);
+          return true;
+        }
+        
         // If document number is provided, validate related fields
         if (dep.documentNumber && dep.documentNumber.trim() !== '') {
           if (!dep.documentTypeId) missingFields.push('Document Type');
-          // Only check for document dates if document number is provided
-          // Don't show error for document dates if they're selected but incomplete
-          if (!dep.issuedCountryId) missingFields.push('Document Issued Country');
+          if (!dep.documentIssuedDate) missingFields.push('Document Issued Date');
+          if (!dep.documentExpiryDate) missingFields.push('Document Expiry Date');
+          if (!dep.issuedCountry || !dep.issuedCountryId) missingFields.push('Issued Country');
         }
-        
-        if (!dep.nationalityId) missingFields.push('Nationality');
         
         if (missingFields.length > 0) {
+          // Use the toast function from the hook
           toast({
-            title: `Dependant #${index + 1} has missing information`,
+            title: `Dependant ${index + 1} has missing fields`,
             description: `Please fill in the following fields: ${missingFields.join(', ')}`,
-            variant: "destructive"
+            variant: "destructive",
           });
+          console.log(`Dependant ${index + 1} has missing fields:`, missingFields);
           return true;
         }
+        
         return false;
       });
       
+      // If there are any invalid dependants, stop the submission
       if (invalidDependants.length > 0) {
         setIsLoading(false);
         return;

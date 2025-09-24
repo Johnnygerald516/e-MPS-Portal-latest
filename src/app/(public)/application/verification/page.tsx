@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoadingButton } from "@/components/ui/loading-button";
 import Link from "next/link";
-import { useApplication } from "@/contexts/application-context";
+import { useApplication, ApplicationType } from "@/contexts/application-context";
 
 // Verification form interface
 interface VerificationFormData {
@@ -113,16 +113,54 @@ function VerificationContent() {
         // Set the application data from the API response
         setApplicationData({
           applicationId: applicationId,
-          mobileNumber: phoneNo || ''
+          // Use the phone number from the form if available
+          mobileNumber: formData.phoneNumber || phoneNo || ''
         });
         
-        // Save applicationId to the application context
-        updateFormData({
+        // Also store the phone number in localStorage for direct access
+        if (formData.phoneNumber) {
+          localStorage.setItem('user_phone', formData.phoneNumber);
+        }
+        
+        // Save the original date string from verification for use in basic-info
+        if (formData.dateOfBirth && applicationType !== "renew") {
+          try {
+            // Save the original date string (YYYY-MM-DD) for the DatePickerFormField
+            localStorage.setItem('verification_dob', formData.dateOfBirth);
+            console.log('Saved verification date to localStorage:', formData.dateOfBirth);
+          } catch (e) {
+            console.error('Error saving date to localStorage:', e);
+          }
+        }
+        
+        // Save applicationId and other relevant information to the application context
+        const contextData: any = {
           applicationId: applicationId,
           // Also save other relevant information
-          applicationType: applicationType === "renew" ? "renew" : "new",
-          mobileNumber: phoneNo || ''
-        });
+          applicationType: (applicationType === "renew" ? "renew" : "new") as ApplicationType,
+          // Always use the phone number from the form if available, otherwise use the one from API
+          mobileNumber: formData.phoneNumber || phoneNo || ''
+        };
+        
+        // Add date of birth for new applications
+        if (applicationType !== "renew" && formData.dateOfBirth) {
+          // Store the exact date string from the form
+          contextData.dateOfBirth = formData.dateOfBirth;
+          console.log('EXACT DATE STRING saved to context:', formData.dateOfBirth);
+          
+          // Also format it for display
+          try {
+            const [year, month, day] = formData.dateOfBirth.split('-');
+            const formattedDate = `${day}/${month}/${year}`;
+            // Store the formatted date in the context as well
+            contextData.formattedDateOfBirth = formattedDate;
+          } catch (e) {
+            console.error('Error formatting date for context:', e);
+          }
+        }
+        
+        console.log('Full context data being saved:', contextData);
+        updateFormData(contextData);
         
         setShowApplicationId(true);
       } else {

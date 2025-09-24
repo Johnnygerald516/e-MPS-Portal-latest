@@ -134,7 +134,7 @@ export default function ContinueApplicationPage() {
   };
   
   return ( 
-    <div className="container mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white">
+    <div className="max-w-7xl mx-auto py-8 px-6 border border-slate-200 rounded mt-2 bg-white shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
           <h1 className="text-lg font-bold text-slate-500 mb-4 border-b border-slate-200 pb-1">Endeza ombi</h1>

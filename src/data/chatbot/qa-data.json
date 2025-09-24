@@ -1,0 +1,138 @@
+{
+  "questions": [
+    {
+      "id": "application-process",
+      "patterns": [
+        "how do I apply",
+        "application process",
+        "how to apply",
+        "start application",
+        "begin application",
+        "submit application",
+        "application procedure"
+      ],
+      "answer": "To apply for a migrant permit through the eMPS Portal:\n\n1. Create an account or log in to your existing account\n2. Click on 'Start New Application' on the dashboard\n3. Select the type of permit you need (work, study, family, etc.)\n4. Fill out all required personal information\n5. Upload the necessary supporting documents\n6. Review your application for accuracy\n7. Submit your application and pay any applicable fees\n8. You'll receive a confirmation number that you can use to track your application status"
+    },
+    {
+      "id": "required-documents",
+      "patterns": [
+        "what documents do I need",
+        "required documents",
+        "supporting documents",
+        "documentation needed",
+        "papers required",
+        "necessary documents",
+        "document requirements"
+      ],
+      "answer": "The documents required for your migrant permit application depend on the type of permit you're applying for. Common documents include:\n\n- Valid passport (with at least 6 months validity)\n- Passport-sized photographs (recent)\n- Proof of accommodation\n- Proof of financial means\n- Medical certificate\n- Police clearance certificate\n- Employment contract (for work permits)\n- Acceptance letter (for study permits)\n- Marriage certificate (for family permits)\n\nFor specific requirements based on your permit type, please check the 'Requirements' section on the application form."
+    },
+    {
+      "id": "application-status",
+      "patterns": [
+        "check status",
+        "application status",
+        "where is my application",
+        "track application",
+        "application progress",
+        "status of my permit",
+        "how long processing"
+      ],
+      "answer": "To check the status of your application:\n\n1. Log in to your eMPS Portal account\n2. Go to the 'My Applications' section on your dashboard\n3. Find your application in the list and click on it\n4. You'll see the current status of your application\n\nAlternatively, you can use your application reference number to check the status on the public tracking page without logging in.\n\nTypical processing times vary by permit type:\n- Tourist/Visitor permits: 5-10 business days\n- Work permits: 15-30 business days\n- Study permits: 10-20 business days\n- Family/Dependent permits: 20-40 business days"
+    },
+    {
+      "id": "fees",
+      "patterns": [
+        "how much does it cost",
+        "application fee",
+        "permit fee",
+        "payment",
+        "cost of permit",
+        "price",
+        "charges",
+        "fee structure"
+      ],
+      "answer": "Fees for migrant permits vary depending on the type and duration:\n\n- Tourist/Visitor permit: $50-100 USD\n- Work permit: $150-300 USD\n- Study permit: $100-200 USD\n- Family/Dependent permit: $100-250 USD\n\nPayments can be made online through the eMPS Portal using credit/debit cards or through approved bank transfers. All fees are non-refundable, even if your application is denied.\n\nPlease note that fees are subject to change. The exact fee will be displayed during your application process."
+    },
+    {
+      "id": "processing-time",
+      "patterns": [
+        "how long",
+        "processing time",
+        "wait time",
+        "when will I get",
+        "application timeline",
+        "duration",
+        "turnaround time"
+      ],
+      "answer": "Processing times for migrant permits vary depending on the type of permit and current application volumes:\n\n- Tourist/Visitor permits: 5-10 business days\n- Work permits: 15-30 business days\n- Study permits: 10-20 business days\n- Family/Dependent permits: 20-40 business days\n\nPlease note that these are estimated timeframes. Complex cases may take longer. You can check the status of your application through your eMPS Portal account at any time."
+    },
+    {
+      "id": "technical-issues",
+      "patterns": [
+        "website not working",
+        "technical problem",
+        "error message",
+        "can't upload",
+        "system down",
+        "portal error",
+        "website error",
+        "upload failed"
+      ],
+      "answer": "If you're experiencing technical issues with the eMPS Portal:\n\n1. Try refreshing the page or clearing your browser cache\n2. Make sure you're using a supported browser (Chrome, Firefox, Safari, or Edge)\n3. Check that your internet connection is stable\n4. Ensure uploaded documents meet the size and format requirements (PDF, JPG, PNG under 5MB)\n5. If uploading documents fails, try reducing the file size or converting to a different format\n\nIf problems persist, please contact technical support at support@emps-portal.gov with details of the issue and screenshots if possible."
+    },
+    {
+      "id": "appeal-rejection",
+      "patterns": [
+        "application rejected",
+        "application denied",
+        "permit refused",
+        "appeal process",
+        "rejected application",
+        "how to appeal",
+        "reapply"
+      ],
+      "answer": "If your application has been rejected:\n\n1. Log in to your eMPS Portal account\n2. Go to the rejected application\n3. Review the reasons for rejection carefully\n4. Click on the 'Appeal Decision' button (available for 30 days after rejection)\n5. Provide additional information or documentation addressing the reasons for rejection\n6. Submit your appeal\n\nAlternatively, you may start a new application addressing the issues that led to the rejection. Appeals typically take 15-30 business days to process."
+    },
+    {
+      "id": "extend-permit",
+      "patterns": [
+        "extend my permit",
+        "renew permit",
+        "permit extension",
+        "stay longer",
+        "extend visa",
+        "renew visa",
+        "extend stay"
+      ],
+      "answer": "To extend or renew your existing permit:\n\n1. Log in to your eMPS Portal account\n2. Go to 'My Permits' section\n3. Find the permit you wish to extend and click 'Apply for Extension'\n4. Complete the extension application form\n5. Upload any required supporting documents\n6. Pay the extension fee\n7. Submit your application\n\nImportant: Apply for extensions at least 30 days before your current permit expires to avoid penalties or being required to leave the country."
+    },
+    {
+      "id": "change-permit-type",
+      "patterns": [
+        "change permit type",
+        "switch visa",
+        "convert permit",
+        "change visa status",
+        "different permit",
+        "change from tourist to work",
+        "change permit category"
+      ],
+      "answer": "To change your permit type (e.g., from tourist to work permit):\n\n1. Log in to your eMPS Portal account\n2. Go to 'My Permits' section\n3. Find your current permit and click 'Apply for Change of Status'\n4. Select the new permit type you wish to apply for\n5. Complete the application form\n6. Upload all required documents for the new permit type\n7. Pay the applicable fees\n8. Submit your application\n\nNote that not all permit types can be changed while in the country. Some changes may require you to apply from your home country."
+    },
+    {
+      "id": "dependents",
+      "patterns": [
+        "bring family",
+        "dependents",
+        "family members",
+        "spouse visa",
+        "children visa",
+        "family permit",
+        "bring wife",
+        "bring husband",
+        "bring children"
+      ],
+      "answer": "To include dependents (spouse, children under 18) in your permit application:\n\n1. When completing your main application, indicate that you have dependents to include\n2. Provide the required information for each dependent\n3. Upload supporting documents for each dependent (birth certificates, marriage certificates, etc.)\n4. Pay the additional fees for each dependent\n\nAlternatively, if you already have a valid permit, you can apply for dependent permits through the 'Family Applications' section of your eMPS Portal account.\n\nDependents typically receive permits valid for the same duration as the main applicant."
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { callExternalApi, getExternalApiUrl } from "../../../../../lib/utils/api-route-helpers";
 
 // Use the API URL from environment variables
 const API_URL = process.env.NEXT_PUBLIC_API_URL;

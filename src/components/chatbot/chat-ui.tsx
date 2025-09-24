@@ -58,13 +58,17 @@ export function ChatBot() {
       timestamp: new Date()
     }
     
-    setMessages(prev => [...prev, userMessage])
+    // Update messages with user message
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages)
     setInputValue('')
     setIsLoading(true)
     
     try {
-      // Get AI response
-      const response = await chatService.getResponse(userMessage.content)
+      // Get AI response with conversation history
+      // Only send the last 10 messages to keep context manageable
+      const conversationHistory = updatedMessages.slice(-10);
+      const response = await chatService.getResponse(userMessage.content, conversationHistory)
       setMessages(prev => [...prev, response])
     } catch (error) {
       // Handle error
@@ -96,7 +100,7 @@ export function ChatBot() {
           <SheetHeader className="p-4 border-b">
             <SheetTitle className="flex items-center">
               <MessageCircle className="h-5 w-5 mr-2" />
-              Migrant Assistant
+              Migrant Portal
             </SheetTitle>
           </SheetHeader>
           
