@@ -98,14 +98,18 @@ export default function MigrantVerificationDialog({
         applicationTypeId: applicationTypeId
       };
       
-      // Call the verification API
+      console.log('Sending payload:', payload);
+      
+      // Call the verification API through our Next.js API route
       const response = await verificationEndpoints.verifyRegistration(payload);
       
+      console.log('API response received:', response);
+      
       // Process successful response
-      if (response.ackCode === 1) {
+      if (response && response.ackCode === 1) {
         setVerificationSuccess(true);
         // Use the correct property name (applicationID instead of applicationId)
-        const appId = response.jsonResult.applicationID;
+        const appId = response.jsonResult?.applicationID || response.applicationId || '';
         setApplicationId(appId);
         console.log('Application ID received:', appId);
         
@@ -115,7 +119,7 @@ export default function MigrantVerificationDialog({
           // Also save other relevant information
           applicationType: applicationTypeId === 1 ? "new" : "renew",
           // Store phone number if available
-          mobileNumber: response.jsonResult.phoneNo || phoneNumber || ""
+          mobileNumber: response.jsonResult?.phoneNo || phoneNumber || ""
         });
       } else {
         setError(`Uthibitisho umeshindikana: ${response.ackMessage}`);
@@ -127,13 +131,13 @@ export default function MigrantVerificationDialog({
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        setError(`Hitilafu: ${error.response.data?.ackMessage || 'Imeshindikana kuthibitisha taarifa zako'} (${error.response.status})`);
+        setError(`Uthibitisho umeshindikana: ${error.response.data?.ackMessage || 'Imeshindikana kuthibitisha taarifa zako'} (${error.response.status})`);
       } else if (error.request) {
         // The request was made but no response was received
         setError('Imeshindikana kuwasiliana na seva. Tafadhali jaribu tena baadaye.');
       } else {
         // Something happened in setting up the request that triggered an Error
-        setError(`Hitilafu: ${error.message || 'Kuna tatizo limetokea'}`);
+        setError(`Uthibitisho umeshindikana: ${error.message || 'Kuna tatizo limetokea'}`);
       }
     } finally {
       setIsSearching(false);
@@ -179,7 +183,7 @@ export default function MigrantVerificationDialog({
           {!verificationSuccess ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="subjectId">Nambari ya Mhusika(Subject ID)</Label>
+                <Label htmlFor="subjectId">Nambari ya Mhusika(Subject ID) <span className="text-red-500">*</span></Label>
                 <Input
                   id="subjectId"
                   value={subjectId}
@@ -189,7 +193,7 @@ export default function MigrantVerificationDialog({
                       setFieldErrors({...fieldErrors, subjectId: undefined});
                     }
                   }}
-                  placeholder="Nambari ya Mhusika"
+                  placeholder="ALN0000000000000"
                   className={fieldErrors.subjectId ? "border-red-500 focus:ring-red-500 rounded" : "rounded"}
                 />
                 {fieldErrors.subjectId && (
@@ -198,7 +202,7 @@ export default function MigrantVerificationDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Tarehe ya Kuzaliwa</Label>
+                <Label htmlFor="dateOfBirth">Tarehe ya Kuzaliwa <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="dateOfBirth"
@@ -220,7 +224,7 @@ export default function MigrantVerificationDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Namba ya Simu</Label>
+                <Label htmlFor="phoneNumber">Namba ya Simu Inayopatikana <span className="text-red-500">*</span></Label>
                 <Input
                   id="phoneNumber"
                   value={phoneNumber}
@@ -230,7 +234,7 @@ export default function MigrantVerificationDialog({
                       setFieldErrors({...fieldErrors, phoneNumber: undefined});
                     }
                   }}
-                  placeholder="Mfano: 0712345678"
+                  placeholder="Mfano: 0700000000"
                   className={fieldErrors.phoneNumber ? "border-red-500 focus:ring-red-500 rounded" : "rounded"}
                 />
                 {fieldErrors.phoneNumber && (

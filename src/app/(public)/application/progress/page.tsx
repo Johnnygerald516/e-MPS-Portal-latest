@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, Variants } from "framer-motion";
-import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck } from "lucide-react";
+import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, Loader2, FileSearch, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "@/components/ui/table";
 
 // Define the application status types
 type ApplicationStatus = 
@@ -33,30 +34,260 @@ interface ApplicationStatusData {
   status: ApplicationStatus;
   submittedDate: string;
   lastUpdated: string;
+  phoneNumber?: string;
   estimatedCompletionDate?: string;
   corrections?: CorrectionItem[];
   rejectionReason?: string;
   assessorComments?: string;
 }
 
+import PassPDFContent from "@/components/ui/pass-pdf-content";
+
+// Helper function to determine which action buttons to show based on status
+const getActionButtons = (
+  status: ApplicationStatus, 
+  applicationId: string, 
+  applicationData: ApplicationStatusData | null, 
+  isGeneratingPDF: boolean,
+  setIsGeneratingPDF: (value: boolean) => void
+) => {
+  const handlePrintBill = (id: string) => {
+    console.log(`Printing bill for application ${id}`);
+    // Implementation for printing bill
+  };
+  const handlePrintReceipt = (id: string) => {
+    // Implementation for printing receipt
+  };
+
+  // State is passed from the parent component
+
+  const handlePrintPass = async (id: string) => {
+    console.log(`Downloading pass for application ${id}`);
+    
+    // Get the pass content element
+    const passContent = document.getElementById('pass-content');
+    if (!passContent) {
+      console.error('Pass content element not found');
+      alert('Error: Pass content element not found. Please try again.');
+      return;
+    }
+    
+    try {
+      // Set loading state
+      setIsGeneratingPDF(true);
+      
+      // Wrap in a try-catch to handle any import errors
+      let generatePDF;
+      try {
+        // Import the generatePDF function dynamically
+        const pdfUtils = await import('@/lib/utils/pdf-generator');
+        generatePDF = pdfUtils.generatePDF;
+      } catch (importError) {
+        console.error('Error importing PDF generator:', importError);
+        alert('Error loading PDF generator. Please try again.');
+        setIsGeneratingPDF(false);
+        return;
+      }
+      
+      // Add a small delay to ensure the DOM is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Generate the PDF with error handling
+      let pdfBlob;
+      try {
+        pdfBlob = await generatePDF(passContent, `Migrant_Pass_${id}.pdf`);
+      } catch (pdfError) {
+        console.error('Error in PDF generation:', pdfError);
+        alert('Error generating PDF. Please try again.');
+        setIsGeneratingPDF(false);
+        return;
+      }
+      
+      // Create a link and trigger download with error handling
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Migrant_Pass_${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (downloadError) {
+        console.error('Error downloading PDF:', downloadError);
+        alert('Error downloading PDF. Please try again.');
+      }
+    } catch (error) {
+      console.error('Unexpected error in PDF process:', error);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      // Reset loading state
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleMarekebisho = (id: string) => {
+    console.log(`Editing application ${id}`);
+    // Implementation for marekebisho (corrections)
+  };
+
+  switch (status) {
+    case "received":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintBill(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <CreditCard className="h-4 w-4" />
+            <span>Print Bill</span>
+          </Button>
+        </div>
+      );
+    case "in_progress":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintBill(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <CreditCard className="h-4 w-4" />
+            <span>Print Bill</span>
+          </Button>
+          <Button 
+            onClick={() => handleMarekebisho(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-amber-600 border-amber-200 hover:bg-amber-50"
+          >
+            <Edit className="h-4 w-4" />
+            <span>Marekebisho</span>
+          </Button>
+        </div>
+      );
+    case "under_review":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintReceipt(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+          >
+            <Receipt className="h-4 w-4" />
+            <span>Print Receipt</span>
+          </Button>
+        </div>
+      );
+    case "returned_for_correction":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handleMarekebisho(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-orange-600 border-orange-200 hover:bg-orange-50"
+          >
+            <Edit className="h-4 w-4" />
+            <span>Marekebisho</span>
+          </Button>
+        </div>
+      );
+    case "pass_printed":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintPass(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>Download PDF</span>
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    case "issued":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintPass(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-green-600 border-green-200 hover:bg-green-50"
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <FileText className="h-4 w-4" />
+                <span>Download PDF</span>
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    case "rejected":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handleMarekebisho(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
+          >
+            <Edit className="h-4 w-4" />
+            <span>New Application</span>
+          </Button>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
 function ApplicationProgressContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [applicationId, setApplicationId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [applicationData, setApplicationData] = useState<ApplicationStatusData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Auto-search when ID is provided in URL (only for correction flow)
+  // Auto-search when ID or phone number is provided in URL (only for correction flow)
   useEffect(() => {
     const idFromUrl = searchParams.get('id');
+    const phoneFromUrl = searchParams.get('phone');
     const editId = searchParams.get('edit');
     
     // Only auto-search if coming from correction flow, not from landing page
-    if (idFromUrl && !editId) {
-      setApplicationId(idFromUrl);
+    if ((idFromUrl || phoneFromUrl) && !editId) {
+      if (idFromUrl) setApplicationId(idFromUrl);
+      if (phoneFromUrl) setPhoneNumber(phoneFromUrl);
       // Trigger search automatically only for correction redirects
-      handleSearchWithId(idFromUrl);
+      handleSearchWithId(idFromUrl || "", phoneFromUrl || "");
     }
   }, [searchParams]);
 
@@ -84,9 +315,9 @@ function ApplicationProgressContent() {
     },
   };
 
-  const handleSearchWithId = async (searchId: string) => {
-    if (!searchId.trim()) {
-      setError("Please enter an application ID");
+  const handleSearchWithId = async (searchId: string, searchPhone: string = "") => {
+    if (!searchId.trim() && !searchPhone.trim()) {
+      setError("Please enter an application ID or phone number");
       return;
     }
     setIsLoading(true);
@@ -116,14 +347,15 @@ function ApplicationProgressContent() {
           mockStatus = statuses[Math.floor(Math.random() * statuses.length)];
         }
 
-        // Generate mock data based on application ID
+        // Generate mock data based on application ID or phone number
         const mockData: ApplicationStatusData = {
-          id: searchId,
+          id: searchId || `APP-${Math.floor(Math.random() * 10000)}`,
           applicantName: "John Doe Smith",
-          subjectId: `SUB-${searchId.slice(-4)}-2025`,
+          subjectId: `SUB-${(searchId || Math.floor(Math.random() * 10000).toString()).slice(-4)}-2025`,
           status: mockStatus,
           submittedDate: "2025-08-15",
           lastUpdated: "2025-08-28",
+          phoneNumber: searchPhone || "+255 712 345 678",
           estimatedCompletionDate: mockStatus === "in_progress" || mockStatus === "under_review" ? "2025-09-10" : undefined,
           corrections: mockStatus === "returned_for_correction" ? [
             {
@@ -156,7 +388,7 @@ function ApplicationProgressContent() {
   };
 
   const handleSearch = async () => {
-    await handleSearchWithId(applicationId);
+    await handleSearchWithId(applicationId, phoneNumber);
   };
 
   const handleCorrectApplication = () => {
@@ -226,164 +458,199 @@ function ApplicationProgressContent() {
   };
 
   return ( 
-    <motion.div variants={itemVariants} className="max-w-7xl mx-auto py-8 px-6 border border-slate-200 rounded mt-2 bg-white shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
-          <h1 className="text-lg font-bold text-slate-500 mb-4 border-b border-slate-200 pb-1">Endeza ombi</h1>
-          <p className="text-slate-600 mb-6">
-          Ili kuweza kuendelea na Ombi lako ulilofanya kwenye mfumo huu wa mtandao, tafadhali weka namba ya Ombi lako sambamba na taarifa za msingi ulizojaza wakati unafanya ombi lako. </p>
-        </div>
-       
-        <motion.div
+    <motion.div variants={itemVariants} className="max-w-5xl mx-auto py-6 px-3 sm:px-4 border border-slate-200 rounded mt-2 bg-white shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3" style={{ minHeight: '450px' }}>
+        
+        <div className="border border-slate-100 rounded-lg bg-white p-3 shadow-sm sm:col-span-2">
+          <h1 className="text-lg font-bold text-slate-500 mb-3 border-b border-slate-200 pb-1">Taarifa za Msingi</h1>
+          <p className="text-slate-600 mb-4 text-sm">
+            Ili kuweza kufatilia hali ya ombi lako, tafadhali weka namba ya ombi lako na namba ya simu kisha bonyeza "Tafuta Ombi".
+          </p>
+          
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="applicationId" className="block text-sm font-medium text-slate-700 mb-1">Namba ya Ombi</label>
+              <div className="relative">
+                <FileSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Input
+                  id="applicationId"
+                  value={applicationId}
+                  onChange={(e) => setApplicationId(e.target.value)}
+                  placeholder="Namba ya ombi"
+                  className="bg-white border-slate-200 rounded shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-slate-700 mb-1">Namba ya Simu</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Input
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Namba ya simu"
+                  className="bg-white border-slate-200 rounded shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full pl-10"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-center border-t border-slate-200 pt-4 mt-2">
+                <LoadingButton
+                  onClick={handleSearch}
+                  isLoading={isLoading}
+                  loadingText="Inatafuta..."
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded flex items-center gap-2 transition-colors shadow-sm w-full justify-center"
+                >
+                  <Search className="h-4 w-4" />
+                  Tafuta Ombi
+                </LoadingButton>
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+          </div>
+
+          <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-8"
+          className="space-y-2 flex flex-col h-full border border-slate-100 rounded-lg bg-slate-50/50 p-3 sm:col-span-3 w-full overflow-x-auto"
         >
-          <h2 className="text-lg font-bold text-slate-500 mb-6 border-b border-slate-200 pb-1">Taarifa za Msingi</h2>
-            
-                <div className="flex flex-col md:flex-row gap-4">
-                  <Input
-                    value={applicationId}
-                    onChange={(e) => setApplicationId(e.target.value)}
-                    placeholder="Enter your application ID"
-                    className="bg-white border-slate-200 rounded shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 flex-1"
-                  />
-                </div>
-                <motion.div variants={itemVariants} className="pt-6 flex justify-end border-t border-slate-200">
-                <LoadingButton
-                    onClick={handleSearch}
-                    isLoading={isLoading}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded flex items-center gap-2 transition-colors shadow-sm"
-                  >
-                    <Search className="h-4 w-4" />
-                    Check Status
-                  </LoadingButton>
-                </motion.div>
-
-                {error && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-                    {error}
+          {!applicationData && !isLoading && (
+            <div className="text-center py-8 px-4 w-full">
+              <div className="flex justify-center mb-4">
+                <Search className="h-16 w-16 text-slate-300" />
+              </div>
+              <h3 className="text-lg font-medium text-slate-600 mb-2">Hali ya Ombi</h3>
+              <p className="text-slate-500 max-w-md mx-auto text-center">
+                Tafadhali weka namba ya ombi lako na namba ya simu kisha bonyeza "Tafuta Ombi" kuona hali ya ombi lako.
+              </p>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="text-center py-8 px-4 w-full">
+              <div className="flex justify-center mb-4">
+                <Loader2 className="h-16 w-16 text-indigo-500 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium text-slate-600 mb-2">Inatafuta...</h3>
+              <p className="text-slate-500 max-w-md mx-auto text-center">
+                Subiri kidogo tunapotafuta taarifa za ombi lako.
+              </p>
+            </div>
+          )}
+          
+          {applicationData && !isLoading && (
+            <div className="w-full">
+              <div className="flex flex-col justify-between items-start mb-3">
+                <h2 className="text-lg font-bold text-slate-500 mb-3 border-b border-slate-200 pb-1">Hali ya Ombi</h2>
+              </div>
+              
+              <div className="border shadow-sm overflow-x-auto mb-3 w-full">
+                <Table className="w-full min-w-[500px] text-xs">
+                  <TableHeader>
+                    <TableRow className="bg-slate-50 h-8">
+                      <TableHead className="font-semibold">Application ID</TableHead>
+                      <TableHead className="font-semibold">Applicant Name</TableHead>
+                      <TableHead className="font-semibold">Phone Number</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                            <TableCell className="font-medium">{applicationData.id}</TableCell>
+                            <TableCell>{applicationData.applicantName}</TableCell>
+                            <TableCell>{applicationData.phoneNumber}</TableCell>
+                            <TableCell>{getStatusBadge(applicationData.status)}</TableCell>
+                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Pass PDF Content (hidden) */}
+              <div className="hidden" id="pass-content">
+                <PassPDFContent
+                  applicationData={{
+                    id: applicationData.id,
+                    fullName: applicationData.applicantName,
+                    nationality: "Tanzania",
+                    passportNo: applicationData.id,
+                    paymentDate: applicationData.submittedDate,
+                    controlNo: applicationData.id,
+                    region: "Dar es Salaam"
+                  }}
+                />
+              </div>
+              
+              {applicationData.status === "returned_for_correction" && applicationData.corrections && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-orange-800">Application Returned for Correction</h3>
+                      <p className="text-orange-700 text-sm mt-1">
+                        {applicationData.assessorComments}
+                      </p>
+                      
+                      <div className="mt-4">
+                        <h4 className="font-medium text-orange-800 mb-2">Required Corrections:</h4>
+                        <div className="space-y-3">
+                          {applicationData.corrections.map((correction, index) => (
+                            <div key={index} className="bg-white border border-orange-200 rounded p-3">
+                              <div className="font-medium text-slate-900 text-sm">{correction.field}</div>
+                              <div className="text-red-600 text-sm mt-1">Issue: {correction.issue}</div>
+                              <div className="text-slate-600 text-sm mt-1">Instruction: {correction.instruction}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Button
+                        onClick={handleCorrectApplication}
+                        className="mt-4 bg-orange-600 hover:bg-orange-700 text-white"
+                      >
+                        Correct Application
+                      </Button>
+                    </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {applicationData && (
-                  <div className="mt-8 border-t border-slate-100 pt-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              {applicationData.status === "rejected" && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex flex-row items-center justify-between">
+                    <div className="flex items-center">
+                      <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0" />
                       <div>
-                        <h2 className="text-xl font-semibold text-slate-900">
-                          Application #{applicationData.id}
-                        </h2>
-                        <p className="text-slate-600 text-sm mt-1">
-                          Submitted on {applicationData.submittedDate}
+                        <h3 className="font-medium text-red-800">Application Rejected</h3>
+                        <p className="text-red-700 text-sm">
+                          {applicationData.rejectionReason}
                         </p>
                       </div>
-                      {getStatusBadge(applicationData.status)}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div className="space-y-1">
-                        <p className="text-sm text-slate-500">Application ID</p>
-                        <p className="font-medium">{applicationData.id}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-slate-500">Applicant Name</p>
-                        <p className="font-medium">{applicationData.applicantName}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-slate-500">Subject ID</p>
-                        <p className="font-medium">{applicationData.subjectId}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-slate-500">Last Updated</p>
-                        <p className="font-medium">{applicationData.lastUpdated}</p>
-                      </div>
-                      {applicationData.estimatedCompletionDate && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-slate-500">Estimated Completion</p>
-                          <p className="font-medium">{applicationData.estimatedCompletionDate}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {applicationData.status === "returned_for_correction" && applicationData.corrections && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                        <div className="flex items-start">
-                          <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
-                          <div className="flex-1">
-                            <h3 className="font-medium text-orange-800">Application Returned for Correction</h3>
-                            <p className="text-orange-700 text-sm mt-1">
-                              {applicationData.assessorComments}
-                            </p>
-                            
-                            <div className="mt-4">
-                              <h4 className="font-medium text-orange-800 mb-2">Required Corrections:</h4>
-                              <div className="space-y-3">
-                                {applicationData.corrections.map((correction, index) => (
-                                  <div key={index} className="bg-white border border-orange-200 rounded p-3">
-                                    <div className="font-medium text-slate-900 text-sm">{correction.field}</div>
-                                    <div className="text-red-600 text-sm mt-1">Issue: {correction.issue}</div>
-                                    <div className="text-slate-600 text-sm mt-1">Instruction: {correction.instruction}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <Button
-                              onClick={handleCorrectApplication}
-                              className="mt-4 bg-orange-600 hover:bg-orange-700 text-white"
-                            >
-                              Correct Application
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {applicationData.status === "rejected" && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        <div className="flex items-start">
-                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
-                          <div>
-                            <h3 className="font-medium text-red-800">Application Rejected</h3>
-                            <p className="text-red-700 text-sm mt-1">
-                              {applicationData.rejectionReason}
-                            </p>
-                            <Button
-                              onClick={handleNewApplication}
-                              variant="outline"
-                              className="mt-3 bg-white text-red-700 border-red-300 hover:bg-red-50"
-                            >
-                              Submit New Application
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {applicationData.status !== "returned_for_correction" && applicationData.status !== "rejected" && (
-                      <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                        <Button
-                          onClick={handleNewApplication}
-                          variant="outline"
-                          className="border-slate-300 text-slate-700"
-                        >
-                          New Application
-                        </Button>
-                        <Button
-                          onClick={() => window.print()}
-                          variant="outline"
-                          className="border-slate-300 text-slate-700"
-                        >
-                          Print Status
-                        </Button>
-                      </div>
-                    )}
+                    <Button
+                      onClick={handleNewApplication}
+                      variant="outline"
+                      className="ml-4 bg-white text-red-700 border-red-300 hover:bg-red-50 whitespace-nowrap"
+                    >
+                      Submit New Application
+                    </Button>
                   </div>
-                )}
-        </motion.div>
-      </div>
-    </motion.div>
+                </div>
+              )}
+            </div>
+          )}
+    </motion.div> 
+ </div>
+ </motion.div>
   );
 }
 

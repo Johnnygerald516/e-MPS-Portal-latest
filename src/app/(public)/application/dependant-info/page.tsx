@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon, Plus, Trash2, Users, ArrowRight, Globe, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,7 +20,6 @@ import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { InteractiveCheckbox } from "@/components/ui/interactive-checkbox";
 import { RelationshipTypeSelect } from "@/components/ui/relationship-type-select";
 import { DocumentTypeSelect } from "@/components/ui/document-type-select";
-import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
-import { dependantInfoEndpoints } from "@/lib/api/endpoints/dependant-info";
+import { dependantInfoEndpoints, DependantInfoPayload } from "@/lib/api/endpoints/dependant-info";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -432,7 +432,15 @@ export default function DependantInfoPage() {
       
       // Call the API endpoint
       try {
-        const response = await dependantInfoEndpoints.submitDependantInfo(applicationId, apiPayload);
+        // Create the payload with the expected structure matching the API format
+        const formattedPayload: DependantInfoPayload = {
+          applicationId: applicationId,
+          hasDocument: apiPayload.hasDocument,
+          dependants: apiPayload.dependants
+        };
+        
+        console.log('Formatted payload for API:', formattedPayload);
+        const response = await dependantInfoEndpoints.saveDependantInfo(formattedPayload);
         
         if (response.ackCode === 1) {
           // Success - show success message

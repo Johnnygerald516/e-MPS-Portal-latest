@@ -1,103 +1,34 @@
-// Personal Info API endpoints
+// Personal information API endpoints
 import { toast } from "@/components/ui/use-toast";
 
-interface PersonalInfoRequest {
+interface PersonalInfoPayload {
+  applicationId: string;
   firstName: string;
   middleName: string;
-  lastName: string; // Renamed from surname
+  lastName: string;
   dateOfBirth: string;
   gender: string;
-  otherName: string; // Renamed from formerName
-  birthCountry: number;
-  birthRegion: number;
   maritalStatusId: number;
-  occupationDetail: string;
-  occupationTypeId: number;
+  nationality: string;
   occupationId: number;
+  email: string;
+  phoneNumber: string;
 }
 
 interface PersonalInfoResponse {
   ackCode: number;
   ackMessage: string;
-  jsonResult: {
-    applicationId: string;
-  };
+  applicationId?: string;
 }
 
-// Map form values to API request format
-const mapMaritalStatusToId = (status: string): number => {
-  const statusMap: Record<string, number> = {
-    'single': 1,
-    'married': 2,
-    'divorced': 3,
-    'widowed': 4
-  };
-  return statusMap[status] || 0;
-};
-
-const mapOccupationTypeToId = (type: string): number => {
-  const typeMap: Record<string, number> = {
-    'employed': 1,
-    'self_employed': 2,
-    'business': 3,
-    'student': 4,
-    'retired': 5,
-    'unemployed': 6,
-    'unemployed_en': 6
-  };
-  return typeMap[type] || 0;
-};
-
 export const personalInfoEndpoints = {
-  // Submit personal info
-  submitPersonalInfo: async (applicationId: string, formData: any): Promise<PersonalInfoResponse> => {
+  // Save personal information
+  savePersonalInfo: async (payload: PersonalInfoPayload): Promise<PersonalInfoResponse> => {
     try {
-      // Log the incoming form data for debugging
-      console.log('Form data received:', formData);
+      console.log('Saving personal info with payload:', payload);
       
-      // Format the date properly to MM/DD/YYYY
-      let formattedDate = '';
-      if (formData.dateOfBirth) {
-        if (formData.dateOfBirth instanceof Date) {
-          // Format as MM/DD/YYYY
-          const month = (formData.dateOfBirth.getMonth() + 1).toString().padStart(2, '0');
-          const day = formData.dateOfBirth.getDate().toString().padStart(2, '0');
-          const year = formData.dateOfBirth.getFullYear();
-          formattedDate = `${month}/${day}/${year}`;
-        } else {
-          // If it's already a string, try to ensure it's in MM/DD/YYYY format
-          // Check if it's in ISO format (YYYY-MM-DD)
-          if (formData.dateOfBirth.includes('-')) {
-            const [year, month, day] = formData.dateOfBirth.split('-');
-            formattedDate = `${month}/${day}/${year}`;
-          } else {
-            // Assume it's already in MM/DD/YYYY format
-            formattedDate = formData.dateOfBirth;
-          }
-        }
-      }
-      
-      // Map form values to API request format
-      const payload: PersonalInfoRequest = {
-        firstName: formData.firstName || '',
-        middleName: formData.middleName || '',
-        lastName: formData.surname || formData.lastName || '', // Use either surname or lastName
-        dateOfBirth: formattedDate,
-        gender: "M", // Default value
-        otherName: formData.otherName || formData.formerName || '', // Use either otherName or formerName
-        birthCountry: formData.birthCountry || 0,
-        birthRegion: formData.birthRegion || 0,
-        maritalStatusId: formData.maritalStatusId || 0,
-        occupationTypeId: formData.occupationTypeId || 0,
-        occupationId: formData.occupationId || 0,
-        occupationDetail: formData.occupationDetail || formData.occupationDescription || ''
-      };
-      
-      // Log the payload being sent to the API
-      console.log('Payload being sent to API:', payload);
-
-      // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/personal-info`, {
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${payload.applicationId}/personal-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,43 +36,67 @@ export const personalInfoEndpoints = {
         body: JSON.stringify(payload),
       });
       
-      // Check if the response is OK
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        
-        // Show toast notification for API error
-        toast({
-          title: "API Error",
-          description: `Error ${response.status}: ${response.statusText}`,
-          variant: "destructive"
-        });
-        
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
-      // Try to parse the response as JSON
-      try {
-        const responseData = await response.json();
-        console.log('Personal info response:', responseData);
-        return responseData;
-      } catch (parseError) {
-        console.error('Failed to parse JSON response:', parseError);
-        const responseText = await response.text();
-        console.error('Response text:', responseText);
-        throw new Error('Invalid JSON response from server');
-      }
-    } catch (error: any) {
-      console.error('Error submitting personal info:', error);
+      const responseData = await response.json();
+      console.log('Personal info save response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error saving personal info:', error);
       
-      // Show toast notification for any caught error
+      // Show toast notification for error
       toast({
         title: "Error",
-        description: error.message || "Failed to submit personal information",
+        description: "Failed to save personal information. Please try again.",
         variant: "destructive"
       });
       
-      throw error;
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  },
+  
+  // Get personal information
+  getPersonalInfo: async (applicationId: string): Promise<any> => {
+    try {
+      console.log('Getting personal info for application:', applicationId);
+      
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${applicationId}/personal-info`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Personal info get response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error getting personal info:', error);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error",
+        description: "Failed to retrieve personal information. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred",
+        data: null
+      };
     }
   }
 };

@@ -472,7 +472,7 @@ const MigrantFormHTML: React.FC<MigrantFormHTMLProps> = ({ formData, printable =
               <td>{formData.dependantRelationship || 'N/A'}</td>
             </tr>
             <tr>
-              <th>Passport Number (Namba ya Pasipoti):</th>
+              <th>Document Number (Namba ya Hati):</th>
               <td>{formData.dependantPassportNumber || 'N/A'}</td>
             </tr>
             <tr>

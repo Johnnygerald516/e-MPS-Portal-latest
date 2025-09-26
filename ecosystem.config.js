@@ -1,48 +1,30 @@
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const os = require('os');
 
-// Function to get the server's IP address
-const getServerIp = () => {
-  const interfaces = os.networkInterfaces();
-  let serverIp = '127.0.0.1';
-  
-  // Look through all network interfaces
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      // Skip internal and non-IPv4 addresses
-      if (iface.family === 'IPv4' && !iface.internal) {
-        console.log(`Found network interface: ${name}, IP: ${iface.address}`);
-        // Prefer addresses starting with 10. for internal networks
-        if (iface.address.startsWith('10.')) {
-          serverIp = iface.address;
-          break;
-        } else if (!serverIp || serverIp === '127.0.0.1') {
-          serverIp = iface.address;
-        }
-      }
-    }
-  }
-  
-  return serverIp;
-};
-
-// Get the server's actual IP address
-const serverIp = getServerIp();
-
+// Get the project root directory
 const projectRoot = "C:/eMPS-Portal2";
-const envPath = path.join(projectRoot, '.env.production');
+
+// First try to load .env.production, then fall back to .env
+const prodEnvPath = path.join(projectRoot, '.env.production');
+const defaultEnvPath = path.join(projectRoot, '.env');
 
 let envConfig = {};
-console.log('Looking for .env.production at:', envPath);
 
-if (fs.existsSync(envPath)) {
+// Try loading .env.production first (preferred for production)
+if (fs.existsSync(prodEnvPath)) {
   console.log('Loading environment variables from .env.production for PM2');
-  envConfig = dotenv.parse(fs.readFileSync(envPath));
-  console.log('Loaded API URL:', envConfig.NEXT_PUBLIC_API_URL);
+  envConfig = dotenv.parse(fs.readFileSync(prodEnvPath));
+  console.log('Loaded API URL from .env.production:', envConfig.NEXT_PUBLIC_API_URL);
+} 
+// Fall back to .env if .env.production doesn't exist
+else if (fs.existsSync(defaultEnvPath)) {
+  console.log('Loading environment variables from .env for PM2');
+  envConfig = dotenv.parse(fs.readFileSync(defaultEnvPath));
+  console.log('Loaded API URL from .env:', envConfig.NEXT_PUBLIC_API_URL);
 } else {
-  console.warn('.env.production file not found at:', envPath);
+  console.warn('No .env or .env.production file found!');
+  process.exit(1); // Exit if no environment files found
 }
 
 module.exports = {
@@ -54,9 +36,9 @@ module.exports = {
       args: "server.js",
       env: {
         NODE_ENV: "production",
-        HOST: "0.0.0.0",
-        PORT: 3001, // Match your API port
-        NEXT_PUBLIC_API_URL: envConfig.NEXT_PUBLIC_API_URL || `http://${serverIp}:3001`,
+        HOST: envConfig.HOST || "0.0.0.0",
+        PORT: envConfig.PORT || 3001,
+        NEXT_PUBLIC_API_URL: envConfig.NEXT_PUBLIC_API_URL,
         NEXT_PUBLIC_API_KEY: envConfig.NEXT_PUBLIC_API_KEY || ""
       },
       watch: false,

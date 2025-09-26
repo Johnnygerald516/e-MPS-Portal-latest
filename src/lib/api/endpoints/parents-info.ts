@@ -1,7 +1,9 @@
-// Parents Info API endpoints
+// Parents information API endpoints
 import { toast } from "@/components/ui/use-toast";
 
-interface ParentsInfoRequest {
+interface ParentsInfoPayload {
+  applicationId: string;
+  // Updated fields to match the expected API format
   fatherFullName: string;
   fatherDateOfBirth: string;
   fatherCountryOfBirthId: number;
@@ -19,82 +21,17 @@ interface ParentsInfoRequest {
 interface ParentsInfoResponse {
   ackCode: number;
   ackMessage: string;
-  jsonResult: {
-    applicationId: string;
-  };
+  applicationId?: string;
 }
 
 export const parentsInfoEndpoints = {
-  // Submit parents info
-  submitParentsInfo: async (applicationId: string, formData: any): Promise<ParentsInfoResponse> => {
+  // Save parents information
+  saveParentsInfo: async (payload: ParentsInfoPayload): Promise<ParentsInfoResponse> => {
     try {
-      // Log the incoming form data for debugging
-      console.log('Form data received:', formData);
+      console.log('Saving parents info with payload:', payload);
       
-      // Format dates properly and validate
-      const formatDate = (date: any): string => {
-        if (!date) return '';
-        
-        // If it's already a string, check if it's a valid date format
-        if (typeof date === 'string') {
-          // Check for invalid years like 0001, 0002
-          if (date.startsWith('000')) {
-            // Replace with current year
-            const currentYear = new Date().getFullYear();
-            return `${currentYear}${date.substring(4)}`;
-          }
-          return date;
-        }
-        
-        // If it's a Date object
-        if (date instanceof Date) {
-          const year = date.getFullYear();
-          // Check if year is too low (likely invalid)
-          if (year < 1900) {
-            const currentYear = new Date().getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${currentYear}-${month}-${day}`;
-          }
-          return date.toISOString().split('T')[0];
-        }
-        
-        return '';
-      };
-      
-      // Map form values to API request format
-      const payload: ParentsInfoRequest = {
-        fatherFullName: formData.fatherFullName || '',
-        fatherDateOfBirth: formatDate(formData.fatherDateOfBirth),
-        fatherCountryOfBirthId: Number(formData.fatherCountryOfBirthId) || 0,
-        fatherCountryOfResidentId: Number(formData.fatherCountryOfResidentId) || 0,
-        fatherNationalityId: Number(formData.fatherNationalityId) || 0,
-        fatherRegionOfBirthId: Number(formData.fatherRegionOfBirthId) || 0,
-        motherFullName: formData.motherFullName || '',
-        motherDateOfBirth: formatDate(formData.motherDateOfBirth),
-        motherRegionOfBirthId: Number(formData.motherRegionOfBirthId) || 0,
-        motherCountryOfBirthId: Number(formData.motherCountryOfBirthId) || 0,
-        motherCountryOfResidentId: Number(formData.motherCountryOfResidentId) || 0,
-        motherNationalityId: Number(formData.motherNationalityId) || 0
-      };
-      
-      // Log the IDs to verify they are being sent correctly
-      console.log('IDs being sent to API:', {
-        fatherCountryOfBirthId: payload.fatherCountryOfBirthId,
-        fatherCountryOfResidentId: payload.fatherCountryOfResidentId,
-        fatherNationalityId: payload.fatherNationalityId,
-        fatherRegionOfBirthId: payload.fatherRegionOfBirthId,
-        motherCountryOfBirthId: payload.motherCountryOfBirthId,
-        motherRegionOfBirthId: payload.motherRegionOfBirthId,
-        motherCountryOfResidentId: payload.motherCountryOfResidentId,
-        motherNationalityId: payload.motherNationalityId
-      });
-      
-      // Log the payload being sent to the API
-      console.log('Payload being sent to API:', payload);
-
-      // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/parents-info`, {
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${payload.applicationId}/parents-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,43 +39,67 @@ export const parentsInfoEndpoints = {
         body: JSON.stringify(payload),
       });
       
-      // Check if the response is OK
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        
-        // Show toast notification for API error
-        toast({
-          title: "API Error",
-          description: `Error ${response.status}: ${response.statusText}`,
-          variant: "destructive"
-        });
-        
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
-      // Try to parse the response as JSON
-      try {
-        const responseData = await response.json();
-        console.log('Parents info response:', responseData);
-        return responseData;
-      } catch (parseError) {
-        console.error('Failed to parse JSON response:', parseError);
-        const responseText = await response.text();
-        console.error('Response text:', responseText);
-        throw new Error('Invalid JSON response from server');
-      }
-    } catch (error: any) {
-      console.error('Error submitting parents info:', error);
+      const responseData = await response.json();
+      console.log('Parents info save response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error saving parents info:', error);
       
-      // Show toast notification for any caught error
+      // Show toast notification for error
       toast({
         title: "Error",
-        description: error.message || "Failed to submit parents information",
+        description: "Failed to save parents information. Please try again.",
         variant: "destructive"
       });
       
-      throw error;
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  },
+  
+  // Get parents information
+  getParentsInfo: async (applicationId: string): Promise<any> => {
+    try {
+      console.log('Getting parents info for application:', applicationId);
+      
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${applicationId}/parents-info`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Parents info get response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error getting parents info:', error);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error",
+        description: "Failed to retrieve parents information. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred",
+        data: null
+      };
     }
   }
 };

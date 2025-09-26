@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
-import { residenceInfoEndpoints } from "@/lib/api";
+// Import residenceInfoEndpoints directly from the module
+import { residenceInfoEndpoints } from "@/lib/api/endpoints/residence-info";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
 import { useCustomToast } from "@/hooks/use-custom-toast";
 import { findOptionByValue, handleDropdownChange } from "@/lib/utils/safe-dropdown";
@@ -510,26 +511,37 @@ export default function ResidenceInfoPage() {
         countryOfOriginId: ensureValidId(formValues.countryOfOriginId),
       };
       
-      // Prepare API payload according to the required format
-      const apiPayload = {
-        wardResidenceId: Number(data.wardId) || 0,
+      // Prepare the payload with the exact field names expected by the API
+      const residencePayload = {
+        applicationId: applicationId,
+        // Use the exact field names expected by the API
+        wardResidenceId: Number(data.wardId) || 0,  // Changed from wardId
         streetName: String(data.street || ''),
+        phoneNo: String(data.phoneNumber || ''),     // Changed from phoneNumber
+        houseNo: String(data.houseNumber || ''),     // Changed from houseNumber
+        plotNo: String(data.plotNumber || ''),       // Changed from plotNumber
+        countryOfOriginId: Number(data.countryOfOriginId) || 0,
+        nationalityId: Number(data.residenceNationalityId) || 0,
+        dateOfEntry: dateOfEntry
+      };
+      
+      // Store additional data for logging purposes (keeping this for reference)
+      const additionalData = {
         phoneNo: String(data.phoneNumber || ''),
-        houseNo: String(data.houseNumber || ''),
         plotNo: String(data.plotNumber || ''),
         countryOfOriginId: Number(data.countryOfOriginId) || 0,
         nationalityId: Number(data.residenceNationalityId) || 0,
-        // Use the dateOfEntry string directly - it's already in YYYY-MM-DD format
         dateOfEntry: dateOfEntry
       };
       
       console.log('Form submission data:', data);
-      console.log('API payload:', apiPayload);
+      console.log('Residence payload:', residencePayload);
+      console.log('Additional data:', additionalData);
       updateFormData(data);
       
-      // Call the API to submit residence info
+      // Call the API to save residence info
       console.log('Calling API with applicationId:', applicationId);
-      const response = await residenceInfoEndpoints.submitResidenceInfo(applicationId, apiPayload);
+      const response = await residenceInfoEndpoints.saveResidenceInfo(residencePayload);
       console.log('API response received:', response);
       
       if (response.ackCode === 1) {

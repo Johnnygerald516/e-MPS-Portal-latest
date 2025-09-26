@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { ArrowRight, Save, Calendar } from "lucide-react";
-import { useApplication } from "@/contexts/application-context";
+import { useApplication, Gender, ApplicationFormData } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { personalInfoEndpoints } from "@/lib/api";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
@@ -106,23 +106,56 @@ export default function BasicInfoPage() {
   
   // Gender options
   const genderOptions = [
-    { value: "M", label: "Male" },
-    { value: "F", label: "Female" },
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
   ];
 
-  // Define Gender type to match the expected type in ApplicationFormData
-  type Gender = 'M' | 'F';
+  // Use the Gender type imported from application-context
+  
+  // Define PersonalInfoPayload interface to match the API requirements
+  interface PersonalInfoPayload {
+    applicationId: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    dateOfBirth: string;
+    gender: Gender; // Changed from string to Gender type
+    maritalStatusId: number;
+    nationality: string;
+    occupationId: number;
+    email: string;
+    phoneNumber: string;
+    [key: string]: any; // Allow additional properties
+  }
+  
+  // Helper function to prepare data for PersonalInfoPayload
+  const preparePersonalInfoPayload = (data: any): PersonalInfoPayload => {
+    return {
+      ...data,
+      applicationId: data.applicationId || '',
+      firstName: data.firstName || '',
+      middleName: data.middleName || '',
+      lastName: data.lastName || '',
+      dateOfBirth: data.dateOfBirth || '',
+      gender: ensureValidGender(data.gender), // Use the ensureValidGender helper
+      maritalStatusId: data.maritalStatusId || 0,
+      nationality: data.nationality || 'Tanzania',
+      occupationId: data.occupationId || 0,
+      email: data.email || '',
+      phoneNumber: data.phoneNumber || data.mobileNumber || ''
+    };
+  };
   
   // Helper function to ensure gender value is of the correct type
   const ensureValidGender = (value: string | undefined): Gender => {
-    if (value === "M" || value === "F") {
+    if (value === "M" || value === "F" || value === "male" || value === "female") {
       return value as Gender;
-    } else if (value === "male") {
-      return "M" as Gender;
-    } else if (value === "female") {
-      return "F" as Gender;
+    } else if (value && value.toLowerCase() === "male") {
+      return "male" as Gender;
+    } else if (value && value.toLowerCase() === "female") {
+      return "female" as Gender;
     }
-    return "M" as Gender; // Default to M if invalid
+    return "male" as Gender; // Default to male if invalid
   };
 
   
@@ -550,11 +583,25 @@ export default function BasicInfoPage() {
       occupationTypeId: selectedOccupationType ? selectedOccupationType.id : (formValues.occupationTypeId || 0),
       occupationId: selectedOccupation ? selectedOccupation.id : (formValues.occupationId || 0),
       occupationDescription: formValues.occupationDescription || '',
-      occupationDetail: formValues.occupationDescription || ''
+      occupationDetail: formValues.occupationDescription || '',
+      // Add the required fields for PersonalInfoPayload
+      nationality: formData.nationality || 'Tanzania', // Default to Tanzania or get from formData
+      email: formData.email || '', // Get from formData or empty string
+      phoneNumber: formValues.mobileNumber || '' // Use mobileNumber as phoneNumber
     } as const;
     
     console.log('Save and exit - final data with maritalStatusId:', data.maritalStatusId);
-    updateFormData(data);
+    // Prepare the data using our helper function to ensure all required fields are present
+    const completeData = preparePersonalInfoPayload({ ...data, applicationId });
+    
+    // Create a properly typed object for updateFormData
+    const formDataUpdate: Partial<ApplicationFormData> = {
+      ...data,
+      applicationId: completeData.applicationId,
+      gender: completeData.gender, // This is now properly typed as Gender
+    };
+    
+    updateFormData(formDataUpdate);
     router.push('/application');
   };
   
@@ -605,15 +652,31 @@ export default function BasicInfoPage() {
         occupationTypeId: selectedOccupationType ? selectedOccupationType.id : (formValues.occupationTypeId || 0),
         occupationId: selectedOccupation ? selectedOccupation.id : (formValues.occupationId || 0),
         occupationDescription: formValues.occupationDescription || '',
-        occupationDetail: formValues.occupationDescription || ''
+        occupationDetail: formValues.occupationDescription || '',
+        // Add the required fields for PersonalInfoPayload
+        nationality: formData.nationality || 'Tanzania', // Default to Tanzania or get from formData
+        email: formData.email || '', // Get from formData or empty string
+        phoneNumber: formValues.mobileNumber || '' // Use mobileNumber as phoneNumber
       } as const;
       
       console.log('Submitting form data:', data);
       console.log('Final maritalStatusId being sent:', data.maritalStatusId);
-      updateFormData(data);
       
-      // Call the API to submit personal info
-      const response = await personalInfoEndpoints.submitPersonalInfo(applicationId, data);
+      // Prepare the data using our helper function to ensure all required fields are present
+      const payload = preparePersonalInfoPayload({ ...data, applicationId });
+      console.log('Final prepared payload:', payload);
+      
+      // Create a properly typed object for updateFormData
+      const formDataUpdate: Partial<ApplicationFormData> = {
+        ...data,
+        applicationId: payload.applicationId,
+        gender: payload.gender, // This is now properly typed as Gender
+      };
+      
+      updateFormData(formDataUpdate);
+      
+      // Call the API to save personal info
+      const response = await personalInfoEndpoints.savePersonalInfo(payload);
       
       if (response.ackCode === 1) {
         // Success - show success message

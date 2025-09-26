@@ -1,54 +1,37 @@
-// Residence Info API endpoints
+// Residence information API endpoints
 import { toast } from "@/components/ui/use-toast";
 
-interface ResidenceInfoRequest {
+interface ResidenceInfoPayload {
+  applicationId: string;
+  // Use the exact field names expected by the API
   wardResidenceId: number;
   streetName: string;
   phoneNo: string;
-  houseNo?: string;
-  plotNo?: string;
+  houseNo: string;
+  plotNo: string;
   countryOfOriginId: number;
   nationalityId: number;
   dateOfEntry: string;
+  // Keep these for backward compatibility
+  countryId?: number;
+  regionId?: number;
+  districtId?: number;
 }
 
 interface ResidenceInfoResponse {
   ackCode: number;
   ackMessage: string;
-  jsonResult: {
-    applicationId: string;
-  };
+  applicationId?: string;
 }
 
 export const residenceInfoEndpoints = {
-  // Submit residence info
-  submitResidenceInfo: async (applicationId: string, formData: any): Promise<ResidenceInfoResponse> => {
+  // Save residence information
+  saveResidenceInfo: async (payload: ResidenceInfoPayload): Promise<ResidenceInfoResponse> => {
     try {
-      // Log the incoming form data for debugging
-      console.log('Form data received:', formData);
+      console.log('Saving residence info with payload:', payload);
       
-      // Map form values to API request format with proper type conversion
-      const payload: ResidenceInfoRequest = {
-        wardResidenceId: Number(formData.wardResidenceId) || 0,
-        streetName: String(formData.streetName || '').trim(),
-        phoneNo: String(formData.phoneNo || '').trim(),
-        houseNo: String(formData.houseNo || '').trim(),
-        plotNo: String(formData.plotNo || '').trim(),
-        countryOfOriginId: Number(formData.countryOfOriginId) || 0,
-        nationalityId: Number(formData.nationalityId) || 0,
-        dateOfEntry: String(formData.dateOfEntry || '').trim()
-      };
-      
-      // Validate payload before sending
-      if (!payload.wardResidenceId || !payload.streetName || !payload.phoneNo || !payload.countryOfOriginId || !payload.nationalityId || !payload.dateOfEntry) {
-        throw new Error('Missing required fields in payload');
-      }
-      
-      // Log the payload being sent to the API
-      console.log('Payload being sent to API:', payload);
-
-      // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/residence-info`, {
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${payload.applicationId}/residence-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,43 +39,67 @@ export const residenceInfoEndpoints = {
         body: JSON.stringify(payload),
       });
       
-      // Check if the response is OK
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        
-        // Show toast notification for API error
-        toast({
-          title: "API Error",
-          description: `Error ${response.status}: ${response.statusText}`,
-          variant: "destructive"
-        });
-        
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
-      // Try to parse the response as JSON
-      try {
-        const responseData = await response.json();
-        console.log('Residence info response:', responseData);
-        return responseData;
-      } catch (parseError) {
-        console.error('Failed to parse JSON response:', parseError);
-        const responseText = await response.text();
-        console.error('Response text:', responseText);
-        throw new Error('Invalid JSON response from server');
-      }
-    } catch (error: any) {
-      console.error('Error submitting residence info:', error);
+      const responseData = await response.json();
+      console.log('Residence info save response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error saving residence info:', error);
       
-      // Show toast notification for any caught error
+      // Show toast notification for error
       toast({
         title: "Error",
-        description: error.message || "Failed to submit residence information",
+        description: "Failed to save residence information. Please try again.",
         variant: "destructive"
       });
       
-      throw error;
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  },
+  
+  // Get residence information
+  getResidenceInfo: async (applicationId: string): Promise<any> => {
+    try {
+      console.log('Getting residence info for application:', applicationId);
+      
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/applications/${applicationId}/residence-info`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Residence info get response:', responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error getting residence info:', error);
+      
+      // Show toast notification for error
+      toast({
+        title: "Error",
+        description: "Failed to retrieve residence information. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Return error response
+      return {
+        ackCode: 0,
+        ackMessage: error instanceof Error ? error.message : "Unknown error occurred",
+        data: null
+      };
     }
   }
 };

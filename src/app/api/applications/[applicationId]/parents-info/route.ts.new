@@ -1,0 +1,227 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
+// Handle GET requests
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { applicationId: string } }
+) {
+  try {
+    const { applicationId } = params;
+    
+    // Check if API URL is configured
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      console.error('NEXT_PUBLIC_API_URL environment variable is not set');
+      return NextResponse.json(
+        { 
+          ackCode: 500, 
+          ackMessage: 'API configuration error: NEXT_PUBLIC_API_URL not set',
+          jsonResult: null
+        },
+        { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
+      );
+    }
+
+    const externalApiUrl = `${apiUrl}/applications/${applicationId}/parents-info`;
+    console.log('Forwarding GET request to external API:', externalApiUrl);
+
+    const response = await fetch(externalApiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('External API response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('External API error status:', response.status, response.statusText);
+      console.error('External API error text:', errorText);
+      
+      // Try to parse as JSON, fallback to plain text
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+        console.error('Parsed error data:', JSON.stringify(errorData, null, 2));
+      } catch (e) {
+        console.error('Could not parse error response as JSON:', e);
+        errorData = {
+          ackCode: response.status,
+          ackMessage: `External API error: ${response.status} ${response.statusText}`,
+          jsonResult: null
+        };
+      }
+
+      return NextResponse.json(errorData, { 
+        status: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
+    }
+
+    // Parse and return the response
+    const responseData = await response.json();
+    console.log('External API response data:', responseData);
+
+    return NextResponse.json(responseData, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error in parents-info GET API route:', error);
+    
+    return NextResponse.json(
+      { 
+        ackCode: 500, 
+        ackMessage: `Server error: ${error.message}`,
+        jsonResult: null
+      },
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
+    );
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { applicationId: string } }
+) {
+  try {
+    const { applicationId } = params;
+    
+    // Check if API URL is configured
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      console.error('NEXT_PUBLIC_API_URL environment variable is not set');
+      return NextResponse.json(
+        { 
+          ackCode: 500, 
+          ackMessage: 'API configuration error: NEXT_PUBLIC_API_URL not set',
+          jsonResult: null
+        },
+        { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
+      );
+    }
+
+    // Get the request body
+    const body = await request.json();
+    console.log('Parents info request for application:', applicationId);
+    console.log('Request body:', JSON.stringify(body, null, 2));
+    
+    // Forward the request to the external API
+    const externalApiUrl = `${apiUrl}/applications/${applicationId}/parents-info`;
+    console.log('Forwarding to external API:', externalApiUrl);
+
+    const response = await fetch(externalApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    console.log('External API response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('External API error status:', response.status, response.statusText);
+      console.error('External API error text:', errorText);
+      console.error('Request body sent:', JSON.stringify(body, null, 2));
+      
+      // Try to parse as JSON, fallback to plain text
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+        console.error('Parsed error data:', JSON.stringify(errorData, null, 2));
+      } catch (e) {
+        console.error('Could not parse error response as JSON:', e);
+        errorData = {
+          ackCode: response.status,
+          ackMessage: `External API error: ${response.status} ${response.statusText}`,
+          jsonResult: null
+        };
+      }
+
+      return NextResponse.json(errorData, { 
+        status: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
+    }
+
+    // Parse and return the response
+    const responseData = await response.json();
+    console.log('External API response data:', responseData);
+
+    return NextResponse.json(responseData, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error in parents-info API route:', error);
+    
+    return NextResponse.json(
+      { 
+        ackCode: 500, 
+        ackMessage: `Server error: ${error.message}`,
+        jsonResult: null
+      },
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
+    );
+  }
+}

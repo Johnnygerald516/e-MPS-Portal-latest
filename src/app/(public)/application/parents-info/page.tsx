@@ -522,8 +522,23 @@ function ParentsInfoContent() {
       
       console.log('API payload:', apiPayload);
       
-      // Call the API to submit parents info
-      const response = await parentsInfoEndpoints.submitParentsInfo(applicationId, apiPayload);
+      // Call the API to save parents info using the updated payload format
+      const response = await parentsInfoEndpoints.saveParentsInfo({
+        applicationId: applicationId,
+        // Use the exact fields expected by the API
+        fatherFullName: apiPayload.fatherFullName,
+        fatherDateOfBirth: apiPayload.fatherDateOfBirth,
+        fatherCountryOfBirthId: apiPayload.fatherCountryOfBirthId,
+        fatherCountryOfResidentId: apiPayload.fatherCountryOfResidentId,
+        fatherNationalityId: apiPayload.fatherNationalityId,
+        fatherRegionOfBirthId: apiPayload.fatherRegionOfBirthId,
+        motherFullName: apiPayload.motherFullName,
+        motherDateOfBirth: apiPayload.motherDateOfBirth,
+        motherRegionOfBirthId: apiPayload.motherRegionOfBirthId,
+        motherCountryOfBirthId: apiPayload.motherCountryOfBirthId,
+        motherCountryOfResidentId: apiPayload.motherCountryOfResidentId,
+        motherNationalityId: apiPayload.motherNationalityId
+      });
       
       if (response.ackCode === 1) {
         // Success - show success message

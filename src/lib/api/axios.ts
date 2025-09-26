@@ -6,15 +6,45 @@ console.log('API URL from env:', process.env.NEXT_PUBLIC_API_URL);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('Running in browser:', typeof window !== 'undefined');
 
-// Make sure we have a valid API URL, with fallback for development
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-console.log('Final API URL being used:', apiUrl);
+// Get the API URL from environment variables
+let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+// Validate that we have an API URL
+if (!apiUrl) {
+  console.error('NEXT_PUBLIC_API_URL is not defined in environment variables!');
+  // Use a fallback URL for development
+  // apiUrl = 'http://10.6.0.167:3300';
+  apiUrl='http://127.0.0.1:8000';
+  console.warn('Using fallback API URL:', apiUrl);
+  
+  // In browser, we can show an error message
+  if (typeof window !== 'undefined') {
+    console.error('API URL not configured in browser environment');
+  }
+}
+
+// Validate URL format
+try {
+  new URL(apiUrl);
+  console.log('API URL format is valid:', apiUrl);
+} catch (error) {
+  console.error('Invalid API URL format:', apiUrl, error);
+  // Use a fallback URL
+  //apiUrl = 'http://10.6.0.167:3300';
+  apiUrl='http://127.0.0.1:8000';
+  console.warn('Using fallback API URL after format error:', apiUrl);
+}
+
+console.log('API URL being used:', apiUrl);
 
 const api = axios.create({
   baseURL: apiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add timeout and other settings for better reliability
+  timeout: 30000, // 30 seconds timeout
+  withCredentials: true, // Important for CORS with credentials
 });
 
 const publicEndpoints = [
@@ -74,7 +104,7 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
           const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
+            `${apiUrl}/auth/refresh-token`,
             { refreshToken }
           );
           

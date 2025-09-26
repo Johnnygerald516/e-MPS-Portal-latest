@@ -49,25 +49,19 @@ export default function ApplicationCompletePage() {
     return format(new Date(date), 'dd MMM yyyy');
   };
   
-  // Preload images
+  // Preload applicant photo
   const [images, setImages] = useState<{
-    coatOfArms?: string;
-    logo?: string;
     applicantPhoto?: string;
   }>({});
   
   useEffect(() => {
-    // Load images when component mounts
+    // Load applicant photo when component mounts
     const loadImages = async () => {
       try {
-        const coatOfArmsImage = await imageToBase64('/images/coat-of-arms.png');
-        const logoImage = await imageToBase64('/images/immigration_logo.png');
         // Use a placeholder for applicant photo if not available
         const applicantPhoto = await imageToBase64('/images/applicant-photo.jpg');
         
         setImages({
-          coatOfArms: coatOfArmsImage,
-          logo: logoImage,
           applicantPhoto: applicantPhoto
         });
       } catch (error) {
@@ -82,7 +76,7 @@ export default function ApplicationCompletePage() {
   const handleDownloadPDF = async () => {
     setIsLoading(true);
     try {
-      // Check if jsPDF is loaded
+      // Check if jsPDF is loaded and applicant photo is available
       if (!jsPDF) {
         alert('PDF generator is loading. Please try again in a moment.');
         setIsLoading(false);
@@ -114,8 +108,6 @@ export default function ApplicationCompletePage() {
       await generateMigrantFormPDF(
         doc, 
         migrantFormData,
-        images.coatOfArms,
-        images.logo,
         images.applicantPhoto
       );
       

@@ -16,12 +16,15 @@ export const documentsEndpoints = {
   // Fetch attachment types
   fetchAttachmentTypes: async (): Promise<AttachmentTypesResponse> => {
     try {
+      console.log('Fetching attachment types using API route');
+      
       const payload = {
         operationType: "attachmentType",
         argument1: 1,
         argument2: 0
       };
       
+      // Use the Next.js API route instead of direct API call
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -31,42 +34,11 @@ export const documentsEndpoints = {
       });
       
       if (!response.ok) {
-        // Silently handle the error without logging to console
-        // Return fallback data instead of empty array
-        return {
-          ackCode: 1, // Return success code to ensure data is displayed
-          ackMessage: "Success",
-          jsonResult: [
-            {
-              AttachmentTypeID: 1,
-              AttachmentName: "Applicant Photo",
-              Viambatanisho: "Picha Ya Muombaji"
-            },
-            {
-              AttachmentTypeID: 2,
-              AttachmentName: "Govenment Letter",
-              Viambatanisho: "Barua Ya Serikali za Mitaa"
-            },
-            {
-              AttachmentTypeID: 3,
-              AttachmentName: "Proof of Entry into the Country",
-              Viambatanisho: "Ushahidi wa Kuingia Nchini"
-            },
-            {
-              AttachmentTypeID: 4,
-              AttachmentName: "Proof of Parents",
-              Viambatanisho: "Ushahidi wa Wazazi"
-            },
-            {
-              AttachmentTypeID: 5,
-              AttachmentName: "Employer Letter",
-              Viambatanisho: "Barua ya Mwajiri"
-            }
-          ]
-        };
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
       const responseData = await response.json();
+      
       if (responseData.ackCode === 1 && Array.isArray(responseData.jsonResult) && responseData.jsonResult.length > 0) {
         return responseData;
       } else {
@@ -82,7 +54,7 @@ export const documentsEndpoints = {
             },
             {
               AttachmentTypeID: 2,
-              AttachmentName: "Govenment Letter",
+              AttachmentName: "Government Letter",
               Viambatanisho: "Barua Ya Serikali za Mitaa"
             },
             {
@@ -104,10 +76,11 @@ export const documentsEndpoints = {
         };
       }
     } catch (error) {
+      console.error('Error fetching attachment types:', error);
       // Return fallback data instead of empty array
       return {
         ackCode: 1, // Return success code to ensure data is displayed
-        ackMessage: "Success",
+        ackMessage: "Using fallback data",
         jsonResult: [
           {
             AttachmentTypeID: 1,
@@ -116,7 +89,7 @@ export const documentsEndpoints = {
           },
           {
             AttachmentTypeID: 2,
-            AttachmentName: "Govenment Letter",
+            AttachmentName: "Government Letter",
             Viambatanisho: "Barua Ya Serikali za Mitaa"
           },
           {
@@ -142,19 +115,20 @@ export const documentsEndpoints = {
   // Upload document
   uploadDocument: async (applicationId: string, attachmentTypeId: number, file: File): Promise<any> => {
     try {
+      console.log('Uploading document using API route');
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('applicationId', applicationId);
       formData.append('attachmentTypeId', attachmentTypeId.toString());
       
+      // Use the Next.js API route instead of direct API call
       const response = await fetch('/api/applications/documents/upload', {
         method: 'POST',
         body: formData,
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
@@ -167,12 +141,12 @@ export const documentsEndpoints = {
     }
   },
 
-  // Documents are now handled by the DocumentsTable component directly
-  // The /api/applications/{applicationId}/documents endpoint has been removed
-
   // Delete a document
   deleteDocument: async (documentId: string): Promise<any> => {
     try {
+      console.log('Deleting document using API route');
+      
+      // Use the Next.js API route instead of direct API call
       const response = await fetch(`/api/applications/documents/${documentId}`, {
         method: 'DELETE',
         headers: {
@@ -181,8 +155,6 @@ export const documentsEndpoints = {
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       

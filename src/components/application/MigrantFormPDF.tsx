@@ -416,7 +416,7 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     doc.setFontSize(9);
     
     let xOffset = dependantsTableX;
-    ['Name (Jina)', 'Relationship', 'Nationality', 'Passport Number', 'Issue Date', 'Expiry Date'].forEach((header, i) => {
+    ['Name (Jina)', 'Relationship', 'Nationality', 'Document Number', 'Issue Date', 'Expiry Date'].forEach((header, i) => {
       doc.rect(xOffset, dependantsTableY, dependantsColWidths[i], dependantsRowHeight, 'S');
       doc.text(header, xOffset + 2, dependantsTableY + 7);
       xOffset += dependantsColWidths[i];

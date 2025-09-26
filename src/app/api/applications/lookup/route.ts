@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     console.log(`Lookup request received: ${operationType}, arg1: ${argument1}, arg2: ${argument2}`);
     
     // Check if API URL is configured
-    if (!process.env.NEXT_PUBLIC_API_URL) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
       console.error('NEXT_PUBLIC_API_URL is not configured');
       return NextResponse.json(
         { 
@@ -28,14 +29,31 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    console.log('Using API URL from environment:', apiUrl);
+    
     // Call the external API
-    const externalApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/applications/lookup`;
+    const externalApiUrl = `${apiUrl}/applications/lookup`;
     
     try {
       console.log(`Calling external API at: ${externalApiUrl}`);
       
       // Check if we're trying to call ourselves (same host/port)
-      const currentUrl = new URL(externalApiUrl);
+      let currentUrl;
+      try {
+        currentUrl = new URL(externalApiUrl);
+      } catch (error) {
+        console.error('Invalid URL format:', externalApiUrl, error);
+        return NextResponse.json(
+          { 
+            ackCode: 0, 
+            ackMessage: `Invalid API URL format: ${externalApiUrl}`,
+            jsonResult: []
+          },
+          { status: 500 }
+        );
+      }
+      
+      console.log('Parsed URL:', currentUrl.toString());
       const isSelfCall = currentUrl.hostname === '10.6.0.164' || 
                          currentUrl.hostname === '10.6.0.165' || 
                          currentUrl.hostname === 'localhost';

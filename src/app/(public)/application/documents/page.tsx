@@ -67,7 +67,7 @@ interface DocumentType {
   id: string;
   name: string;
   description: string;
-  status: "pending" | "uploading" | "uploaded" | "rejected" | "approved";
+  status: "pending" | "uploading" | "uploaded" ;
   required: boolean;
 }
 
@@ -320,11 +320,7 @@ export default function DocumentsPage() {
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</Badge>;
       case "uploaded":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Uploaded</Badge>;
-      case "approved":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
-      case "rejected":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Rejected</Badge>;
-      default:
+     default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -360,7 +356,6 @@ export default function DocumentsPage() {
       
       if (response.ok) {
         const responseData = await response.json();
-        console.log('API response:', responseData);
         
         if (responseData.ackCode === 1) {
           // Navigate to the declaration page without URL parameters
@@ -454,7 +449,6 @@ export default function DocumentsPage() {
       setIsLoading(false);
       setAutoNavigateToNext(true);
     } catch (error) {
-      console.error("Error submitting form:", error);
       toast({
         title: "Hitilafu",
         description: "Samahani, kuna hitilafu imetokea wakati wa kuwasilisha nyaraka zako. Tafadhali jaribu tena.",
