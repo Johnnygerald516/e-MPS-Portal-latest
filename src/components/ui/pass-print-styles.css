@@ -10,18 +10,20 @@
   }
   
   .pass-printable-area {
-    width: 210mm; /* A4 width */
+    width: 210mm; /* A4 width for printing */
     height: 297mm; /* A4 height */
     box-sizing: border-box;
     overflow: hidden;
     page-break-after: always;
     page-break-inside: avoid;
     display: block !important;
-    transform: scale(0.98);
+    transform: scale(1);
     transform-origin: top center;
     position: absolute;
     left: 0;
     top: 0;
+    background-color: white;
+    padding: 50px;
   }
   
   body * {

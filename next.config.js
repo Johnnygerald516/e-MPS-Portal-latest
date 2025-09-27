@@ -39,6 +39,8 @@ const nextConfig = {
   generateEtags: false,
   typescript: {
     ignoreBuildErrors: true,
+    // Explicitly tell TypeScript to ignore node_modules
+    tsconfigPath: './tsconfig.json',
   },
   eslint: {
     ignoreDuringBuilds: true,

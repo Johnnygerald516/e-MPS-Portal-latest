@@ -9,6 +9,7 @@ import { useApplication } from "@/contexts/application-context";
 import MigrantVerificationDialog from "@/components/application/migrant-verification-dialog";
 import PassportRenewalDialog from "@/components/application/passport-renewal-dialog";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ApplicationType {
   ApplicationTypeID: number;
@@ -70,63 +71,57 @@ export default function ApplicationPage() {
     fetchApplicationTypes();
   }, [showError]);
 
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleApplicationTypeChange = async (value: string) => {
+    // Find the selected application type
+    const selectedType = applicationTypes.find(type => type.ApplicationTypeNameSwahili === value);
+    const typeId = selectedType ? selectedType.ApplicationTypeID : 0;
     
-    if (e.target instanceof HTMLSelectElement) {
-      if (name === "applicationType") {
-        // Find the selected application type
-        const selectedType = applicationTypes.find(type => type.ApplicationTypeNameSwahili === value);
-        const typeId = selectedType ? selectedType.ApplicationTypeID : 0;
-        
-        // Update form data
-        setFormData(prev => ({
-          ...prev,
-          [name]: value,
-          applicationTypeId: typeId,
-          // Reset renewal reason when application type changes
-          renewalReason: ""
-        }));
-        
-        // If Kuhuisha (ID 2) is selected, fetch renewal reasons
-        if (typeId === 2) {
-          setIsLoadingReasons(true);
-          try {
-            const response = await verificationEndpoints.fetchApplicationTypes(2);
-            if (response.ackCode === 1 && response.jsonResult) {
-              setRenewalReasons(response.jsonResult);
-            } else {
-              showError("Failed to load renewal reasons");
-            }
-          } catch (error) {
-            console.error("Error fetching renewal reasons:", error);
-            showError("Failed to load renewal reasons. Please try again later.");
-          } finally {
-            setIsLoadingReasons(false);
-          }
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      applicationType: value,
+      applicationTypeId: typeId,
+      // Reset renewal reason when application type changes
+      renewalReason: ""
+    }));
+    
+    // If Kuhuisha (ID 2) is selected, fetch renewal reasons
+    if (typeId === 2) {
+      setIsLoadingReasons(true);
+      try {
+        const response = await verificationEndpoints.fetchApplicationTypes(2);
+        if (response.ackCode === 1 && response.jsonResult) {
+          setRenewalReasons(response.jsonResult);
+        } else {
+          showError("Failed to load renewal reasons");
         }
-      } else if (name === "renewalReason") {
-        // Find the selected renewal reason
-        const selectedReason = renewalReasons.find(reason => reason.ApplicationTypeNameSwahili === value);
-        const reasonId = selectedReason ? selectedReason.ApplicationTypeID : 0;
-        
-        setFormData(prev => ({
-          ...prev,
-          [name]: value,
-          applicationTypeId: reasonId
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }));
+      } catch (error) {
+        console.error("Error fetching renewal reasons:", error);
+        showError("Failed to load renewal reasons. Please try again later.");
+      } finally {
+        setIsLoadingReasons(false);
       }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
     }
+  };
+  
+  const handleRenewalReasonChange = (value: string) => {
+    // Find the selected renewal reason
+    const selectedReason = renewalReasons.find(reason => reason.ApplicationTypeNameSwahili === value);
+    const reasonId = selectedReason ? selectedReason.ApplicationTypeID : 0;
+    
+    setFormData(prev => ({
+      ...prev,
+      renewalReason: value,
+      applicationTypeId: reasonId
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -224,25 +219,28 @@ export default function ApplicationPage() {
               <label className="block mb-2 text-sm font-medium">
                 Aina ya Ombi <span className="text-red-500">*</span>
               </label>
-              <select 
-                name="applicationType"
+              <Select
                 value={formData.applicationType}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded p-2.5 text-sm"
+                onValueChange={handleApplicationTypeChange}
                 disabled={isLoadingTypes}
-                required
               >
-                <option value="" disabled>Chagua Aina ya Ombi</option>
-                {isLoadingTypes ? (
-                  <option value="" disabled>Inapakia...</option>
-                ) : (
-                  applicationTypes.map((type) => (
-                    <option key={type.ApplicationTypeID} value={type.ApplicationTypeNameSwahili}>
-                      {type.ApplicationTypeNameSwahili}
-                    </option>
-                  ))
-                )}
-              </select>
+                <SelectTrigger className="w-full border border-gray-300 rounded p-2.5 text-sm">
+                  <SelectValue placeholder="Chagua Aina ya Ombi" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingTypes ? (
+                    <SelectItem value="loading" disabled>
+                      Inapakia...
+                    </SelectItem>
+                  ) : (
+                    applicationTypes.map((type) => (
+                      <SelectItem key={type.ApplicationTypeID} value={type.ApplicationTypeNameSwahili}>
+                        {type.ApplicationTypeNameSwahili}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             
             {/* Renewal Reason - Only shown when applicationType is renewal */}
@@ -251,25 +249,28 @@ export default function ApplicationPage() {
                 <label className="block mb-2 text-sm font-medium">
                   Sababu ya Kuhuisha <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="renewalReason"
+                <Select
                   value={formData.renewalReason}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md p-2.5 text-sm"
+                  onValueChange={handleRenewalReasonChange}
                   disabled={isLoadingReasons}
-                  required
                 >
-                  <option value="" disabled>Chagua Sababu ya Kuhuisha</option>
-                  {isLoadingReasons ? (
-                    <option value="" disabled>Inapakia...</option>
-                  ) : (
-                    renewalReasons.map((reason) => (
-                      <option key={reason.ApplicationTypeID} value={reason.ApplicationTypeNameSwahili}>
-                        {reason.ApplicationTypeNameSwahili}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  <SelectTrigger className="w-full border border-gray-300 rounded-md p-2.5 text-sm">
+                    <SelectValue placeholder="Chagua Sababu ya Kuhuisha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingReasons ? (
+                      <SelectItem value="loading" disabled>
+                        Inapakia...
+                      </SelectItem>
+                    ) : (
+                      renewalReasons.map((reason) => (
+                        <SelectItem key={reason.ApplicationTypeID} value={reason.ApplicationTypeNameSwahili}>
+                          {reason.ApplicationTypeNameSwahili}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             )}
            <div className="flex justify-end border-t border-slate-200">

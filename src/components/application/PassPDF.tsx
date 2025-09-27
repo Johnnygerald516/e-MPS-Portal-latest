@@ -1,0 +1,551 @@
+import React from 'react';
+import { format } from 'date-fns';
+import QRCode from 'qrcode';
+// Import base64 signature
+import { signatureBase64 } from '../../lib/utils/signature-base64';
+// Import StaticImageData type for proper type handling
+import { StaticImageData } from 'next/image';
+
+// Define types for the pass data
+export interface PassData {
+  id: string;
+  fullName: string;
+  nationality: string;
+  physicalAddress?: string;
+  dateOfBirth?: string;
+  passportNo?: string;
+  gender?: string;
+  maritalStatus?: string;
+  occupation?: string;
+  permitType?: string;
+  permitNo?: string;
+  validFrom?: string;
+  validTo?: string;
+  employerName?: string;
+  employerAddress?: string;
+  phoneNumber?: string;
+  email?: string;
+  dependants?: any[];
+  photo?: string;
+  signature?: string;
+  qrCode?: string;
+  ResidenceWardName?: string;
+  ResidenceDistrictName?: string;
+  ResidenceRegionName?: string;
+}
+
+// Helper function to convert image URL to base64
+export const imageToBase64 = async (imgUrl: string): Promise<string> => {
+  return new Promise<string>(resolve => {
+    try {
+      if (!imgUrl) {
+        resolve('');
+        return;
+      }
+
+      // Add cache-busting parameter to prevent caching issues
+      const cacheBustedUrl = `${imgUrl}${imgUrl.includes('?') ? '&' : '?'}cacheBust=${Date.now()}`;
+      
+      const img = new Image();
+      
+      // Set a timeout to handle images that may hang
+      const timeoutId = setTimeout(() => {
+        console.warn(`Image loading timed out for ${imgUrl}`);
+        resolve('');
+      }, 5000);
+      
+      img.crossOrigin = 'Anonymous';
+      
+      img.onload = () => {
+        clearTimeout(timeoutId);
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.height = img.height;
+          canvas.width = img.width;
+          ctx?.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve(dataURL);
+        } catch (canvasError) {
+          console.error('Error creating canvas for image:', canvasError);
+          resolve('');
+        }
+      };
+      
+      img.onerror = error => {
+        clearTimeout(timeoutId);
+        console.error(`Error loading image from ${imgUrl}:`, error);
+        resolve('');
+      };
+      
+      img.src = cacheBustedUrl;
+    } catch (error) {
+      console.error('Unexpected error in imageToBase64:', error);
+      resolve('');
+    }
+  });
+};
+
+// Helper function to generate QR code using qrcode library
+export const generateQRCode = async (text: string): Promise<string> => {
+  try {
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 200;
+    
+    // Generate QR code directly to canvas
+    await QRCode.toCanvas(canvas, text, {
+      width: 200,
+      margin: 1,
+      errorCorrectionLevel: 'H',
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
+    
+    // Convert canvas to data URL
+    return canvas.toDataURL('image/png');
+  } catch (err) {
+    console.error('Error generating QR code:', err);
+    
+    // Create a fallback QR code
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 200, 200);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(20, 20, 160, 160);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(30, 30, 140, 140);
+      ctx.fillStyle = '#000000';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 100, 100);
+    }
+    
+    return canvas.toDataURL('image/png');
+  }
+};
+
+// Helper function to format dates
+const formatDate = (date: string | undefined | null): string => {
+  if (!date) return 'N/A';
+  try {
+    return date;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'N/A';
+  }
+};
+
+// PDF generation function that can be used with jsPDF
+export const generatePassPDF = async (
+  doc: any, 
+  passData: PassData,
+  photoImage?: string,
+  signatureImage?: string,
+  qrCodeImage?: string
+) => {
+  try {
+    // Set document properties
+    doc.setProperties({
+      title: 'Migrant Pass',
+      subject: 'Official Migrant Pass',
+      author: 'Immigration Services Department',
+      keywords: 'migrant, pass, tanzania',
+      creator: 'E-Migrant Portal'
+    });
+
+    // Set text color
+    doc.setTextColor(51, 51, 51);
+    
+    // Set border color
+    doc.setDrawColor(128, 128, 128);
+    doc.setLineWidth(0.2);
+
+    // Page layout based on the provided image
+    // Set A4 page size and margins
+    const pageWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const margin = 10; // Margin in mm
+    
+    // Top right corner - TIF 24
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TIF 24', pageWidth - margin, 10, { align: 'right' });
+
+    // QR Code on top left
+    try {
+      // Use provided QR code image or generate a new one
+      let qrCodeDataUrl;
+      if (qrCodeImage) {
+        qrCodeDataUrl = qrCodeImage;
+      } else {
+        // Generate QR code with pass ID and name
+        const qrText = `MP:${passData.id}|NAME:${passData.fullName}`;
+        console.log('Generating QR code for:', qrText);
+        qrCodeDataUrl = await generateQRCode(qrText);
+        console.log('QR code generated successfully');
+      }
+      
+      // Add the QR code to the PDF
+      doc.addImage(qrCodeDataUrl, 'PNG', 20, 20, 30, 30);
+    } catch (error) {
+      console.error('Error adding QR code to PDF:', error);
+      // Fallback to a simple rectangle if QR code fails
+      doc.rect(20, 20, 30, 30);
+      doc.setFontSize(8);
+      doc.text('QR Code', 35, 35, { align: 'center' });
+    }
+
+    // MP No. text under QR code
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`MP No. ${passData.id}`, 35, 55, { align: 'center' });
+    
+    // Add coat of arms image in the center top
+    const coatOfArmsPath = '/images/coat_of_arm.png';
+    try {
+      doc.addImage(coatOfArmsPath, 'PNG', 95, 15, 20, 20);
+    } catch (error) {
+      doc.rect(95, 15, 20, 20);
+      doc.setFontSize(8);
+      doc.text('Coat of Arms', 105, 25, { align: 'center' });
+    }
+    
+    // Add header text
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('THE UNITED REPUBLIC OF TANZANIA', 105, 45, { align: 'center' });
+    
+    // Add regulation text
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('The Immigration Regulations 1977,', 105, 52, { align: 'center' });
+    doc.setFont('helvetica', 'italic');
+    doc.text('(Regulation 18(3)(a))', 105, 57, { align: 'center' });
+    
+    // Add applicant photo on top right
+    if (photoImage) {
+      try {
+        doc.addImage(photoImage, 'JPEG', 160, 20, 30, 35);
+      } catch (error) {
+        doc.rect(160, 20, 30, 35);
+        doc.setFontSize(8);
+        doc.text('Photo', 175, 37, { align: 'center' });
+      }
+    } else {
+      doc.rect(160, 20, 30, 35);
+      doc.setFontSize(8);
+      doc.text('Photo', 175, 37, { align: 'center' });
+    }
+    
+    // Add MIGRANT PASS title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MIGRANT PASS', 105, 70, { align: 'center' });
+    
+    // Add code number - reduced spacing
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`CODE NO: ${passData.id}`, 30, 76); // Reduced y-position from 80 to 76
+    
+    // Add Details header
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Details', 20, 90);
+    
+    // Personal details section with optimized spacing
+    let y = 100;
+    const labelX = 20;
+    const valueX = 80;
+    const lineHeight = 6; // Reduced line height for better fit
+    
+    // Calculate available space for content
+    const contentHeight = pageHeight - margin * 2; // Available height for content
+    const headerHeight = 90; // Height used by header elements
+    const footerHeight = 25; // Height needed for footer elements (reduced)
+    const dependantsTableHeight = 50; // Base height for dependants table with header (reduced)
+    const dependantRowHeight = 8; // Height per dependant row (reduced)
+    
+    // Calculate max dependants that can fit
+    const maxDependants = 4; // Maximum number of dependants to show
+    
+    // Set up the details with bold labels and normal values - exactly as in the image
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Full Name:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(passData.fullName.toUpperCase(), valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Nationality:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text((passData.nationality || 'TANZANIAN').toUpperCase(), valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Physical Address:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text((passData.physicalAddress || 
+      (passData.ResidenceWardName || passData.ResidenceDistrictName || passData.ResidenceRegionName ? 
+        `${passData.ResidenceWardName || ""}, ${passData.ResidenceDistrictName || ""}, ${passData.ResidenceRegionName || ""}` : 
+        'BUSERESERE, CHATO, GEITA')).toUpperCase(), valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('The pass is issued for the period of', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text('2YRS', valueX, y);
+    y += lineHeight;
+    
+    // From and to dates - formatted exactly as in the image
+    doc.setFont('helvetica', 'bold');
+    doc.text('From:', labelX, y);
+    
+    // Format dates as shown in the image
+    const fromDate = new Date();
+    const toDate = new Date();
+    toDate.setFullYear(toDate.getFullYear() + 2);
+    
+    const formatDisplayDate = (date: Date) => {
+      return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'long' })} ${date.getFullYear()}`;
+    };
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${formatDisplayDate(fromDate)} to ${formatDisplayDate(toDate)}`, valueX, y);
+    y += lineHeight; // Reduced from lineHeight * 2 to just lineHeight
+    
+    // Purpose statement in a box - reduced spacing
+    // doc.setFillColor(240, 240, 250);
+    // doc.rect(20, y, 170, 10, 'F');
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.text('For the purpose of residing in the United Republic of Tanzania', 20,y);
+    y += lineHeight * 1.5; // Reduced from lineHeight * 2 to lineHeight * 1.5
+    
+    // Holder permission statement
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.text('The holder of this pass is hereby permitted to remain in the United Republic of Tanzania for the', 20, y);
+    y += lineHeight;
+    doc.text('period stated herein.', 20, y);
+    y += lineHeight * 1.5;
+    
+    // Fee paid information
+    doc.setFont('helvetica', 'bold');
+    doc.text('Fee Paid:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${passData.passportNo || 'TNG-A-00019-210113-4-2'}`, 50, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text('vide Control No', 100, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${passData.id} of ${new Date().getDate()} Sept ${new Date().getFullYear()}`, 140, y);
+    y += lineHeight;
+    
+    // Issued at
+    doc.setFont('helvetica', 'bold');
+    doc.text('Issued at:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(passData.physicalAddress || passData.ResidenceRegionName || 'N/A', 50, y);
+    y += lineHeight * 2;
+    
+    // Contact Address section
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Contact Address', 20, y);
+    y += lineHeight;
+    
+    // Contact details - exactly as in the image
+    doc.setFontSize(9);
+    doc.text('Name:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text((passData.fullName || 'juma mousa simoni kibisawala').toUpperCase(), valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Physical Address:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text((passData.physicalAddress || 
+      (passData.ResidenceWardName || passData.ResidenceDistrictName || passData.ResidenceRegionName ? 
+        `${passData.ResidenceWardName || ""}, ${passData.ResidenceDistrictName || ""}, ${passData.ResidenceRegionName || ""}` : 
+        'BUSERESERE, CHATO, GEITA')).toUpperCase(), valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Telephone/Mobile:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(passData.phoneNumber || '0684649469', valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Email:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(passData.email || '', valueX, y);
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Region of Application:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(passData.ResidenceRegionName || 'GEITA', valueX, y);
+    
+    // Add first signature in the middle section as shown in the image
+    // Use optimized spacing
+    y += lineHeight * 2;
+    
+    // Use the base64 signature
+    try {
+      // First try to use the provided signature image parameter
+      if (signatureImage) {
+        doc.addImage(signatureImage, 'PNG', 150, y-8, 30, 8);
+      } 
+      // If not provided, use the base64 signature
+      else {
+        // Use the imported base64 signature directly
+        doc.addImage(signatureBase64, 'PNG', 150, y-8, 30, 8);
+      }
+    } catch (error) {
+      console.error('Error adding signature to PDF:', error);
+      // If signature fails to load, draw a line
+      doc.line(150, y, 180, y);
+    }
+    
+    // First Commissioner text under signature
+    doc.setFontSize(8); // Smaller font size
+    doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
+    y += lineHeight * 2; // Reduced spacing after the first signature
+    
+    // Dependants section - positioned after the first signature with optimized spacing
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11); // Slightly smaller font
+    doc.text('DEPENDANTS', 105, y, { align: 'center' });
+    y += 4; // Increased spacing between DEPENDANTS and (If any)
+    doc.setFontSize(8); // Smaller font size
+    doc.text('(If any)', 105, y, { align: 'center' });
+    y += 8; // Increased spacing before table
+    
+    // Table headers with optimized spacing
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, y, 170, 7, 'F'); // Slightly increased height for better readability
+    doc.setFont('helvetica', 'bold');
+    // Adjust column positions to better fit their content
+    doc.text('Name', 25, y+4); // Left-aligned in column
+    doc.text('Age', 65, y+4); // Centered in column
+    doc.text('Relation', 85, y+4); // Shortened text and moved left to reduce column width
+    doc.text('Nationality', 120, y+4); // Moved left to increase column width
+    doc.text('Reg. No.', 165, y+4); // Shortened text and moved right
+    
+    // Add vertical borders for header row
+    doc.line(50, y, 50, y+7); // Name column
+    doc.line(75, y, 75, y+7); // Age column
+    doc.line(105, y, 105, y+7); // Relationship column (reduced width)
+    doc.line(160, y, 160, y+7); // Nationality column (increased width)
+    
+    // Draw outer border for header
+    doc.rect(20, y, 170, 7);
+    
+    y += 7; // Increased spacing
+    
+    // Table rows with optimized spacing
+    doc.setFont('helvetica', 'normal');
+    if (passData.dependants && passData.dependants.length > 0) {
+      // Limit to maximum 4 dependants
+      const dependantsToShow = passData.dependants.slice(0, maxDependants);
+      
+      dependantsToShow.forEach((dependant, index) => {
+        // Align text positions with the column headers
+        doc.text(dependant.dependantFullName || 'N/A', 25, y+4); // Name column
+        doc.text(dependant.age?.toString() || 'N/A', 65, y+4); // Age column
+        doc.text(dependant.relationType || 'N/A', 85, y+4); // Relationship column (moved left)
+        
+        // Handle long nationality values by using a smaller font if needed
+        const nationalityText = dependant.dependantNationality || 'N/A';
+        if (nationalityText.length > 20) {
+          doc.setFontSize(7); // Smaller font for long values
+        }
+        doc.text(nationalityText, 120, y+4); // Nationality column (moved left)
+        doc.setFontSize(9); // Reset font size
+        
+        doc.text(dependant.documentNo || `DEP-${passData.id}-${index+1}`, 165, y+4); // Registration No. column
+        
+        // Add complete grid of borders for each row
+        // Draw outer border
+        doc.rect(20, y, 170, 8); // Consistent height for all rows
+        
+        // Draw vertical borders
+        doc.line(50, y, 50, y+8); // Name column
+        doc.line(75, y, 75, y+8); // Age column
+        doc.line(105, y, 105, y+8); // Relationship column (reduced width)
+        doc.line(160, y, 160, y+8); // Nationality column (increased width)
+        
+        // Draw horizontal border for the next row
+        if (index < dependantsToShow.length - 1) {
+          doc.line(20, y+8, 190, y+8); // Horizontal line at bottom of row
+        }
+        
+        y += 8; // Reduced row height
+      });
+    } else {
+      doc.text('No dependants', 105, y+4, { align: 'center' });
+      
+      // Draw complete border for empty table
+      doc.rect(20, y, 170, 8); // Border for empty row
+      
+      // Add vertical borders for consistency
+      doc.line(50, y, 50, y+8); // Name column
+      doc.line(75, y, 75, y+8); // Age column
+      doc.line(105, y, 105, y+8); // Relationship column (reduced width)
+      doc.line(160, y, 160, y+8); // Nationality column (increased width)
+      
+      y += 8; // Spacing after table
+    }
+    
+    // Add optimized space after the dependants table
+    y += 12; // Reduced spacing
+    
+    // Date section at bottom left
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8); // Smaller font size
+    doc.text(`Date: ${new Date().getDate()} Sept ${new Date().getFullYear()}`, 40, y);
+    
+    // Second signature at bottom right
+    try {
+      // First try to use the provided signature image parameter
+      if (signatureImage) {
+        doc.addImage(signatureImage, 'PNG', 150, y-8, 30, 8);
+      } 
+      // If not provided, use the base64 signature
+      else {
+        // Use the imported base64 signature directly
+        doc.addImage(signatureBase64, 'PNG', 150, y-8, 30, 8);
+      }
+    } catch (error) {
+      console.error('Error adding signature to PDF:', error);
+      // If signature fails to load, draw a line
+      doc.line(150, y, 180, y);
+    }
+    
+    // Second Commissioner text under signature
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8); // Smaller font size
+    doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
+    
+    // Add safety check to ensure all content fits
+    if (y + 10 > pageHeight - margin) {
+      console.warn('Content may extend beyond page boundaries - adjusting scale');
+      // If content doesn't fit, we could add logic to scale the document
+      // or adjust spacing further if needed
+    }
+    
+  } catch (error) {
+    console.error('Error generating pass PDF:', error);
+    throw error;
+  }
+};

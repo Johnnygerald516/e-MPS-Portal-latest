@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, Variants } from "framer-motion";
-import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, Loader2, FileSearch, Phone } from "lucide-react";
+import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, FileSearch, Phone, MessageCircleQuestionMark, CircleQuestionMarkIcon } from "lucide-react";
+import { getApplicationStatus, ApplicationStatusPayload, ApplicationStatusResponse } from "@/services/application-status";
+import { ProfessionalLoader } from "@/components/ui/professional-loader";
+import PassPDFPreview from "@/components/application/PassPDFPreview";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +22,9 @@ type ApplicationStatus =
   | "returned_for_correction" 
   | "pass_printed" 
   | "issued" 
-  | "rejected";
+  | "rejected" 
+  | "pending_collection" 
+  | "unknown";
 
 interface CorrectionItem {
   field: string;
@@ -39,9 +44,14 @@ interface ApplicationStatusData {
   corrections?: CorrectionItem[];
   rejectionReason?: string;
   assessorComments?: string;
+  statusId?: number;
+  statusName?: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
 }
 
-import PassPDFContent from "@/components/ui/pass-pdf-content";
+// import PassPDFContent from "@/components/ui/pass-pdf-content";
 
 // Helper function to determine which action buttons to show based on status
 const getActionButtons = (
@@ -49,7 +59,9 @@ const getActionButtons = (
   applicationId: string, 
   applicationData: ApplicationStatusData | null, 
   isGeneratingPDF: boolean,
-  setIsGeneratingPDF: (value: boolean) => void
+  setIsGeneratingPDF: (value: boolean) => void,
+  setSelectedApplicationId: (id: string) => void,
+  setIsPassPreviewOpen: (isOpen: boolean) => void
 ) => {
   const handlePrintBill = (id: string) => {
     console.log(`Printing bill for application ${id}`);
@@ -61,71 +73,10 @@ const getActionButtons = (
 
   // State is passed from the parent component
 
-  const handlePrintPass = async (id: string) => {
-    console.log(`Downloading pass for application ${id}`);
-    
-    // Get the pass content element
-    const passContent = document.getElementById('pass-content');
-    if (!passContent) {
-      console.error('Pass content element not found');
-      alert('Error: Pass content element not found. Please try again.');
-      return;
-    }
-    
-    try {
-      // Set loading state
-      setIsGeneratingPDF(true);
-      
-      // Wrap in a try-catch to handle any import errors
-      let generatePDF;
-      try {
-        // Import the generatePDF function dynamically
-        const pdfUtils = await import('@/lib/utils/pdf-generator');
-        generatePDF = pdfUtils.generatePDF;
-      } catch (importError) {
-        console.error('Error importing PDF generator:', importError);
-        alert('Error loading PDF generator. Please try again.');
-        setIsGeneratingPDF(false);
-        return;
-      }
-      
-      // Add a small delay to ensure the DOM is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Generate the PDF with error handling
-      let pdfBlob;
-      try {
-        pdfBlob = await generatePDF(passContent, `Migrant_Pass_${id}.pdf`);
-      } catch (pdfError) {
-        console.error('Error in PDF generation:', pdfError);
-        alert('Error generating PDF. Please try again.');
-        setIsGeneratingPDF(false);
-        return;
-      }
-      
-      // Create a link and trigger download with error handling
-      try {
-        const url = URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Migrant_Pass_${id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Clean up the URL after a short delay
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } catch (downloadError) {
-        console.error('Error downloading PDF:', downloadError);
-        alert('Error downloading PDF. Please try again.');
-      }
-    } catch (error) {
-      console.error('Unexpected error in PDF process:', error);
-      alert('An unexpected error occurred. Please try again.');
-    } finally {
-      // Reset loading state
-      setIsGeneratingPDF(false);
-    }
+  const handlePrintPass = (id: string) => {
+    console.log(`Opening pass preview for application ${id}`);
+    setSelectedApplicationId(id);
+    setIsPassPreviewOpen(true);
   };
 
   const handleMarekebisho = (id: string) => {
@@ -199,6 +150,30 @@ const getActionButtons = (
           </Button>
         </div>
       );
+    case "pending_collection":
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => handlePrintPass(applicationId)} 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <>
+                <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="h-4 w-4" />
+                <span>Preview Pass</span>
+              </>
+            )}
+          </Button>
+        </div>
+      );
     case "pass_printed":
       return (
         <div className="flex space-x-2">
@@ -211,13 +186,13 @@ const getActionButtons = (
           >
             {isGeneratingPDF ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating PDF...</span>
+                <ProfessionalLoader size="sm" color="indigo" thickness="thin" className="mr-1" />
+                <span>Generating...</span>
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" />
-                <span>Download PDF</span>
+                <Printer className="h-4 w-4" />
+                <span>Preview Pass</span>
               </>
             )}
           </Button>
@@ -235,13 +210,12 @@ const getActionButtons = (
           >
             {isGeneratingPDF ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating PDF...</span>
+                <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                <span>Generating...</span>
               </>
             ) : (
               <>
-                <FileText className="h-4 w-4" />
-                <span>Download PDF</span>
+                <Printer className="h-4 w-4" /> <span>Preview Pass</span>
               </>
             )}
           </Button>
@@ -275,6 +249,8 @@ function ApplicationProgressContent() {
   const [applicationData, setApplicationData] = useState<ApplicationStatusData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isPassPreviewOpen, setIsPassPreviewOpen] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
 
   // Auto-search when ID or phone number is provided in URL (only for correction flow)
   useEffect(() => {
@@ -317,72 +293,102 @@ function ApplicationProgressContent() {
 
   const handleSearchWithId = async (searchId: string, searchPhone: string = "") => {
     if (!searchId.trim() && !searchPhone.trim()) {
-      setError("Please enter an application ID or phone number");
+      setError("Tafadhali weka namba ya ombi au namba ya simu");
       return;
     }
     setIsLoading(true);
     setError(null);
 
     try {
-      // In a real application, you would make an API call here:
-      // const response = await fetch(`/api/applications/${searchId}`)
-      // const data = await response.json()
+      // Prepare the payload for the API call
+      const payload: ApplicationStatusPayload = {
+        applicationId: searchId.trim(),
+        phoneNumber: searchPhone.trim()
+      };
       
-      // For demo purposes, we'll simulate different statuses based on the application ID
-      setTimeout(() => {
-        // Mock data based on the last character of the application ID
-        const lastChar = searchId.slice(-1);
-        let mockStatus: ApplicationStatus;
+      // Call the API to get application status
+      const response = await getApplicationStatus(payload);
+      
+      if (response.ackCode === 1 && response.jsonResult) {
+        // Map the API response to our application data structure
+        const result = response.jsonResult;
         
-        if (lastChar === "1") mockStatus = "received";
-        else if (lastChar === "2") mockStatus = "in_progress";
-        else if (lastChar === "3") mockStatus = "under_review";
-        else if (lastChar === "4") mockStatus = "returned_for_correction";
-        else if (lastChar === "5") mockStatus = "pass_printed";
-        else if (lastChar === "6") mockStatus = "issued";
-        else if (lastChar === "7") mockStatus = "rejected";
-        else {
-          // Random status for any other input
-          const statuses: ApplicationStatus[] = ["received", "in_progress", "under_review", "returned_for_correction", "pass_printed", "issued", "rejected"];
-          mockStatus = statuses[Math.floor(Math.random() * statuses.length)];
-        }
-
-        // Generate mock data based on application ID or phone number
-        const mockData: ApplicationStatusData = {
-          id: searchId || `APP-${Math.floor(Math.random() * 10000)}`,
-          applicantName: "John Doe Smith",
-          subjectId: `SUB-${(searchId || Math.floor(Math.random() * 10000).toString()).slice(-4)}-2025`,
-          status: mockStatus,
-          submittedDate: "2025-08-15",
-          lastUpdated: "2025-08-28",
-          phoneNumber: searchPhone || "+255 712 345 678",
-          estimatedCompletionDate: mockStatus === "in_progress" || mockStatus === "under_review" ? "2025-09-10" : undefined,
-          corrections: mockStatus === "returned_for_correction" ? [
-            {
-              field: "Personal Information - Date of Birth",
-              issue: "Date format is incorrect",
-              instruction: "Please provide date in DD/MM/YYYY format"
-            },
-            {
-              field: "Documents - Picha ya Muombaji",
-              issue: "Photo quality is poor",
-              instruction: "Please upload a clear passport-size photo with white background"
-            },
-            {
-              field: "Parents Information - Father's Nationality",
-              issue: "Information missing",
-              instruction: "Please provide complete father's nationality information"
+        // Determine application status based on StatusID
+        let status: ApplicationStatus = "unknown";
+        
+        // Map StatusID to our application status types
+        switch (result.StatusID) {
+          case 10:
+            status = "received";
+            break;
+          case 20:
+          case 30:
+            status = "in_progress";
+            break;
+          case 40:
+          case 50:
+            status = "under_review";
+            break;
+          case 60:
+            status = "returned_for_correction";
+            break;
+          case 80:
+            status = "pass_printed";
+            break;
+          case 90:
+            status = "issued";
+            break;
+          case 100:
+            status = "pending_collection";
+            break;
+          case 110:
+            status = "rejected";
+            break;
+          default:
+            // If we don't recognize the status code, use the status name to determine the status
+            if (result.statusName) {
+              const statusNameLower = result.statusName.toLowerCase();
+              if (statusNameLower.includes('fika ofisi') || statusNameLower.includes('makabidhiano')) {
+                status = "pending_collection";
+              } else if (statusNameLower.includes('kataliwa') || statusNameLower.includes('reject')) {
+                status = "rejected";
+              } else if (statusNameLower.includes('chapishwa') || statusNameLower.includes('print')) {
+                status = "pass_printed";
+              } else if (statusNameLower.includes('tolewa') || statusNameLower.includes('issue')) {
+                status = "issued";
+              } else {
+                status = "in_progress";
+              }
+            } else {
+              status = "in_progress";
             }
-          ] : undefined,
-          rejectionReason: mockStatus === "rejected" ? "Incomplete documentation and eligibility requirements not met." : undefined,
-          assessorComments: mockStatus === "returned_for_correction" ? "Please make the required corrections and resubmit your application." : undefined,
+        }
+        
+        // Create application data directly from API response
+        const applicationData: ApplicationStatusData = {
+          id: result.applicationID,
+          applicantName: `${result.firstName} ${result.middleName || ''} ${result.lastName}`.trim(),
+          firstName: result.firstName,
+          middleName: result.middleName || '',
+          lastName: result.lastName,
+          subjectId: result.applicationID,
+          status: status,
+          statusId: result.StatusID,
+          statusName: result.statusName,
+          submittedDate: new Date().toISOString().split('T')[0], // Use current date as we don't have this from API
+          lastUpdated: new Date().toISOString().split('T')[0],
+          phoneNumber: result.phoneNumber,
         };
 
-        setApplicationData(mockData);
-        setIsLoading(false);
-      }, 1500);
+        setApplicationData(applicationData);
+      } else {
+        // Handle error from API
+        setError(response.ackMessage || "Hakuna taarifa za ombi zilizopatikana. Tafadhali hakiki namba ya ombi na namba ya simu.");
+      }
     } catch (err) {
-      setError("Failed to fetch application status. Please try again.");
+      console.error("Error fetching application status:", err);
+      setError("Imeshindikana kupata hali ya ombi. Tafadhali jaribu tena baadae.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -403,62 +409,79 @@ function ApplicationProgressContent() {
     router.push("/dashboard");
   };
 
-  const getStatusBadge = (status: ApplicationStatus) => {
+  const getStatusBadge = (status: ApplicationStatus, statusName?: string) => {
+    // If we have a custom status name from the API, use it
+    const displayStatusName = statusName || "";
+    
     switch (status) {
       case "received":
         return (
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1.5">
             <CheckCircle className="w-4 h-4" />
-            Application Received
+            {displayStatusName || "Ombi Limepokelewa"}
           </Badge>
         );
       case "in_progress":
         return (
           <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
-            In Progress
+            {displayStatusName || "Inaendelea"}
           </Badge>
         );
       case "under_review":
         return (
           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1.5">
             <FileCheck className="w-4 h-4" />
-            Under Review
+            {displayStatusName || "Inapitiwa"}
           </Badge>
         );
       case "returned_for_correction":
         return (
           <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
-            Returned for Correction
+            {displayStatusName || "Imerudishwa kwa Marekebisho"}
           </Badge>
         );
       case "pass_printed":
         return (
           <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1.5">
             <Printer className="w-4 h-4" />
-            Pass Printed
+            {displayStatusName || "Kibali Kimechapishwa"}
           </Badge>
         );
       case "issued":
         return (
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1.5">
             <FileCheck className="w-4 h-4" />
-            Pass Issued
+            {displayStatusName || "Kibali Kimetolewa"}
+          </Badge>
+        );
+      case "pending_collection":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1.5">
+            <Clock className="w-4 h-4" />
+            {displayStatusName || "Fika ofisi uliyoombea kwa makabidhiano"}
           </Badge>
         );
       case "rejected":
         return (
           <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4" />
-            Application Rejected
+            {displayStatusName || "Ombi Limekataliwa"}
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 flex items-center gap-1.5">
+            <Clock className="w-4 h-4" />
+            {displayStatusName || "Hali Haijulikani"}
           </Badge>
         );
     }
   };
 
   return ( 
-    <motion.div variants={itemVariants} className="max-w-5xl mx-auto py-6 px-3 sm:px-4 border border-slate-200 rounded mt-2 bg-white shadow-sm">
+    <motion.div variants={itemVariants} className="max-w-7xl mx-auto py-6 px-3 sm:px-4 border border-slate-200 rounded mt-2 bg-white shadow-sm">
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-3" style={{ minHeight: '450px' }}>
         
         <div className="border border-slate-100 rounded-lg bg-white p-3 shadow-sm sm:col-span-2">
@@ -523,9 +546,9 @@ function ApplicationProgressContent() {
           className="space-y-2 flex flex-col h-full border border-slate-100 rounded-lg bg-slate-50/50 p-3 sm:col-span-3 w-full overflow-x-auto"
         >
           {!applicationData && !isLoading && (
-            <div className="text-center py-8 px-4 w-full">
+            <div className="text-center py-8 px-4 w-full"> 
               <div className="flex justify-center mb-4">
-                <Search className="h-16 w-16 text-slate-300" />
+                <CircleQuestionMarkIcon className="h-16 w-16 text-slate-300" />
               </div>
               <h3 className="text-lg font-medium text-slate-600 mb-2">Hali ya Ombi</h3>
               <p className="text-slate-500 max-w-md mx-auto text-center">
@@ -537,7 +560,7 @@ function ApplicationProgressContent() {
           {isLoading && (
             <div className="text-center py-8 px-4 w-full">
               <div className="flex justify-center mb-4">
-                <Loader2 className="h-16 w-16 text-indigo-500 animate-spin" />
+                <ProfessionalLoader size="xl" color="indigo" thickness="thin" />
               </div>
               <h3 className="text-lg font-medium text-slate-600 mb-2">Inatafuta...</h3>
               <p className="text-slate-500 max-w-md mx-auto text-center">
@@ -568,27 +591,25 @@ function ApplicationProgressContent() {
                             <TableCell className="font-medium">{applicationData.id}</TableCell>
                             <TableCell>{applicationData.applicantName}</TableCell>
                             <TableCell>{applicationData.phoneNumber}</TableCell>
-                            <TableCell>{getStatusBadge(applicationData.status)}</TableCell>
-                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF)}</TableCell>
+                            <TableCell>{getStatusBadge(applicationData.status, applicationData.statusName)}</TableCell>
+                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsPassPreviewOpen)}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </div>
               
-              {/* Pass PDF Content (hidden) */}
-              <div className="hidden" id="pass-content">
-                <PassPDFContent
-                  applicationData={{
-                    id: applicationData.id,
-                    fullName: applicationData.applicantName,
-                    nationality: "Tanzania",
-                    passportNo: applicationData.id,
-                    paymentDate: applicationData.submittedDate,
-                    controlNo: applicationData.id,
-                    region: "Dar es Salaam"
-                  }}
-                />
-              </div>
+              {/* Pass Preview Dialog */}
+              <PassPDFPreview
+                open={isPassPreviewOpen}
+                onOpenChange={setIsPassPreviewOpen}
+                applicationId={selectedApplicationId}
+                refreshApplications={() => {
+                  // Refresh application data if needed
+                  if (applicationId || phoneNumber) {
+                    handleSearchWithId(applicationId, phoneNumber);
+                  }
+                }}
+              />
               
               {applicationData.status === "returned_for_correction" && applicationData.corrections && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
