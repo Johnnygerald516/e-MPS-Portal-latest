@@ -38,6 +38,8 @@ declare module 'html2canvas' {
     windowWidth?: number;
     /** Window height to use when rendering */
     windowHeight?: number;
+    /** Callback function that is called when the document has been cloned for rendering */
+    onclone?: (clonedDoc: Document, clonedElement: HTMLElement) => void;
   }
 
   interface Html2CanvasResult {
