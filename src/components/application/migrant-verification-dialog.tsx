@@ -49,8 +49,15 @@ export default function MigrantVerificationDialog({
     let hasErrors = false;
     const errors: {subjectId?: string; dateOfBirth?: string; phoneNumber?: string} = {};
     
-    if (!subjectId.trim() && !dateOfBirth.trim() && !phoneNumber.trim()) {
-      setError("Tafadhali ingiza angalau moja kati ya namba ya kitambulisho, tarehe ya kuzaliwa, au namba ya simu");
+    // Phone number is always required
+    if (!phoneNumber.trim()) {
+      errors.phoneNumber = "Namba ya simu inahitajika";
+      hasErrors = true;
+    }
+    
+    // At least one of subjectId or dateOfBirth must be provided
+    if (!subjectId.trim() && !dateOfBirth.trim()) {
+      setError("Tafadhali ingiza angalau moja kati ya namba ya kitambulisho au tarehe ya kuzaliwa");
       return;
     }
     
@@ -68,6 +75,7 @@ export default function MigrantVerificationDialog({
       }
     }
     
+    // Validate phone number format if it's not empty
     if (phoneNumber.trim() && !/^0[0-9]{9}$/.test(phoneNumber)) {
       errors.phoneNumber = "Namba ya simu inapaswa kuanza na 0 na iwe na tarakimu 10";
       hasErrors = true;

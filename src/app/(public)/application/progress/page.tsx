@@ -53,7 +53,7 @@ interface ApplicationStatusData {
 
 // import PassPDFContent from "@/components/ui/pass-pdf-content";
 
-// Helper function to determine which action buttons to show based on status
+// Helper function to determine which action buttons to show based on StatusID
 const getActionButtons = (
   status: ApplicationStatus, 
   applicationId: string, 
@@ -84,21 +84,84 @@ const getActionButtons = (
     // Implementation for marekebisho (corrections)
   };
 
+  // Use StatusID from applicationData if available, otherwise fall back to status string
+  const statusId = applicationData?.statusId;
+
+  // Check StatusID first if available
+  if (statusId !== undefined) {
+    switch (statusId) {
+      case 180: // issued
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => handlePrintPass(applicationId)} 
+              size="sm" 
+              variant="outline" 
+              className="flex items-center gap-1 text-green-600 border-green-200 hover:bg-green-50"
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Printer className="h-4 w-4" /> <span>Preview Pass</span>
+                </>
+              )}
+            </Button>
+          </div>
+        );
+      case 90: // returned_for_correction
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => handleMarekebisho(applicationId)} 
+              size="sm" 
+              variant="outline" 
+              className="flex items-center gap-1 text-orange-600 border-orange-200 hover:bg-orange-50"
+            >
+              <Edit className="h-4 w-4" />
+              <span>Marekebisho</span>
+            </Button>
+          </div>
+        );
+      case 150: // in_progress
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => handlePrintBill(applicationId)} 
+              size="sm" 
+              variant="outline" 
+              className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Print Bill</span>
+            </Button>
+          </div>
+        );
+      case 170: // under_review
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => handlePrintReceipt(applicationId)} 
+              size="sm" 
+              variant="outline" 
+              className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+            >
+              <Receipt className="h-4 w-4" />
+              <span>Print Receipt</span>
+            </Button>
+          </div>
+        );
+      default:
+        return "inafanyiwa kazi";
+    }
+  }
+
+  // Fall back to status string if StatusID is not available
   switch (status) {
-    case "received":
-      return (
-        <div className="flex space-x-2">
-          <Button 
-            onClick={() => handlePrintBill(applicationId)} 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
-          >
-            <CreditCard className="h-4 w-4" />
-            <span>Print Bill</span>
-          </Button>
-        </div>
-      );
     case "in_progress":
       return (
         <div className="flex space-x-2">
@@ -110,15 +173,6 @@ const getActionButtons = (
           >
             <CreditCard className="h-4 w-4" />
             <span>Print Bill</span>
-          </Button>
-          <Button 
-            onClick={() => handleMarekebisho(applicationId)} 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1 text-amber-600 border-amber-200 hover:bg-amber-50"
-          >
-            <Edit className="h-4 w-4" />
-            <span>Marekebisho</span>
           </Button>
         </div>
       );
@@ -147,54 +201,6 @@ const getActionButtons = (
           >
             <Edit className="h-4 w-4" />
             <span>Marekebisho</span>
-          </Button>
-        </div>
-      );
-    case "pending_collection":
-      return (
-        <div className="flex space-x-2">
-          <Button 
-            onClick={() => handlePrintPass(applicationId)} 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <>
-                <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
-                <span>Generating...</span>
-              </>
-            ) : (
-              <>
-                <Printer className="h-4 w-4" />
-                <span>Preview Pass</span>
-              </>
-            )}
-          </Button>
-        </div>
-      );
-    case "pass_printed":
-      return (
-        <div className="flex space-x-2">
-          <Button 
-            onClick={() => handlePrintPass(applicationId)} 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <>
-                <ProfessionalLoader size="sm" color="indigo" thickness="thin" className="mr-1" />
-                <span>Generating...</span>
-              </>
-            ) : (
-              <>
-                <Printer className="h-4 w-4" />
-                <span>Preview Pass</span>
-              </>
-            )}
           </Button>
         </div>
       );
@@ -236,7 +242,7 @@ const getActionButtons = (
         </div>
       );
     default:
-      return null;
+      return "inafanyiwa kazi";
   }
 };
 
@@ -296,6 +302,8 @@ function ApplicationProgressContent() {
       setError("Tafadhali weka namba ya ombi au namba ya simu");
       return;
     }
+    // Clear previous application data when starting a new search
+    setApplicationData(null);
     setIsLoading(true);
     setError(null);
 
@@ -318,6 +326,20 @@ function ApplicationProgressContent() {
         
         // Map StatusID to our application status types
         switch (result.StatusID) {
+          // Updated StatusID mappings as per requirements
+          case 150:
+            status = "in_progress";
+            break;
+          case 170:
+            status = "under_review";
+            break;
+          case 90:
+            status = "returned_for_correction";
+            break;
+          case 180:
+            status = "issued";
+            break;
+          // Keep other existing mappings for backward compatibility
           case 10:
             status = "received";
             break;
@@ -334,9 +356,6 @@ function ApplicationProgressContent() {
             break;
           case 80:
             status = "pass_printed";
-            break;
-          case 90:
-            status = "issued";
             break;
           case 100:
             status = "pending_collection";
@@ -382,12 +401,16 @@ function ApplicationProgressContent() {
 
         setApplicationData(applicationData);
       } else {
-        // Handle error from API
+        // Handle error from API - display the ackMessage when ackCode is 0
         setError(response.ackMessage || "Hakuna taarifa za ombi zilizopatikana. Tafadhali hakiki namba ya ombi na namba ya simu.");
+        // Ensure application data is cleared when there's an error
+        setApplicationData(null);
       }
     } catch (err) {
       console.error("Error fetching application status:", err);
       setError("Imeshindikana kupata hali ya ombi. Tafadhali jaribu tena baadae.");
+      // Ensure application data is cleared when there's an error
+      setApplicationData(null);
     } finally {
       setIsLoading(false);
     }
@@ -533,7 +556,7 @@ function ApplicationProgressContent() {
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm mt-2">
                 {error}
               </div>
             )}
