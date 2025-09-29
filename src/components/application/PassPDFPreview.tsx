@@ -252,7 +252,7 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
             />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p className="text-red-500">Failed to generate PDF preview</p>
+              {/* <p className="text-red-500">Failed to generate PDF preview</p> */}
             </div>
           )}
         </div>

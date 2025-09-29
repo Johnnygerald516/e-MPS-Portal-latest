@@ -170,6 +170,9 @@ export const convertToPassData = (response: ApplicationPassResponse): PassData |
     photo: photoDataUrl,
     ResidenceWardName: details.ResidenceWardName,
     ResidenceDistrictName: details.ResidenceDistrictName,
-    ResidenceRegionName: details.ResidenceRegionName
+    ResidenceRegionName: details.ResidenceRegionName,
+    // Add the missing properties
+    paidAmount: '10,000', // Default value as used in PassPDF.tsx
+    ControlNumber: details.ControlNumber || ''
   };
 };

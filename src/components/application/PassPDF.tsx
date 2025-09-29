@@ -32,6 +32,8 @@ export interface PassData {
   ResidenceWardName?: string;
   ResidenceDistrictName?: string;
   ResidenceRegionName?: string;
+  paidAmount?: string;
+  ControlNumber?: string;
 }
 
 // Helper function to convert image URL to base64
@@ -91,45 +93,44 @@ export const generateQRCode = async (text: string): Promise<string> => {
   try {
     // Create a canvas element
     const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
+    canvas.width = 300; // Larger size for better resolution
+    canvas.height = 300;
     
-    // Generate QR code directly to canvas
+    // Generate QR code directly to canvas with optimized settings for scanning
     await QRCode.toCanvas(canvas, text, {
-      width: 200,
-      margin: 1,
-      errorCorrectionLevel: 'H',
+      width: 300,
+      margin: 4, // Increased margin for better scanning
+      errorCorrectionLevel: 'H', // High error correction
       color: {
         dark: '#000000',
         light: '#ffffff'
-      }
+      },
+      scale: 8 // Increased scale for better definition
     });
     
-    // Convert canvas to data URL
-    return canvas.toDataURL('image/png');
+    // Convert canvas to data URL with high quality
+    return canvas.toDataURL('image/png', 1.0);
   } catch (err) {
     console.error('Error generating QR code:', err);
     
-    // Create a fallback QR code
+    // Create a simple text-based fallback
     const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
+    canvas.width = 300;
+    canvas.height = 300;
     const ctx = canvas.getContext('2d');
     
     if (ctx) {
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 200, 200);
+      ctx.fillRect(0, 0, 300, 300);
       ctx.fillStyle = '#000000';
-      ctx.fillRect(20, 20, 160, 160);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(30, 30, 140, 140);
-      ctx.fillStyle = '#000000';
-      ctx.font = '16px Arial';
+      ctx.font = 'bold 24px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(text, 100, 100);
+      ctx.fillText('ID:', 150, 130);
+      ctx.font = 'bold 32px Arial';
+      ctx.fillText(text, 150, 170);
     }
     
-    return canvas.toDataURL('image/png');
+    return canvas.toDataURL('image/png', 1.0);
   }
 };
 
@@ -175,9 +176,38 @@ export const generatePassPDF = async (
     const pageHeight = 297; // A4 height in mm
     const margin = 10; // Margin in mm
     
+    // Add background with immigration logo as overlay
+    try {
+      const logoPath = await imageToBase64('/images/immigration_logo.png');
+      
+      // Save state before changing opacity
+      doc.saveGraphicsState();
+    
+      // Apply opacity just for the logo
+      const gState = doc.GState({ opacity: 0.05 });
+      doc.setGState(gState);
+    
+      // Add watermark logo (centered)
+      doc.addImage(
+        logoPath,
+        'PNG',
+        pageWidth / 2 - 60,
+        pageHeight / 2 - 60,
+        120,
+        120
+      );
+    
+      // Restore normal state so text is not affected
+      doc.restoreGraphicsState();
+    
+    } catch (error) {
+      console.error("Error adding immigration logo watermark:", error);
+    }
+    
+    
     // Top right corner - TIF 24
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('TIF 24', pageWidth - margin, 10, { align: 'right' });
 
     // QR Code on top left
@@ -187,26 +217,26 @@ export const generatePassPDF = async (
       if (qrCodeImage) {
         qrCodeDataUrl = qrCodeImage;
       } else {
-        // Generate QR code with pass ID and name
-        const qrText = `MP:${passData.id}|NAME:${passData.fullName}`;
-        console.log('Generating QR code for:', qrText);
+        // Generate QR code with just the pass ID for reliable scanning
+        const qrText = `${passData.id}`;
+        console.log('Generating QR code for ID:', qrText);
         qrCodeDataUrl = await generateQRCode(qrText);
         console.log('QR code generated successfully');
       }
       
-      // Add the QR code to the PDF
-      doc.addImage(qrCodeDataUrl, 'PNG', 20, 20, 30, 30);
+      // Add the QR code to the PDF with increased size for better scanning
+      doc.addImage(qrCodeDataUrl, 'PNG', 15, 15, 40, 40);
     } catch (error) {
       console.error('Error adding QR code to PDF:', error);
       // Fallback to a simple rectangle if QR code fails
-      doc.rect(20, 20, 30, 30);
-      doc.setFontSize(8);
-      doc.text('QR Code', 35, 35, { align: 'center' });
+      doc.rect(15, 15, 40, 40);
+      doc.setFontSize(10);
+      doc.text('ID: ' + passData.id, 35, 35, { align: 'center' });
     }
 
     // MP No. text under QR code
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.text(`MP No. ${passData.id}`, 35, 55, { align: 'center' });
     
     // Add coat of arms image in the center top
@@ -220,15 +250,15 @@ export const generatePassPDF = async (
     }
     
     // Add header text
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.setFontSize(12);
     doc.text('THE UNITED REPUBLIC OF TANZANIA', 105, 45, { align: 'center' });
     
     // Add regulation text
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('The Immigration Regulations 1977,', 105, 52, { align: 'center' });
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('Times New Roman', 'italic');
     doc.text('(Regulation 18(3)(a))', 105, 57, { align: 'center' });
     
     // Add applicant photo on top right
@@ -248,23 +278,31 @@ export const generatePassPDF = async (
     
     // Add MIGRANT PASS title
     doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.text('MIGRANT PASS', 105, 70, { align: 'center' });
     
-    // Add code number - reduced spacing
+    // Define consistent positions for labels and values
+    const labelX = 20;
+    const valueX = 80;
+    
+    // Add code number - aligned with other fields
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`CODE NO: ${passData.id}`, 30, 76); // Reduced y-position from 80 to 76
+    doc.setFont('Times New Roman', 'normal');
+    const label = "CODE NO:";
+doc.text(label, labelX, 76);
+
+
+    const labelWidth = doc.getTextWidth(label);
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(`${passData.id}`, labelX + labelWidth + 2, 76);
     
     // Add Details header
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.text('Details', 20, 90);
     
     // Personal details section with optimized spacing
     let y = 100;
-    const labelX = 20;
-    const valueX = 80;
     const lineHeight = 6; // Reduced line height for better fit
     
     // Calculate available space for content
@@ -278,36 +316,35 @@ export const generatePassPDF = async (
     const maxDependants = 4; // Maximum number of dependants to show
     
     // Set up the details with bold labels and normal values - exactly as in the image
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.setFontSize(9);
     doc.text('Full Name:', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text(passData.fullName.toUpperCase(), valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Nationality:', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text((passData.nationality || 'TANZANIAN').toUpperCase(), valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Physical Address:', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text((passData.physicalAddress || 
       (passData.ResidenceWardName || passData.ResidenceDistrictName || passData.ResidenceRegionName ? 
-        `${passData.ResidenceWardName || ""}, ${passData.ResidenceDistrictName || ""}, ${passData.ResidenceRegionName || ""}` : 
-        'BUSERESERE, CHATO, GEITA')).toUpperCase(), valueX, y);
+        `${passData.ResidenceWardName || ""}, ${passData.ResidenceDistrictName || ""}, ${passData.ResidenceRegionName || ""}` : '')).toUpperCase(), valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('The pass is issued for the period of', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text('2YRS', valueX, y);
     y += lineHeight;
     
     // From and to dates - formatted exactly as in the image
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('From:', labelX, y);
     
     // Format dates as shown in the image
@@ -319,20 +356,20 @@ export const generatePassPDF = async (
       return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'long' })} ${date.getFullYear()}`;
     };
     
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text(`${formatDisplayDate(fromDate)} to ${formatDisplayDate(toDate)}`, valueX, y);
     y += lineHeight; // Reduced from lineHeight * 2 to just lineHeight
     
     // Purpose statement in a box - reduced spacing
     // doc.setFillColor(240, 240, 250);
     // doc.rect(20, y, 170, 10, 'F');
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.setFontSize(9);
     doc.text('For the purpose of residing in the United Republic of Tanzania', 20,y);
     y += lineHeight * 1.5; // Reduced from lineHeight * 2 to lineHeight * 1.5
     
     // Holder permission statement
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.setFontSize(9);
     doc.text('The holder of this pass is hereby permitted to remain in the United Republic of Tanzania for the', 20, y);
     y += lineHeight;
@@ -340,61 +377,64 @@ export const generatePassPDF = async (
     y += lineHeight * 1.5;
     
     // Fee paid information
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Fee Paid:', 20, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${passData.passportNo || 'TNG-A-00019-210113-4-2'}`, 50, y);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(`${passData.paidAmount || '10,000'}`, 50, y);
+    
+    doc.setFont('Times New Roman', 'normal');
     doc.text('vide Control No', 100, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${passData.id} of ${new Date().getDate()} Sept ${new Date().getFullYear()}`, 140, y);
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(`${passData.ControlNumber}`, 140, y);
     y += lineHeight;
     
     // Issued at
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Issued at:', 20, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(passData.physicalAddress || passData.ResidenceRegionName || 'N/A', 50, y);
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(passData.ResidenceRegionName || '', 50, y);
     y += lineHeight * 2;
     
     // Contact Address section
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.setFontSize(10);
     doc.text('Contact Address', 20, y);
     y += lineHeight;
     
     // Contact details - exactly as in the image
     doc.setFontSize(9);
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Name:', labelX, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text((passData.fullName || 'juma mousa simoni kibisawala').toUpperCase(), valueX, y);
+
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text((passData.fullName || '').toUpperCase(), valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Physical Address:', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text((passData.physicalAddress || 
       (passData.ResidenceWardName || passData.ResidenceDistrictName || passData.ResidenceRegionName ? 
         `${passData.ResidenceWardName || ""}, ${passData.ResidenceDistrictName || ""}, ${passData.ResidenceRegionName || ""}` : 
-        'BUSERESERE, CHATO, GEITA')).toUpperCase(), valueX, y);
+        '')).toUpperCase(), valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Telephone/Mobile:', labelX, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(passData.phoneNumber || '0684649469', valueX, y);
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(passData.phoneNumber || '', valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Email:', labelX, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text(passData.email || '', valueX, y);
     y += lineHeight;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'normal');
     doc.text('Region of Application:', labelX, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(passData.ResidenceRegionName || 'GEITA', valueX, y);
+    doc.setFont('Times New Roman', 'bolditalic');
+    doc.text(passData.ResidenceRegionName || '', valueX, y);
     
     // Add first signature in the middle section as shown in the image
     // Use optimized spacing
@@ -404,12 +444,14 @@ export const generatePassPDF = async (
     try {
       // First try to use the provided signature image parameter
       if (signatureImage) {
-        doc.addImage(signatureImage, 'PNG', 150, y-8, 30, 8);
+        // Position signature centered above the text with reduced gap
+        doc.addImage(signatureImage, 'PNG', 125, y-12, 80, 16);
       } 
       // If not provided, use the base64 signature
       else {
         // Use the imported base64 signature directly
-        doc.addImage(signatureBase64, 'PNG', 150, y-8, 30, 8);
+        // Position signature centered above the text with reduced gap
+        doc.addImage(signatureBase64, 'PNG', 125, y-12, 80, 16);
       }
     } catch (error) {
       console.error('Error adding signature to PDF:', error);
@@ -419,11 +461,12 @@ export const generatePassPDF = async (
     
     // First Commissioner text under signature
     doc.setFontSize(8); // Smaller font size
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
     y += lineHeight * 2; // Reduced spacing after the first signature
     
     // Dependants section - positioned after the first signature with optimized spacing
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.setFontSize(11); // Slightly smaller font
     doc.text('DEPENDANTS', 105, y, { align: 'center' });
     y += 4; // Increased spacing between DEPENDANTS and (If any)
@@ -434,11 +477,11 @@ export const generatePassPDF = async (
     // Table headers with optimized spacing
     doc.setFillColor(240, 240, 240);
     doc.rect(20, y, 170, 7, 'F'); // Slightly increased height for better readability
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     // Adjust column positions to better fit their content
     doc.text('Name', 25, y+4); // Left-aligned in column
     doc.text('Age', 65, y+4); // Centered in column
-    doc.text('Relation', 85, y+4); // Shortened text and moved left to reduce column width
+    doc.text('Relationship', 85, y+4); // Shortened text and moved left to reduce column width
     doc.text('Nationality', 120, y+4); // Moved left to increase column width
     doc.text('Reg. No.', 165, y+4); // Shortened text and moved right
     
@@ -454,7 +497,7 @@ export const generatePassPDF = async (
     y += 7; // Increased spacing
     
     // Table rows with optimized spacing
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'normal');
     if (passData.dependants && passData.dependants.length > 0) {
       // Limit to maximum 4 dependants
       const dependantsToShow = passData.dependants.slice(0, maxDependants);
@@ -511,20 +554,22 @@ export const generatePassPDF = async (
     y += 12; // Reduced spacing
     
     // Date section at bottom left
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Times New Roman', 'bold');
     doc.setFontSize(8); // Smaller font size
-    doc.text(`Date: ${new Date().getDate()} Sept ${new Date().getFullYear()}`, 40, y);
+    doc.text(`Date: ${new Date().getDate()} Sept ${new Date().getFullYear()}`, 20,y);
     
     // Second signature at bottom right
     try {
       // First try to use the provided signature image parameter
       if (signatureImage) {
-        doc.addImage(signatureImage, 'PNG', 150, y-8, 30, 8);
+        // Position signature centered above the text with reduced gap
+        doc.addImage(signatureImage, 'PNG', 125, y-12, 80, 16);
       } 
       // If not provided, use the base64 signature
       else {
         // Use the imported base64 signature directly
-        doc.addImage(signatureBase64, 'PNG', 150, y-8, 30, 8);
+        // Position signature centered above the text with reduced gap
+        doc.addImage(signatureBase64, 'PNG', 125, y-12, 80, 16);
       }
     } catch (error) {
       console.error('Error adding signature to PDF:', error);
@@ -533,7 +578,7 @@ export const generatePassPDF = async (
     }
     
     // Second Commissioner text under signature
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Times New Roman', 'bolditalic');
     doc.setFontSize(8); // Smaller font size
     doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
     
