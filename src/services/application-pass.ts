@@ -173,6 +173,7 @@ export const convertToPassData = (response: ApplicationPassResponse): PassData |
     ResidenceRegionName: details.ResidenceRegionName,
     // Add the missing properties
     paidAmount: '10,000', // Default value as used in PassPDF.tsx
-    ControlNumber: details.ControlNumber || ''
+    ControlNumber: details.ControlNumber || '',
+    passNumber: details.passNumber || ''
   };
 };

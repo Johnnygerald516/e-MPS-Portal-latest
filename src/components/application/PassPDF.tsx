@@ -34,6 +34,7 @@ export interface PassData {
   ResidenceRegionName?: string;
   paidAmount?: string;
   ControlNumber?: string;
+  passNumber?: string;
 }
 
 // Helper function to convert image URL to base64
@@ -237,7 +238,7 @@ export const generatePassPDF = async (
     // MP No. text under QR code
     doc.setFontSize(8);
     doc.setFont('Times New Roman', 'bold');
-    doc.text(`MP No. ${passData.id}`, 35, 55, { align: 'center' });
+    doc.text(`MP No. ${passData.passNumber ||""}`, 35, 55, { align: 'center' });
     
     // Add coat of arms image in the center top
     const coatOfArmsPath = '/images/coat_of_arm.png';
@@ -305,12 +306,7 @@ doc.text(label, labelX, 76);
     let y = 100;
     const lineHeight = 6; // Reduced line height for better fit
     
-    // Calculate available space for content
-    const contentHeight = pageHeight - margin * 2; // Available height for content
-    const headerHeight = 90; // Height used by header elements
-    const footerHeight = 25; // Height needed for footer elements (reduced)
-    const dependantsTableHeight = 50; // Base height for dependants table with header (reduced)
-    const dependantRowHeight = 8; // Height per dependant row (reduced)
+   
     
     // Calculate max dependants that can fit
     const maxDependants = 4; // Maximum number of dependants to show
@@ -326,7 +322,7 @@ doc.text(label, labelX, 76);
     doc.setFont('Times New Roman', 'normal');
     doc.text('Nationality:', labelX, y);
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text((passData.nationality || 'TANZANIAN').toUpperCase(), valueX, y);
+    doc.text((passData.nationality || '').toUpperCase(), valueX, y);
     y += lineHeight;
     
     doc.setFont('Times New Roman', 'normal');
@@ -483,7 +479,7 @@ doc.text(label, labelX, 76);
     doc.text('Age', 65, y+4); // Centered in column
     doc.text('Relationship', 85, y+4); // Shortened text and moved left to reduce column width
     doc.text('Nationality', 120, y+4); // Moved left to increase column width
-    doc.text('Reg. No.', 165, y+4); // Shortened text and moved right
+    doc.text('Registration No.', 165, y+4); // Shortened text and moved right
     
     // Add vertical borders for header row
     doc.line(50, y, 50, y+7); // Name column
