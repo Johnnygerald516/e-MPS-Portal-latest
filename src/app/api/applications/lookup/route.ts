@@ -12,14 +12,9 @@ export async function POST(request: NextRequest) {
     // Parse the request body
     const requestData: LookupRequest = await request.json();
     const { operationType, argument1, argument2 } = requestData;
-    
-    console.log(`Lookup request received: ${operationType}, arg1: ${argument1}, arg2: ${argument2}`);
-    
-    // Check if API URL is configured
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL is not configured');
-      return NextResponse.json(
+     return NextResponse.json(
         { 
           ackCode: 0, 
           ackMessage: "API URL not configured. Please set NEXT_PUBLIC_API_URL environment variable.",
@@ -29,20 +24,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('Using API URL from environment:', apiUrl);
-    
-    // Call the external API
     const externalApiUrl = `${apiUrl}/applications/lookup`;
     
     try {
-      console.log(`Calling external API at: ${externalApiUrl}`);
-      
-      // Check if we're trying to call ourselves (same host/port)
       let currentUrl;
       try {
         currentUrl = new URL(externalApiUrl);
       } catch (error) {
-        console.error('Invalid URL format:', externalApiUrl, error);
         return NextResponse.json(
           { 
             ackCode: 0, 
@@ -52,14 +40,11 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      
-      console.log('Parsed URL:', currentUrl.toString());
       const isSelfCall = currentUrl.hostname === '10.6.0.164' || 
                          currentUrl.hostname === '10.6.0.165' || 
                          currentUrl.hostname === 'localhost';
       
       if (isSelfCall) {
-        console.warn(`⚠️ Detected potential self-call to ${externalApiUrl}. Using fallback data.`);
         return NextResponse.json({
           ackCode: 1,
           ackMessage: "Using fallback data to avoid recursive API call",
@@ -85,9 +70,7 @@ export async function POST(request: NextRequest) {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API error: ${response.status} ${response.statusText}`, errorText);
-        
-        return NextResponse.json(
+       return NextResponse.json(
           { 
             ackCode: 0, 
             ackMessage: `API error: ${response.status} ${response.statusText}`,
@@ -104,7 +87,6 @@ export async function POST(request: NextRequest) {
         
         // Check if response is empty
         if (!responseText || responseText.trim() === '') {
-          console.error('Empty response from external API');
           return NextResponse.json(
             { 
               ackCode: 0, 
@@ -120,7 +102,6 @@ export async function POST(request: NextRequest) {
         try {
           apiResponse = JSON.parse(responseText);
         } catch (parseError) {
-          console.error('Failed to parse API response as JSON:', responseText);
           return NextResponse.json(
             { 
               ackCode: 0, 
@@ -131,11 +112,9 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           );
         }
-        
-        console.log('External API response:', apiResponse);
+    
         return NextResponse.json(apiResponse);
       } catch (textError) {
-        console.error('Error reading response text:', textError);
         return NextResponse.json(
           { 
             ackCode: 0, 
@@ -148,16 +127,12 @@ export async function POST(request: NextRequest) {
       }
       
     } catch (fetchError) {
-      console.error('External API call failed:', fetchError);
-      
-      // Check if it's a connection refused error
       const isConnectionRefused = fetchError instanceof Error && 
         (fetchError.message.includes('ECONNREFUSED') || 
          fetchError.message.includes('fetch failed') ||
          fetchError.message.includes('network timeout'));
       
       if (isConnectionRefused) {
-        console.log('Connection refused, using fallback data');
         return NextResponse.json(
           { 
             ackCode: 1, 
@@ -179,7 +154,6 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error("Error processing lookup request:", error);
     return NextResponse.json(
       { 
         ackCode: 0, 
@@ -194,8 +168,6 @@ export async function POST(request: NextRequest) {
 
 // Function to provide fallback data for different operation types
 function getFallbackData(operationType: string, argument1: number) {
-  console.log(`Providing fallback data for operation: ${operationType}, arg1: ${argument1}`);
-  
   switch(operationType.toLowerCase()) {
     case 'occupationtype':
       return [

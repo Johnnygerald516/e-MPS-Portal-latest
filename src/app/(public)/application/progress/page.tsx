@@ -17,7 +17,7 @@ import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableC
 // Define the application status types
 type ApplicationStatus = 
   | "received" 
-  | "in_progress" 
+  | "billing" 
   | "under_review" 
   | "returned_for_correction" 
   | "pass_printed" 
@@ -49,6 +49,7 @@ interface ApplicationStatusData {
   firstName?: string;
   middleName?: string;
   lastName?: string;
+  controlNumber?: string;
 }
 
 // import PassPDFContent from "@/components/ui/pass-pdf-content";
@@ -122,7 +123,7 @@ const getActionButtons = (
             </Button>
           </div>
         );
-      case 150: // in_progress
+      case 140: // billing
         return (
           <div className="flex space-x-2">
             <Button 
@@ -157,7 +158,7 @@ const getActionButtons = (
 
   // Fall back to status string if StatusID is not available
   switch (status) {
-    case "in_progress":
+    case "billing":
       return (
         <div className="flex space-x-2">
           <Button 
@@ -322,8 +323,8 @@ function ApplicationProgressContent() {
         // Map StatusID to our application status types
         switch (result.StatusID) {
           // Updated StatusID mappings as per requirements
-          case 150:
-            status = "in_progress";
+          case 140:
+            status = "billing";
             break;
           case 170:
             status = "under_review";
@@ -340,7 +341,7 @@ function ApplicationProgressContent() {
             break;
           case 20:
           case 30:
-            status = "in_progress";
+            status = "billing";
             break;
           case 40:
           case 50:
@@ -371,10 +372,10 @@ function ApplicationProgressContent() {
               } else if (statusNameLower.includes('tolewa') || statusNameLower.includes('issue')) {
                 status = "issued";
               } else {
-                status = "in_progress";
+                status = "billing";
               }
             } else {
-              status = "in_progress";
+              status = "billing";
             }
         }
         
@@ -392,6 +393,7 @@ function ApplicationProgressContent() {
           submittedDate: new Date().toISOString().split('T')[0], // Use current date as we don't have this from API
           lastUpdated: new Date().toISOString().split('T')[0],
           phoneNumber: result.phoneNumber,
+          controlNumber: result.controlNumber || '',
         };
 
         setApplicationData(applicationData);
@@ -432,7 +434,7 @@ function ApplicationProgressContent() {
             {displayStatusName || "Ombi Limepokelewa"}
           </Badge>
         );
-      case "in_progress":
+      case "billing":
         return (
           <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
@@ -592,7 +594,7 @@ function ApplicationProgressContent() {
                     <TableRow className="bg-slate-50 h-8">
                       <TableHead className="font-semibold">Application ID</TableHead>
                       <TableHead className="font-semibold">Applicant Name</TableHead>
-                      <TableHead className="font-semibold">Phone Number</TableHead>
+                      <TableHead className="font-semibold">Control Number</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                       <TableHead className="font-semibold">Action</TableHead>
                     </TableRow>
@@ -601,7 +603,7 @@ function ApplicationProgressContent() {
                     <TableRow>
                             <TableCell className="font-medium">{applicationData.id}</TableCell>
                             <TableCell>{applicationData.applicantName}</TableCell>
-                            <TableCell>{applicationData.phoneNumber}</TableCell>
+                            <TableCell>{applicationData.controlNumber}</TableCell>
                             <TableCell>{getStatusBadge(applicationData.status, applicationData.statusName)}</TableCell>
                             <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsPassPreviewOpen)}</TableCell>
                     </TableRow>

@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
     // Get the API URL from environment variables
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
-      console.error('API URL not configured in environment variables');
       return NextResponse.json({
         ackCode: 0,
         ackMessage: "Server configuration error",
@@ -37,10 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data);
     
   } catch (error) {
-    console.error('Error processing application status request:', error);
-    
-    // Handle different types of errors
-    if (axios.isAxiosError(error)) {
+  if (axios.isAxiosError(error)) {
       // If the backend API returned an error response
       if (error.response) {
         return NextResponse.json(error.response.data, { status: error.response.status });

@@ -77,10 +77,7 @@ export const getApplicationPass = async (applicationId: string): Promise<Applica
     const response = await axios.get(`/api/applications/${applicationId}/pass`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching application pass data:', error);
-    
-    // Handle different types of errors
-    if (axios.isAxiosError(error)) {
+     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApplicationPassResponse>;
       
       // If the server returned an error response

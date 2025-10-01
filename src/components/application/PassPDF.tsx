@@ -438,20 +438,13 @@ doc.text(label, labelX, 76);
     
     // Use the base64 signature
     try {
-      // First try to use the provided signature image parameter
       if (signatureImage) {
-        // Position signature centered above the text with reduced gap
         doc.addImage(signatureImage, 'PNG', 125, y-12, 80, 16);
       } 
-      // If not provided, use the base64 signature
       else {
-        // Use the imported base64 signature directly
-        // Position signature centered above the text with reduced gap
         doc.addImage(signatureBase64, 'PNG', 125, y-12, 80, 16);
       }
     } catch (error) {
-      console.error('Error adding signature to PDF:', error);
-      // If signature fails to load, draw a line
       doc.line(150, y, 180, y);
     }
     

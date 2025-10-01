@@ -13,6 +13,7 @@ export interface ApplicationStatusResult {
   phoneNumber: string;
   StatusID: number;
   statusName: string;
+  controlNumber?: string;
 }
 
 export interface ApplicationStatusResponse {
@@ -41,9 +42,6 @@ export const getApplicationStatus = async (payload: ApplicationStatusPayload): P
     const response = await axios.post('/api/applications/status', payload);
     return response.data;
   } catch (error) {
-    console.error('Error fetching application status:', error);
-    
-    // Handle different types of errors
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApplicationStatusResponse>;
       
