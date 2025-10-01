@@ -106,23 +106,13 @@ export default function MigrantVerificationDialog({
         applicationTypeId: applicationTypeId
       };
       
-      console.log('Sending payload:', payload);
-      
-      // Call the verification API through our Next.js API route
       const response = await verificationEndpoints.verifyRegistration(payload);
-      
-      console.log('API response received:', response);
-      
-      // Process successful response
       if (response && response.ackCode === 1) {
         setVerificationSuccess(true);
         // Use the correct property name (applicationID instead of applicationId)
         const appId = response.jsonResult?.applicationID || response.applicationId || '';
         setApplicationId(appId);
-        console.log('Application ID received:', appId);
-        
-        // Store the applicationId in the application context
-        updateFormData({
+         updateFormData({
           applicationId: appId,
           // Also save other relevant information
           applicationType: applicationTypeId === 1 ? "new" : "renew",
@@ -133,23 +123,15 @@ export default function MigrantVerificationDialog({
         setError(`Uthibitisho umeshindikana: ${response.ackMessage}`);
       }
     } catch (error: any) {
-      console.error('Verification error:', error);
-      
-      // Handle API errors properly
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        setError(`Uthibitisho umeshindikana: ${error.response.data?.ackMessage || 'Imeshindikana kuthibitisha taarifa zako'} (${error.response.status})`);
+       if (error.response) {
+      setError(`Uthibitisho umeshindikana: ${error.response.data?.ackMessage || 'Imeshindikana kuthibitisha taarifa zako'} (${error.response.status})`);
       } else if (error.request) {
-        // The request was made but no response was received
         setError('Imeshindikana kuwasiliana na seva. Tafadhali jaribu tena baadaye.');
       } else {
-        // Something happened in setting up the request that triggered an Error
         setError(`Uthibitisho umeshindikana: ${error.message || 'Kuna tatizo limetokea'}`);
       }
     } finally {
       setIsSearching(false);
-      // Re-enable inputs
       document.getElementById("subjectId")?.removeAttribute("disabled");
       document.getElementById("dateOfBirth")?.removeAttribute("disabled");
       document.getElementById("phoneNumber")?.removeAttribute("disabled");
@@ -319,7 +301,7 @@ export default function MigrantVerificationDialog({
               <Button 
                 onClick={handleSearch} 
                 disabled={isSearching}
-                className="bg-blue-600 hover:bg-blue-700 min-w-[100px] rounded"
+                className="bg-blue-800 hover:bg-blue-900 min-w-[100px] rounded"
               >
                 {isSearching ? (
                   <>
@@ -337,7 +319,7 @@ export default function MigrantVerificationDialog({
           ) : (
             <Button 
               onClick={handleContinue}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-800 hover:bg-blue-900"
             >
               Endelea na Ombi
             </Button>

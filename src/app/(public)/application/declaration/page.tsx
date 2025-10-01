@@ -105,7 +105,6 @@ export default function DeclarationPage() {
     
     const fetchData = async (retry = 0) => {
       if (!applicationId) {
-        console.warn("No application ID provided, cannot fetch application data");
         return;
       }
       
@@ -127,8 +126,6 @@ export default function DeclarationPage() {
         // Add a timeout to prevent hanging requests
         const controller = new AbortController();
         const requestTimeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout (increased from 15s)
-        
-        console.log(`Fetching application data (attempt ${retry + 1}/${MAX_RETRIES + 1})`);
         const response = await fetch(`/api/applications/${applicationId}`, {
           signal: controller.signal,
           // Add cache control headers to prevent caching issues
@@ -144,8 +141,6 @@ export default function DeclarationPage() {
         if (!response.ok) {
           // Handle specific error codes
           if (response.status === 503 && retry < MAX_RETRIES) {
-            // Service unavailable - retry after a delay
-            console.log(`Service unavailable (503), retrying in ${(retry + 1) * 2000}ms...`);
             clearTimeout(timeoutId);
             clearTimeout(requestTimeoutId);
             
@@ -162,28 +157,11 @@ export default function DeclarationPage() {
         if (data.ackCode === 1 && data.jsonResult) {
           // Store the full application data for reference
           setApplicationData(data.jsonResult);
-          
-          // Debug logging to verify API response structure
-          console.log("API Response structure:", {
-            hasApplicationDetails: !!data.jsonResult.ApplicationDetails,
-            hasApplicantPhoto: !!data.jsonResult.applicantPhoto,
-            hasApplicationAttachment: !!data.jsonResult.applicationAttachment,
-            hasApplicationDependants: !!data.jsonResult.applicationdependants,
-            applicationDetailsCount: data.jsonResult.ApplicationDetails?.length || 0,
-            applicantPhotoCount: data.jsonResult.applicantPhoto?.length || 0,
-            attachmentCount: data.jsonResult.applicationAttachment?.length || 0,
-            dependantsCount: data.jsonResult.applicationdependants?.length || 0
-          });
-          
-          // Extract application details from the response
-          const applicationDetails = data.jsonResult.ApplicationDetails && 
+           const applicationDetails = data.jsonResult.ApplicationDetails && 
             data.jsonResult.ApplicationDetails.length > 0 ? 
             data.jsonResult.ApplicationDetails[0] : null;
           
           if (applicationDetails) {
-            console.log("Updating form data with application details:", applicationDetails);
-            
-            // Update formData with the application details
             updateFormData({
               firstName: applicationDetails.firstName || "",
               middleName: applicationDetails.middleName || "",
@@ -222,20 +200,15 @@ export default function DeclarationPage() {
                 })) : []
             });
           }
-          
-          // Handle applicant photo - attachmentType contains base64 data for 'picha ya muombaji'
           if (Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
             const rawPhotoItem = data.jsonResult.applicantPhoto[0];
             const photoSrc = getBase64ImageSrc(rawPhotoItem);
-            
-            // Debug the photo data
+           
             debugBase64Image(photoSrc, 'Applicant Photo from API');
           
             if (photoSrc) {
               setApplicantPhoto(photoSrc);
-              console.log("✅ Applicant photo set successfully");
-            } else {
-              console.log("❌ Failed to process applicant photo");
+             } else {
               setPhotoError("Imeshindwa kusindika picha");
             }
           } else {
@@ -275,8 +248,7 @@ export default function DeclarationPage() {
                     }
                   }
                 } catch (error) {
-                  console.error(`Error processing attachment ${attachment.attachmentID}:`, error);
-                }
+                 }
               }
               
               setAttachments(attachmentMap);
@@ -289,14 +261,10 @@ export default function DeclarationPage() {
             initializeAttachments();
           }
         } else {
-          console.warn("No application data found in the response");
           setPhotoError("Picha ya muombaji haikupatikana");
           initializeAttachments();
         }
       } catch (error) {
-        console.error("Error fetching application data:", error);
-        
-        // Handle specific error messages
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
             setPhotoError("Muda wa kusubiri umekwisha"); // Timeout in Swahili
@@ -499,8 +467,6 @@ export default function DeclarationPage() {
           });
         }
       } catch (error) {
-        console.error("Error submitting application:", error);
-        // Store error in context
         updateFormData({
           submissionStatus: 'error',
           submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
@@ -514,8 +480,6 @@ export default function DeclarationPage() {
         });
       }
     } catch (error) {
-      console.error("Error in submission process:", error);
-      // Store error in context
       updateFormData({
         submissionStatus: 'error',
         submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
@@ -607,11 +571,9 @@ const SimpleBase64Image = ({ base64, alt, className }: { base64: string; alt: st
       alt={alt}
       className={className}
       onError={(e) => {
-        console.error('Image failed to load:', src.substring(0, 100));
         e.currentTarget.style.display = 'none';
       }}
       onLoad={() => {
-        console.log('Image loaded successfully');
       }}
     />
   );
@@ -904,11 +866,10 @@ return (
       </div>
       
       <div className="bg-amber-50 border border-amber-200 p-4 rounded-md mb-6 shadow-sm hover:shadow transition-shadow duration-200">
-        <h3 className="text-amber-800 font-medium mb-2">Important Notice</h3>
+        <h3 className="text-amber-800 font-medium mb-2">Tangazo Muhimu</h3>
         <p className="text-amber-700 text-sm">
-          By submitting this application, you declare that all information provided is true and accurate to the best of your knowledge.
-          Providing false information may result in the rejection of your application and possible legal consequences.
-        </p>
+        Kwa kuwasilisha ombi hili, unathibitisha kuwa taarifa zote ulizotoa ni za kweli na sahihi kwa kadri unavyofahamu.
+        Kutoa taarifa za uongo kunaweza kusababisha ombi lako kukataliwa na pia matokeo ya kisheria.</p>
       </div>
       
       <Form {...form}>
@@ -924,8 +885,8 @@ return (
                       <InteractiveCheckbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        label="Declaration and Consent"
-                        description="I hereby declare that the information provided in this application is true and correct to the best of my knowledge. I understand that any false statements or deliberate omissions may result in the rejection of my application or subsequent cancellation of my passport."
+                        label="Tamko na Idhini"
+                        description="Ninathibitisha hapa kuwa taarifa zote zilizotolewa katika ombi hili ni za kweli na sahihi kadri ninavyofahamu. Ninaelewa kuwa taarifa za uongo au kutokutoa baadhi ya taarifa kwa makusudi kunaweza kusababisha ombi langu kukataliwa au kufutwa baadaye kwa pasipoti yangu."
                       />
                     </FormControl>
                   </FormItem>
@@ -947,7 +908,7 @@ return (
         className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
       >
         <Save className="h-4 w-4 mr-2" />
-        Save and Exit
+        Hifadhi na Toka
       </Button>
             
       <LoadingButton 
@@ -956,11 +917,11 @@ return (
         loadingText="Inawasilisha Maombi..."
         spinnerVariant="primary"
         disabled={!form.formState.isValid || isLoading}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center min-w-[180px] justify-center"
+        className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center min-w-[180px] justify-center"
         title="Click to submit your application"
       >
         <CheckCircle className="h-4 w-4 mr-2" />
-        Submit Application
+        Wasilisha Ombi
       </LoadingButton> 
     </div>
   </form>

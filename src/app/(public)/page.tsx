@@ -303,7 +303,10 @@ export default function Home() {
                                 
                               </Link>
                             ) : service.title === "Endeleza Ombi" ? (
-                                <Link href="/application/continue">
+                                <Link 
+                                href="/"
+                                // href="/application/continue"
+                                >
                                   <motion.button 
                                     className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                                     whileHover={{ scale: 1.05 }}

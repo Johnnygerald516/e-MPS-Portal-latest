@@ -70,8 +70,6 @@ const basicInfoSchema = z.object({
   otherName: z.string().optional(),
   gender: z.string().min(1, "Gender is required"), // Added gender field
   dateOfBirth: z.union([z.string(), z.date(), z.any()]).refine(val => {
-    // Debug the value being validated
-    console.log('Validating dateOfBirth:', val, typeof val);
     
     // Allow any non-empty value for read-only field
     return val !== undefined && val !== null && val !== "";
@@ -213,14 +211,12 @@ export default function BasicInfoPage() {
             
             setMaritalStatusOptions(options);
           } else {
-            console.error("Failed to fetch marital status options:", response.ackMessage);
-            setMaritalStatusOptions([]);
+           setMaritalStatusOptions([]);
           }
           setIsLoadingMaritalStatus(false);
         }
       } catch (error) {
         if (!signal.aborted) {
-          console.error("Error fetching marital status options:", error);
           setMaritalStatusOptions([]);
           setIsLoadingMaritalStatus(false);
         }
@@ -246,21 +242,19 @@ export default function BasicInfoPage() {
         if (!signal.aborted) {
           if (response.ackCode === 1 && response.jsonResult && response.jsonResult.length > 0) {
             const options = response.jsonResult.map(type => ({
-              value: type.OccupationName || type.OccupationType || '',
-              label: type.OccupationName || type.OccupationType || '',
+              value: type.AinaYaKazi || type.OccupationType || '',
+              label: type.AinaYaKazi || type.OccupationType || '',
               id: type.OccupationTypeID || type.EntryId || 0
             }));
             
             setOccupationTypeOptions(options);
           } else {
-            console.error("Failed to fetch occupation types:", response.ackMessage);
-            setOccupationTypeOptions([]);
+           setOccupationTypeOptions([]);
           }
           setIsLoadingOccupationTypes(false);
         }
       } catch (error) {
         if (!signal.aborted) {
-          console.error("Error fetching occupation types:", error);
           setOccupationTypeOptions([]);
           setIsLoadingOccupationTypes(false);
         }
@@ -289,12 +283,10 @@ export default function BasicInfoPage() {
         }));
         
         setOccupationOptions(options);
-        console.log(`Loaded ${options.length} occupations for type ID ${occupationTypeId}`);
       } else {
         setOccupationOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching occupations:", error);
       setOccupationOptions([]);
     } finally {
       setIsLoadingOccupations(false);
@@ -325,33 +317,22 @@ export default function BasicInfoPage() {
           form.setValue('occupationId', options[0].id);
         }
         
-        console.log(`Loaded ${options.length} occupations for occupation ID ${occupationId}`);
       } else {
         setOccupationOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching occupations by ID:", error);
       setOccupationOptions([]);
     } finally {
       setIsLoadingOccupations(false);
     }
   };
   
-  // Debug logging for date of birth format
-  console.log('Date of birth from formData:', formData.dateOfBirth);
-  console.log('Date of birth type:', typeof formData.dateOfBirth);
-  
-  // Try to get the debug value from localStorage
   try {
     const debugDob = localStorage.getItem('debug_dob');
-    console.log('DEBUG DOB from localStorage:', debugDob);
   } catch (e) {}
   
   if (formData.dateOfBirth instanceof Date) {
-    console.log('Date of birth as ISO string:', formData.dateOfBirth.toISOString());
-    console.log('Date of birth as local string:', formData.dateOfBirth.toString());
   } else if (typeof formData.dateOfBirth === 'string') {
-    console.log('Date of birth as string:', formData.dateOfBirth);
   }
   
   // Simple date formatter
@@ -385,7 +366,7 @@ export default function BasicInfoPage() {
       middleName: formData.middleName || '',
       surname: formData.surname || '',
       otherName: formData.otherName || '',
-      gender: formData.gender, // Default to Male
+      gender: undefined, // Set to undefined to show placeholder
       // Use the date of birth directly from context
       dateOfBirth: formData.dateOfBirth || '',
       birthCountry: formData.birthCountry || 0,
@@ -403,12 +384,7 @@ export default function BasicInfoPage() {
     },
   });
   
-  // Debug logging for form values
-  console.log('Date of birth in form:', form.getValues().dateOfBirth);
-  
-  // Effect to fetch occupations when occupationTypeId changes
   useEffect(() => {
-    // Try to get the phone number from localStorage
     try {
       const phoneNumber = localStorage.getItem('user_phone');
       if (phoneNumber) {
@@ -416,18 +392,15 @@ export default function BasicInfoPage() {
       }
     } catch (e) {}
     
-    // Try to get the date of birth from verification
     try {
       const verificationDob = localStorage.getItem('verification_dob');
       if (verificationDob) {
-        console.log('Found date of birth from verification:', verificationDob);
         form.setValue('dateOfBirth', verificationDob);
       } else if (formData.dateOfBirth) {
-        console.log('Using date of birth from context:', formData.dateOfBirth);
-        form.setValue('dateOfBirth', formData.dateOfBirth);
+         form.setValue('dateOfBirth', formData.dateOfBirth);
       }
     } catch (e) {
-      console.error('Error setting date of birth:', e);
+     
     }
     
     const occupationTypeId = form.getValues().occupationTypeId;
@@ -459,12 +432,12 @@ export default function BasicInfoPage() {
         }));
         
         setCountryOptions(options);
-        console.log(`Loaded ${options.length} countries`);
+       
       } else {
         setCountryOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching countries:", error);
+     
       setCountryOptions([]);
     } finally {
       setIsLoadingCountries(false);
@@ -473,27 +446,17 @@ export default function BasicInfoPage() {
   
   // Fetch regions for a country
   const fetchRegionsForCountry = async (countryId: number) => {
-    console.log('fetchRegionsForCountry called with countryId:', countryId);
     if (!countryId) {
-      console.log('No countryId provided, returning early');
       return;
     }
     
     setIsLoadingRegions(true);
     try {
-      console.log('Calling verificationEndpoints.fetchRegions with countryId:', countryId);
       const response = await verificationEndpoints.fetchRegions(countryId);
-      console.log('Raw API response for regions:', response);
       
       if (response.ackCode === 1 && response.jsonResult && response.jsonResult.length > 0) {
-        console.log('Region results from API:', response.jsonResult);
-        console.log('First region object keys:', Object.keys(response.jsonResult[0]));
-        
-        // Check if the API is returning a different property name for the ID
-        const firstRegion = response.jsonResult[0];
-        
-        // Determine the correct ID property name
-        let idPropertyName = 'EntryId';
+         const firstRegion = response.jsonResult[0];
+         let idPropertyName = 'EntryId';
         if (firstRegion.EntryId !== undefined) {
           idPropertyName = 'EntryId';
         } else if (firstRegion.ID !== undefined) {
@@ -517,23 +480,18 @@ export default function BasicInfoPage() {
                           region.id !== undefined ? region.id :
                           region.RegionID !== undefined ? region.RegionID :
                           region.RegionId !== undefined ? region.RegionId : 0;
-          
-          console.log(`Region ${region.RegionName} ID:`, regionId);
-          
-          return {
+            return {
             value: region.RegionName,
             label: region.RegionName,
             id: regionId
           };
         });
         
-        console.log('Mapped region options:', options);
         setRegionOptions(options);
       } else {
        setRegionOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching regions:", error);
       setRegionOptions([]);
     } finally {
       setIsLoadingRegions(false);
@@ -541,93 +499,16 @@ export default function BasicInfoPage() {
   };
   
   // Handle save and exit
-  const handleSaveAndExit = () => {
-    const formValues = form.getValues();
-    console.log('Save and exit - form values:', formValues);
-    
-    // Find the selected marital status option to ensure we have the correct ID
-    const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);
-    console.log('Selected marital status option for save:', selectedMaritalStatus);
-    
-    // Find the selected occupation type option to ensure we have the correct ID
-    const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);
-  
-    const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
-    console.log('Selected occupation option for save:', selectedOccupation);
-    // Use the date directly as entered by the user
-    const dateOfBirthValue = formValues.dateOfBirth;
-    
-    // Save the entered date to localStorage for future reference
-    try {
-      if (typeof dateOfBirthValue === 'string' && dateOfBirthValue) {
-        localStorage.setItem('user_entered_dob', dateOfBirthValue);
-      }
-    } catch (e) {}
-    
-    const data = {
-      ...formValues,
-      // Use the date as entered by the user
-      dateOfBirth: dateOfBirthValue || undefined,
-      // Map surname to lastName for compatibility with existing code
-      lastName: formValues.surname,
-      // Explicitly include gender field with proper validation
-      gender: ensureValidGender(formValues.gender),
-      // Include the country and region fields
-      birthCountry: formValues.birthCountry || 0,
-      birthCountryName: formValues.birthCountryName || '',
-      birthRegion: formValues.birthRegion || 0,
-      birthRegionName: formValues.birthRegionName || '',
-      // Include the marital status fields
-      maritalStatusId: selectedMaritalStatus ? selectedMaritalStatus.id : (formValues.maritalStatusId || 0),
-      // Include the occupation fields
-      occupationTypeId: selectedOccupationType ? selectedOccupationType.id : (formValues.occupationTypeId || 0),
-      occupationId: selectedOccupation ? selectedOccupation.id : (formValues.occupationId || 0),
-      occupationDescription: formValues.occupationDescription || '',
-      occupationDetail: formValues.occupationDescription || '',
-      // Add the required fields for PersonalInfoPayload
-      nationality: formData.nationality || 'Tanzania', // Default to Tanzania or get from formData
-      email: formData.email || '', // Get from formData or empty string
-      phoneNumber: formValues.mobileNumber || '' // Use mobileNumber as phoneNumber
-    } as const;
-    
-    console.log('Save and exit - final data with maritalStatusId:', data.maritalStatusId);
-    // Prepare the data using our helper function to ensure all required fields are present
-    const completeData = preparePersonalInfoPayload({ ...data, applicationId });
-    
-    // Create a properly typed object for updateFormData
-    const formDataUpdate: Partial<ApplicationFormData> = {
-      ...data,
-      applicationId: completeData.applicationId,
-      gender: completeData.gender, // This is now properly typed as Gender
-    };
-    
-    updateFormData(formDataUpdate);
-    router.push('/application');
-  };
-  
-  // Handle form submission
-  const onSubmit = async (formValues: BasicInfoFormValues) => {
+  const handleSaveAndExit = async () => {
     setIsLoading(true);
     try {
-      console.log('Raw form values before submission:', formValues);
-      
-      // Find the selected marital status option to ensure we have the correct ID
+      const formValues = form.getValues();
       const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);
-      console.log('Selected marital status option:', selectedMaritalStatus);
-      
-      // Find the selected occupation type option to ensure we have the correct ID
-      const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);
-      console.log('Selected occupation type option:', selectedOccupationType);
-      
-      // Find the selected occupation option to ensure we have the correct ID
+       const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);
+    
       const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
-      console.log('Selected occupation option:', selectedOccupation);
-      
-      // Use the date directly as entered by the user
       const dateOfBirthValue = formValues.dateOfBirth;
-      
-      // Save the entered date to localStorage for future reference
-      try {
+     try {
         if (typeof dateOfBirthValue === 'string' && dateOfBirthValue) {
           localStorage.setItem('user_entered_dob', dateOfBirthValue);
         }
@@ -635,36 +516,24 @@ export default function BasicInfoPage() {
       
       const data = {
         ...formValues,
-        // Use the date as entered by the user
         dateOfBirth: dateOfBirthValue || undefined,
-        // Map surname to lastName for compatibility with existing code
         lastName: formValues.surname,
-        // Explicitly include gender field with proper validation
         gender: ensureValidGender(formValues.gender),
-        // Include the country and region fields
-        birthCountry: formValues.birthCountry || 0,
-        birthCountryName: formValues.birthCountryName || '',
-        birthRegion: formValues.birthRegion || 0,
-        birthRegionName: formValues.birthRegionName || '',
-        // Include the marital status fields
+        birthCountry: formValues.birthCountry,
+        birthCountryName: formValues.birthCountryName,
+        birthRegion: formValues.birthRegion,
+        birthRegionName: formValues.birthRegionName,
         maritalStatusId: selectedMaritalStatus ? selectedMaritalStatus.id : (formValues.maritalStatusId || 0),
-        // Include the occupation fields
         occupationTypeId: selectedOccupationType ? selectedOccupationType.id : (formValues.occupationTypeId || 0),
         occupationId: selectedOccupation ? selectedOccupation.id : (formValues.occupationId || 0),
-        occupationDescription: formValues.occupationDescription || '',
-        occupationDetail: formValues.occupationDescription || '',
-        // Add the required fields for PersonalInfoPayload
-        nationality: formData.nationality || 'Tanzania', // Default to Tanzania or get from formData
-        email: formData.email || '', // Get from formData or empty string
-        phoneNumber: formValues.mobileNumber || '' // Use mobileNumber as phoneNumber
+        occupationDescription: formValues.occupationDescription,
+        occupationDetail: formValues.occupationDescription,
+        nationality: formData.nationality,
+        //email: formData.email, 
+        phoneNumber: formValues.mobileNumber // Use mobileNumber as phoneNumber
       } as const;
       
-      console.log('Submitting form data:', data);
-      console.log('Final maritalStatusId being sent:', data.maritalStatusId);
-      
-      // Prepare the data using our helper function to ensure all required fields are present
       const payload = preparePersonalInfoPayload({ ...data, applicationId });
-      console.log('Final prepared payload:', payload);
       
       // Create a properly typed object for updateFormData
       const formDataUpdate: Partial<ApplicationFormData> = {
@@ -681,17 +550,75 @@ export default function BasicInfoPage() {
       if (response.ackCode === 1) {
         // Success - show success message
         showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
-        // The ApplicationLayout will handle the navigation automatically
         setIsLoading(false);
-        // Set autoNavigateToNext state to true
-        setAutoNavigateToNext(true);
+        // Navigate to landing page
+        router.push('/');
       } else {
         // Handle error
         showError(response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
         setIsLoading(false);
       }
     } catch (error: any) {
-      console.error("Error submitting personal info:", error);
+      showError(error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
+      setIsLoading(false);
+    }
+  };
+  
+  // Handle form submission
+  const onSubmit = async (formValues: BasicInfoFormValues) => {
+    setIsLoading(true);
+    try {
+       const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);        
+     const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);      
+      const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
+      const dateOfBirthValue = formValues.dateOfBirth;
+      try {
+        if (typeof dateOfBirthValue === 'string' && dateOfBirthValue) {
+          localStorage.setItem('user_entered_dob', dateOfBirthValue);
+        }
+      } catch (e) {}
+      
+      const data = {
+        ...formValues,
+        dateOfBirth: dateOfBirthValue || undefined,
+        lastName: formValues.surname,
+        gender: ensureValidGender(formValues.gender),
+        birthCountry: formValues.birthCountry,
+        birthCountryName: formValues.birthCountryName || '',
+        birthRegion: formValues.birthRegion,
+        birthRegionName: formValues.birthRegionName || '',
+        maritalStatusId: selectedMaritalStatus ? selectedMaritalStatus.id : (formValues.maritalStatusId || 0),
+        occupationTypeId: selectedOccupationType ? selectedOccupationType.id : (formValues.occupationTypeId || 0),
+        occupationId: selectedOccupation ? selectedOccupation.id : (formValues.occupationId || 0),
+        occupationDescription: formValues.occupationDescription ,
+        occupationDetail: formValues.occupationDescription,
+        nationality: formData.nationality, // Default to Tanzania or get from formData
+        //email: formData.email || '', // Get from formData or empty string
+        phoneNumber: formValues.mobileNumber // Use mobileNumber as phoneNumber
+      } as const;
+           const payload = preparePersonalInfoPayload({ ...data, applicationId });
+        
+      // Create a properly typed object for updateFormData
+      const formDataUpdate: Partial<ApplicationFormData> = {
+        ...data,
+        applicationId: payload.applicationId,
+        gender: payload.gender, // This is now properly typed as Gender
+      };
+      
+      updateFormData(formDataUpdate);
+      
+      // Call the API to save personal info
+      const response = await personalInfoEndpoints.savePersonalInfo(payload);
+      
+      if (response.ackCode === 1) {
+        showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
+        setIsLoading(false);
+        setAutoNavigateToNext(true);
+      } else {
+        showError(response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
+        setIsLoading(false);
+      }
+    } catch (error: any) {
       showError(error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
     } finally {
       setIsLoading(false);
@@ -712,7 +639,7 @@ export default function BasicInfoPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Taarifa Binafsi Section */}
-          <div className="mb-8">
+          <div className="mb-">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -722,7 +649,7 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina la Kwanza <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Jina la Kwanza" 
+                        // placeholder="Jina la Kwanza" 
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
                         {...field} 
                       />
@@ -740,7 +667,7 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina la Kati</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Jina la Kati" 
+                        // placeholder="Jina la Kati" 
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
                         {...field} 
                       />
@@ -758,7 +685,7 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina la Ukoo <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Jina la Ukoo" 
+                        // placeholder="Jina la Ukoo" 
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
                         {...field} 
                       />
@@ -772,7 +699,8 @@ export default function BasicInfoPage() {
 
           {/* Utambulisho Section */}
           <div className="mb-8">
-            <h2 className="text-xl font-medium border-b pb-2 mb-4">Utambulisho</h2>
+            {/* <h2 className="text-xl font-medium border-b pb-2 mb-4">Utambulisho</h2> */}
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -782,7 +710,7 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina Lingine</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Jina Lingine (kama lipo)" 
+                        // placeholder="Jina Lingine (kama lipo)" 
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
                         {...field} 
                       />
@@ -841,16 +769,12 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Nchi ya Kuzaliwa <span className="text-red-500">*</span></FormLabel>
                     <Select 
                       onValueChange={(value) => {
-                        // Find the selected option to get its ID
-                        console.log('Country options:', countryOptions);
-                        console.log('Selected country value:', value);
                         
                         // Case-insensitive search for the country option
                         const selectedOption = countryOptions.find(
                           opt => opt.value.toLowerCase() === value.toLowerCase()
                         );
-                        console.log('Selected country option:', selectedOption);
-                        
+                       
                         if (selectedOption) {
                           // Update both the country name and ID fields
                           field.onChange(selectedOption.id);
@@ -858,13 +782,9 @@ export default function BasicInfoPage() {
                           
                          form.setValue('birthRegion', 0);
                           form.setValue('birthRegionName', '');
-                          
-                          console.log('Fetching regions for country ID:', selectedOption.id);
                           fetchRegionsForCountry(selectedOption.id);
                           
-                          console.log(`Selected country: ${value}, ID: ${selectedOption.id}`);
                         } else {
-                          console.log('No matching country option found for:', value);
                           field.onChange(0);
                           form.setValue('birthCountryName', '');
                         }
@@ -907,7 +827,6 @@ export default function BasicInfoPage() {
                          const selectedOption = regionOptions.find(
                           opt => opt.value.toLowerCase() === value.toLowerCase()
                         );
-                        console.log('Selected region option:', selectedOption);
                         
                         if (selectedOption) {
                           // Get the ID, with fallback to a generated ID if undefined
@@ -919,9 +838,7 @@ export default function BasicInfoPage() {
                           // Update both the region name and ID fields
                           field.onChange(regionId);
                           form.setValue('birthRegionName', selectedOption.value);
-                          console.log(`Selected region: ${value}, ID: ${regionId} (${selectedOption.id === undefined ? 'generated fallback' : 'from API'})`);
                         } else {
-                          console.log('No matching region option found for:', value);
                           field.onChange(0);
                           form.setValue('birthRegionName', '');
                         }
@@ -968,13 +885,10 @@ export default function BasicInfoPage() {
                           // Ensure maritalStatusId is set as a number
                           const maritalStatusId = Number(selectedOption.id);
                           form.setValue('maritalStatusId', maritalStatusId);
-                          console.log(`Selected marital status: ${value}, ID: ${maritalStatusId}`);
                           
                           // Force the form to recognize the maritalStatusId change
                           setTimeout(() => {
                             const currentValues = form.getValues();
-                            console.log('Current form values after selection:', currentValues);
-                            console.log('Current maritalStatusId:', currentValues.maritalStatusId);
                           }, 100);
                         } else {
                           field.onChange(value);
@@ -1035,7 +949,6 @@ export default function BasicInfoPage() {
                           // Fetch occupations for this type using the selected occupation type ID
                           fetchOccupationsForType(selectedOption.id);
                           
-                          console.log(`Selected occupation type: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                         }
@@ -1081,7 +994,6 @@ export default function BasicInfoPage() {
                           field.onChange(value);
                           form.setValue('occupationId', selectedOption.id);
                           setSelectedOccupationId(selectedOption.id);
-                          console.log(`Selected occupation: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                         }
@@ -1120,7 +1032,7 @@ export default function BasicInfoPage() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Maelezo ya Kazi</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Andika maelezo ya kazi yako" 
+                        //placeholder="Andika maelezo ya kazi yako" 
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
                         {...field} 
                       />
@@ -1151,20 +1063,23 @@ export default function BasicInfoPage() {
           </div> 
           {/* Buttons Section */}
           <div className="pt-6 mt-6 border-t border-slate-200 flex justify-between">
-            <Button 
+            <LoadingButton 
               type="button" 
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
               onClick={handleSaveAndExit}
+              isLoading={isLoading}
+              loadingText="Inaendelea..."
+              spinnerVariant="secondary"
             >
               <Save className="mr-2 h-4 w-4" />
               Hifadhi na Toka
-            </Button>
+            </LoadingButton>
             <LoadingButton 
               type="submit" 
               isLoading={isLoading}
               loadingText="Inaendelea..."
               spinnerVariant="primary"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
             >
               <ArrowRight className="mr-2 h-4 w-4" />
               Hifadhi na Endelea

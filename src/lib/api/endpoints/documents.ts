@@ -16,15 +16,11 @@ export const documentsEndpoints = {
   // Fetch attachment types
   fetchAttachmentTypes: async (): Promise<AttachmentTypesResponse> => {
     try {
-      console.log('Fetching attachment types using API route');
-      
-      const payload = {
+       const payload = {
         operationType: "attachmentType",
         argument1: 1,
         argument2: 0
       };
-      
-      // Use the Next.js API route instead of direct API call
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -76,8 +72,6 @@ export const documentsEndpoints = {
         };
       }
     } catch (error) {
-      console.error('Error fetching attachment types:', error);
-      // Return fallback data instead of empty array
       return {
         ackCode: 1, // Return success code to ensure data is displayed
         ackMessage: "Using fallback data",
@@ -115,8 +109,6 @@ export const documentsEndpoints = {
   // Upload document
   uploadDocument: async (applicationId: string, attachmentTypeId: number, file: File): Promise<any> => {
     try {
-      console.log('Uploading document using API route');
-      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('applicationId', applicationId);
@@ -133,10 +125,8 @@ export const documentsEndpoints = {
       }
       
       const responseData = await response.json();
-      console.log('Document upload response:', responseData);
       return responseData;
     } catch (error) {
-      console.error('Error uploading document:', error);
       throw error;
     }
   },
@@ -144,10 +134,7 @@ export const documentsEndpoints = {
   // Delete a document
   deleteDocument: async (documentId: string): Promise<any> => {
     try {
-      console.log('Deleting document using API route');
-      
-      // Use the Next.js API route instead of direct API call
-      const response = await fetch(`/api/applications/documents/${documentId}`, {
+       const response = await fetch(`/api/applications/documents/${documentId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -159,10 +146,8 @@ export const documentsEndpoints = {
       }
       
       const responseData = await response.json();
-      console.log('Document deletion response:', responseData);
       return responseData;
     } catch (error) {
-      console.error('Error deleting document:', error);
       throw error;
     }
   }

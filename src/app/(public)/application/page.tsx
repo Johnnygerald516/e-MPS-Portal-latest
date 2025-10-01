@@ -279,7 +279,7 @@ export default function ApplicationPage() {
     isLoading={isSubmitting}
     loadingText="Inawasilisha..."
     spinnerVariant="primary"
-    className="w-fit bg-blue-700 hover:bg-blue-800 text-white py-2.5 px-5 rounded mt-6 flex items-center"
+    className="w-fit bg-blue-800 hover:bg-blue-900 text-white py-2.5 px-5 rounded mt-6 flex items-center"
   >
     Anza Ombi
     <ArrowRight className="ml-2 h-4 w-4" />

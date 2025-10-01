@@ -64,8 +64,6 @@ const getActionButtons = (
   setIsPassPreviewOpen: (isOpen: boolean) => void
 ) => {
   const handlePrintBill = (id: string) => {
-    console.log(`Printing bill for application ${id}`);
-    // Implementation for printing bill
   };
   const handlePrintReceipt = (id: string) => {
     // Implementation for printing receipt
@@ -74,14 +72,11 @@ const getActionButtons = (
   // State is passed from the parent component
 
   const handlePrintPass = (id: string) => {
-    console.log(`Opening pass preview for application ${id}`);
     setSelectedApplicationId(id);
     setIsPassPreviewOpen(true);
   };
 
   const handleMarekebisho = (id: string) => {
-    console.log(`Editing application ${id}`);
-    // Implementation for marekebisho (corrections)
   };
 
   // Use StatusID from applicationData if available, otherwise fall back to status string
@@ -401,15 +396,11 @@ function ApplicationProgressContent() {
 
         setApplicationData(applicationData);
       } else {
-        // Handle error from API - display the ackMessage when ackCode is 0
         setError(response.ackMessage || "Hakuna taarifa za ombi zilizopatikana. Tafadhali hakiki namba ya ombi na namba ya simu.");
-        // Ensure application data is cleared when there's an error
         setApplicationData(null);
       }
     } catch (err) {
-      console.error("Error fetching application status:", err);
       setError("Imeshindikana kupata hali ya ombi. Tafadhali jaribu tena baadae.");
-      // Ensure application data is cleared when there's an error
       setApplicationData(null);
     } finally {
       setIsLoading(false);
@@ -422,8 +413,6 @@ function ApplicationProgressContent() {
 
   const handleCorrectApplication = () => {
     if (applicationData?.id) {
-      // Store the application ID in context instead of URL parameters
-      // and navigate to the dashboard page for editing
       router.push('/dashboard');
     }
   };
@@ -433,7 +422,6 @@ function ApplicationProgressContent() {
   };
 
   const getStatusBadge = (status: ApplicationStatus, statusName?: string) => {
-    // If we have a custom status name from the API, use it
     const displayStatusName = statusName || "";
     
     switch (status) {
@@ -547,7 +535,7 @@ function ApplicationProgressContent() {
                   onClick={handleSearch}
                   isLoading={isLoading}
                   loadingText="Inatafuta..."
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded flex items-center gap-2 transition-colors shadow-sm w-full justify-center"
+                  className="bg-indigo-800 hover:bg-indigo-900 text-white px-6 py-2 rounded flex items-center gap-2 transition-colors shadow-sm w-full justify-center"
                 >
                   <Search className="h-4 w-4" />
                   Tafuta Ombi

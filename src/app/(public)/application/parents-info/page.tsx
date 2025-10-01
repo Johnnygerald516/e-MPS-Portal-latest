@@ -119,6 +119,9 @@ function ParentsInfoContent() {
   const [isLoadingMotherCountryOfResidence, setIsLoadingMotherCountryOfResidence] = useState(false);
   const [isLoadingMotherNationality, setIsLoadingMotherNationality] = useState(false);
   
+  // Separate loading states for save and exit vs save and continue
+  const [isExiting, setIsExiting] = useState(false);
+  
   // Helper function to ensure valid ID
   const ensureValidId = (value: any): number => {
     const numValue = Number(value);
@@ -170,12 +173,10 @@ function ParentsInfoContent() {
         }));
         
         setOptions(options);
-        console.log(`Loaded ${options.length} countries`);
-      } else {
+        } else {
         setOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching countries:", error);
       setOptions([]);
     } finally {
       setLoading(false);
@@ -216,12 +217,10 @@ function ParentsInfoContent() {
         }).filter(Boolean) as CountryOption[];
         
         setOptions(options);
-        console.log(`Loaded ${options.length} nationalities`);
       } else {
         setOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching nationalities:", error);
       setOptions([]);
     } finally {
       setLoading(false);
@@ -249,13 +248,11 @@ function ParentsInfoContent() {
         }));
         
         setOptions(options);
-        console.log(`Loaded ${options.length} countries of residence`);
       } else {
         setOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching countries of residence:", error);
-      setOptions([]);
+       setOptions([]);
     } finally {
       setLoading(false);
     }
@@ -292,13 +289,11 @@ function ParentsInfoContent() {
         });
         
         setOptions(options);
-        console.log(`Loaded ${options.length} regions for country ID ${countryId}`);
       } else {
         setOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching regions:", error);
-      setOptions([]);
+       setOptions([]);
     } finally {
       setLoading(false);
     }
@@ -370,23 +365,102 @@ function ParentsInfoContent() {
   });
   
   // Handle save and exit
-  const handleSaveAndExit = () => {
-    const formValues = form.getValues();
-    // Convert date strings to Date objects
-    const data = {
-      ...formValues,
-      fatherDateOfBirth: formValues.fatherDateOfBirth ? new Date(formValues.fatherDateOfBirth) : new Date(),
-      motherDateOfBirth: formValues.motherDateOfBirth ? new Date(formValues.motherDateOfBirth) : new Date(),
-      // Ensure IDs are numbers
-      fatherCountryId: ensureValidId(formValues.fatherCountryId),
-      fatherRegionId: ensureValidId(formValues.fatherRegionId),
-      motherCountryId: ensureValidId(formValues.motherCountryId),
-      motherRegionId: ensureValidId(formValues.motherRegionId),
-    };
-    
-    console.log('Save and exit - data:', data);
-    updateFormData(data);
-    router.push('/application');
+  const handleSaveAndExit = async () => {
+    setIsExiting(true);
+    try {
+      const formValues = form.getValues();
+      
+      // Validate required fields
+      const requiredFields = [
+        { name: 'fatherName', label: "Father's name" },
+        { name: 'fatherDateOfBirth', label: "Father's date of birth" },
+        { name: 'fatherCountryOfBirth', label: "Father's country of birth" },
+        { name: 'fatherRegionOfBirth', label: "Father's region of birth" },
+        { name: 'fatherCountryOfResidence', label: "Father's country of residence" },
+        { name: 'fatherNationality', label: "Father's nationality" },
+        { name: 'motherName', label: "Mother's name" },
+        { name: 'motherDateOfBirth', label: "Mother's date of birth" },
+        { name: 'motherCountryOfBirth', label: "Mother's country of birth" },
+        { name: 'motherRegionOfBirth', label: "Mother's region of birth" },
+        { name: 'motherCountryOfResidence', label: "Mother's country of residence" },
+        { name: 'motherNationality', label: "Mother's nationality" },
+      ];
+      
+      // Check for empty required fields
+      const emptyFields = requiredFields.filter(field => !formValues[field.name as keyof ParentsInfoFormValues]);
+      
+      if (emptyFields.length > 0) {
+        const missingFieldsMessage = emptyFields.map(f => f.label).join(', ');
+        showError({
+          description: `Please fill in all required fields: ${missingFieldsMessage}`
+        });
+        setIsExiting(false);
+        return;
+      }
+      
+      // Convert date strings to Date objects
+      const data = {
+        ...formValues,
+        fatherDateOfBirth: formValues.fatherDateOfBirth ? new Date(formValues.fatherDateOfBirth) : new Date(),
+        motherDateOfBirth: formValues.motherDateOfBirth ? new Date(formValues.motherDateOfBirth) : new Date(),
+        // Ensure IDs are numbers
+        fatherCountryId: ensureValidId(formValues.fatherCountryId),
+        fatherRegionId: ensureValidId(formValues.fatherRegionId),
+        fatherCountryOfResidenceId: ensureValidId(formValues.fatherCountryOfResidenceId),
+        fatherNationalityId: ensureValidId(formValues.fatherNationalityId),
+        motherCountryId: ensureValidId(formValues.motherCountryId),
+        motherRegionId: ensureValidId(formValues.motherRegionId),
+        motherCountryOfResidenceId: ensureValidId(formValues.motherCountryOfResidenceId),
+        motherNationalityId: ensureValidId(formValues.motherNationalityId),
+        // Map field names to match API requirements
+        fatherFullName: formValues.fatherName,
+        motherFullName: formValues.motherName,
+      };
+      
+      updateFormData(data);
+      
+      const fatherDOB = formValues.fatherDateOfBirth || '';
+      const motherDOB = formValues.motherDateOfBirth || '';
+      
+      const apiPayload = {
+        applicationId: applicationId,
+        fatherFullName: String(data.fatherName || ''),
+        fatherDateOfBirth: fatherDOB,
+        fatherCountryOfBirthId: Number(formValues.fatherCountryId) || 0,
+        fatherCountryOfResidentId: Number(formValues.fatherCountryOfResidenceId) || 0,
+        fatherNationalityId: Number(formValues.fatherNationalityId) || 0,
+        fatherRegionOfBirthId: Number(formValues.fatherRegionId) || 0,
+        motherFullName: String(data.motherName || ''),
+        motherDateOfBirth: motherDOB,
+        motherRegionOfBirthId: Number(formValues.motherRegionId) || 0,
+        motherCountryOfBirthId: Number(formValues.motherCountryId) || 0,
+        motherCountryOfResidentId: Number(formValues.motherCountryOfResidenceId) || 0,
+        motherNationalityId: Number(formValues.motherNationalityId) || 0
+      };
+      
+      // Call the API to save parents info
+      const response = await parentsInfoEndpoints.saveParentsInfo(apiPayload);
+      
+      if (response.ackCode === 1) {
+        // Success - show success message
+        showSuccess({
+          description: "Taarifa za wazazi zimehifadhiwa kikamilifu"
+        });
+        // Navigate to landing page
+        router.push('/');
+      } else {
+        // Handle error
+        showError({
+          description: response.ackMessage || "An error occurred while submitting your information"
+        });
+      }
+    } catch (error: any) {
+      showError({
+        description: error.message || "An error occurred while submitting your information"
+      });
+    } finally {
+      setIsExiting(false);
+    }
   };
   
   // Handle form submission
@@ -451,45 +525,17 @@ function ParentsInfoContent() {
         fatherFullName: formValues.fatherName,
         motherFullName: formValues.motherName,
       };
-      
-      console.log('Form submission data:', data);
-      updateFormData(data);
-      
-      // Log the form values to verify IDs
-      console.log('Form values before API payload preparation:', {
-        fatherCountryId: formValues.fatherCountryId,
-        fatherRegionId: formValues.fatherRegionId,
-        fatherCountryOfResidenceId: formValues.fatherCountryOfResidenceId,
-        fatherNationalityId: formValues.fatherNationalityId,
-        motherCountryId: formValues.motherCountryId,
-        motherRegionId: formValues.motherRegionId,
-        motherCountryOfResidenceId: formValues.motherCountryOfResidenceId,
-        motherNationalityId: formValues.motherNationalityId
-      });
-      
-      // Log the raw date values from the form to debug
-      console.log('Raw father date of birth from form:', formValues.fatherDateOfBirth);
-      console.log('Raw mother date of birth from form:', formValues.motherDateOfBirth);
-      
-      // Get the date values directly from the form values, not from the converted data object
-      const fatherDOB = formValues.fatherDateOfBirth || '';
+       updateFormData(data);
+       const fatherDOB = formValues.fatherDateOfBirth || '';
       const motherDOB = formValues.motherDateOfBirth || '';
-      
-      console.log('Father DOB to be used in API payload:', fatherDOB);
-      console.log('Mother DOB to be used in API payload:', motherDOB);
-      
-      // Prepare API payload according to the required format
-      const apiPayload = {
+       const apiPayload = {
         fatherFullName: String(data.fatherName || ''),
-        // Use the raw date string from the form values
         fatherDateOfBirth: fatherDOB,
-        // Use the exact IDs from the form values
         fatherCountryOfBirthId: Number(formValues.fatherCountryId) || 0,
         fatherCountryOfResidentId: Number(formValues.fatherCountryOfResidenceId) || 0,
         fatherNationalityId: Number(formValues.fatherNationalityId) || 0,
         fatherRegionOfBirthId: Number(formValues.fatherRegionId) || 0,
         motherFullName: String(data.motherName || ''),
-        // Use the raw date string from the form values
         motherDateOfBirth: motherDOB,
         motherRegionOfBirthId: Number(formValues.motherRegionId) || 0,
         motherCountryOfBirthId: Number(formValues.motherCountryId) || 0,
@@ -519,13 +565,8 @@ function ParentsInfoContent() {
         setIsLoading(false);
         return;
       }
-      
-      console.log('API payload:', apiPayload);
-      
-      // Call the API to save parents info using the updated payload format
       const response = await parentsInfoEndpoints.saveParentsInfo({
         applicationId: applicationId,
-        // Use the exact fields expected by the API
         fatherFullName: apiPayload.fatherFullName,
         fatherDateOfBirth: apiPayload.fatherDateOfBirth,
         fatherCountryOfBirthId: apiPayload.fatherCountryOfBirthId,
@@ -541,11 +582,9 @@ function ParentsInfoContent() {
       });
       
       if (response.ackCode === 1) {
-        // Success - show success message
         showSuccess({
           description: "Taarifa za wazazi zimehifadhiwa kikamilifu"
         });
-        // Set autoNavigateToNext to true to trigger automatic navigation
         setIsLoading(false);
         setAutoNavigateToNext(true);
       } else {
@@ -555,7 +594,6 @@ function ParentsInfoContent() {
         });
       }
     } catch (error: any) {
-      console.error("Error submitting parents info:", error);
       showError({
         description: error.message || "An error occurred while submitting your information"
       });
@@ -592,7 +630,7 @@ function ParentsInfoContent() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina Kamili la Baba <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Ingiza jina kamili la baba" 
+                        //placeholder="Ingiza jina kamili la baba" 
                         className="border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none" 
                         {...field} 
                       />
@@ -622,8 +660,6 @@ function ParentsInfoContent() {
                           const countryId = selectedOption.id;
                           form.setValue('fatherCountryOfResidenceId', countryId);
                           form.setValue('fatherCountryOfResidenceName', selectedOption.value);
-                          
-                          console.log(`Selected father's country of residence: ${value}, ID: ${countryId}`);
                         } else {
                           field.onChange(value);
                           form.setValue('fatherCountryOfResidenceId', 0);
@@ -637,7 +673,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Nchi ya Makazi" />
+                            <SelectValue 
+                            // placeholder="Chagua Nchi ya Makazi" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -680,8 +718,6 @@ function ParentsInfoContent() {
                           const nationalityId = selectedOption.id;
                           form.setValue('fatherNationalityId', nationalityId);
                           form.setValue('fatherNationalityName', selectedOption.label);
-                          
-                          console.log(`Selected father's nationality: ${selectedOption.label}, ID: ${nationalityId}`);
                         } else {
                           field.onChange(value);
                           form.setValue('fatherNationalityId', 0);
@@ -695,7 +731,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Uraia" />
+                            <SelectValue 
+                            //placeholder="Chagua Uraia"
+                             />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -761,8 +799,6 @@ function ParentsInfoContent() {
                           
                           // Fetch regions for this country
                           fetchRegionsForCountry(selectedOption.id, setFatherRegionOptions, setIsLoadingFatherRegions);
-                          
-                          console.log(`Selected father's country: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('fatherCountryId', 0);
@@ -776,7 +812,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Nchi" />
+                            <SelectValue 
+                           // placeholder="Chagua Nchi" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -817,9 +855,7 @@ function ParentsInfoContent() {
                           field.onChange(value);
                           form.setValue('fatherRegionId', selectedOption.id);
                           form.setValue('fatherRegionName', selectedOption.value);
-                          
-                          console.log(`Selected father's region: ${value}, ID: ${selectedOption.id}`);
-                        } else {
+                          } else {
                           field.onChange(value);
                           form.setValue('fatherRegionId', 0);
                           form.setValue('fatherRegionName', '');
@@ -830,7 +866,9 @@ function ParentsInfoContent() {
                     >
                       <FormControl>
                         <SelectTrigger className="rounded">
-                          <SelectValue placeholder="Chagua Mkoa" />
+                          <SelectValue 
+                         // placeholder="Chagua Mkoa" 
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -873,7 +911,7 @@ function ParentsInfoContent() {
                     <FormLabel className="text-sm font-medium text-neutral-500">Jina Kamili la Mama <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Ingiza jina kamili la mama" 
+                       // placeholder="Ingiza jina kamili la mama" 
                         className="border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none" 
                         {...field} 
                       />
@@ -903,8 +941,6 @@ function ParentsInfoContent() {
                           const countryId = selectedOption.id;
                           form.setValue('motherCountryOfResidenceId', countryId);
                           form.setValue('motherCountryOfResidenceName', selectedOption.value);
-                          
-                          console.log(`Selected mother's country of residence: ${value}, ID: ${countryId}`);
                         } else {
                           field.onChange(value);
                           form.setValue('motherCountryOfResidenceId', 0);
@@ -918,7 +954,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Nchi ya Makazi" />
+                            <SelectValue 
+                           // placeholder="Chagua Nchi ya Makazi"
+                             />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -961,8 +999,6 @@ function ParentsInfoContent() {
                           const nationalityId = selectedOption.id;
                           form.setValue('motherNationalityId', nationalityId);
                           form.setValue('motherNationalityName', selectedOption.label);
-                          
-                          console.log(`Selected mother's nationality: ${selectedOption.label}, ID: ${nationalityId}`);
                         } else {
                           field.onChange(value);
                           form.setValue('motherNationalityId', 0);
@@ -976,7 +1012,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Uraia" />
+                            <SelectValue 
+                            //placeholder="Chagua Uraia" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -1010,7 +1048,7 @@ function ParentsInfoContent() {
                     field={field}
                     label="Tarehe ya Kuzaliwa"
                     required={true}
-                    placeholder="Chagua tarehe ya kuzaliwa"
+                   // placeholder="Chagua tarehe ya kuzaliwa"
                   />
                 )}
               />
@@ -1043,9 +1081,7 @@ function ParentsInfoContent() {
                           
                           // Fetch regions for this country
                           fetchRegionsForCountry(countryId, setMotherRegionOptions, setIsLoadingMotherRegions);
-                          
-                          console.log(`Selected mother's country: ${value}, ID: ${countryId}`);
-                        } else {
+                         } else {
                           field.onChange(value);
                           form.setValue('motherCountryId', 0);
                           form.setValue('motherCountryName', '');
@@ -1058,7 +1094,9 @@ function ParentsInfoContent() {
                         <SelectTrigger className="rounded">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Nchi" />
+                            <SelectValue 
+                           // placeholder="Chagua Nchi" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -1099,9 +1137,7 @@ function ParentsInfoContent() {
                           field.onChange(value);
                           form.setValue('motherRegionId', selectedOption.id);
                           form.setValue('motherRegionName', selectedOption.value);
-                          
-                          console.log(`Selected mother's region: ${value}, ID: ${selectedOption.id}`);
-                        } else {
+                         } else {
                           field.onChange(value);
                           form.setValue('motherRegionId', 0);
                           form.setValue('motherRegionName', '');
@@ -1112,7 +1148,9 @@ function ParentsInfoContent() {
                     >
                       <FormControl>
                         <SelectTrigger className="rounded">
-                          <SelectValue placeholder="Chagua Mkoa" />
+                          <SelectValue 
+                          //placeholder="Chagua Mkoa" 
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -1140,21 +1178,24 @@ function ParentsInfoContent() {
           
           {/* Buttons */}
           <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between">
-            <Button 
+            <LoadingButton 
               type="button" 
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
               onClick={handleSaveAndExit}
+              isLoading={isExiting}
+              loadingText="Inaendelea..."
+              spinnerVariant="secondary"
             >
               <Save className="mr-2 h-4 w-4" />
               Hifadhi na Toka
-            </Button>
+            </LoadingButton>
             
             <LoadingButton 
               type="submit" 
               isLoading={isLoading}
               loadingText="Inaendelea..."
               spinnerVariant="primary"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
             >
               <ArrowRight className="mr-2 h-4 w-4" />
               Hifadhi na Endelea

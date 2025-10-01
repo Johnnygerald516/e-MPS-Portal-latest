@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import {
   FormControl,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { DatePickerInput } from "@/components/ui/date-picker-input";
@@ -27,37 +28,31 @@ export function DatePickerFormField({
   placeholder = "Chagua tarehe",
   className,
 }: DatePickerFormFieldProps) {
-  // Debug the field value
-  React.useEffect(() => {
-    console.log("DatePickerFormField field value:", field.value);
-  }, [field.value]);
-
   // Handle date change from the DatePickerInput component
   const handleDateChange = (date: Date | undefined, formattedValue: string) => {
-    console.log("DatePickerFormField handleDateChange:", date, formattedValue);
-    
     // Convert Date to ISO string format (YYYY-MM-DD) for the form field
     if (date) {
       const isoDateString = format(date, "yyyy-MM-dd");
-      console.log("Setting form field value to:", isoDateString);
       field.onChange(isoDateString);
     } else {
-      console.log("Clearing form field value");
       field.onChange("");
     }
   };
 
   return (
     <FormItem className={className}>
+      {label && (
+        <FormLabel className="text-sm font-medium text-neutral-500">
+          {label} {required && <span className="text-red-500">*</span>}
+        </FormLabel>
+      )}
       <FormControl>
         <DatePickerInput
-          label={label}
-          required={required}
           placeholder={placeholder}
           value={field.value}
           onChange={handleDateChange}
           className="w-full"
-          inputClassName="border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          inputClassName="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
         />
       </FormControl>
       <FormMessage />  

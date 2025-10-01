@@ -105,19 +105,20 @@ export default function ResidenceInfoPage() {
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>([]);
   const [regionOptions, setRegionOptions] = useState<RegionOption[]>([]);
   const [districtOptions, setDistrictOptions] = useState<DistrictOption[]>([]);
-  const [wardOptions, setWardOptions] = useState<WardOption[]>([]);
-  
   // State for nationality and country of origin options
   const [nationalityOptions, setNationalityOptions] = useState<NationalityOption[]>([]);
   const [countryOfOriginOptions, setCountryOfOriginOptions] = useState<CountryOption[]>([]);
+  const [wardOptions, setWardOptions] = useState<WardOption[]>([]);
   
-  // Loading states
-  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
+  // Loading states for different actions
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
   const [isLoadingNationalities, setIsLoadingNationalities] = useState(false);
   const [isLoadingCountriesOfOrigin, setIsLoadingCountriesOfOrigin] = useState(false);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   
   // Fetch countries from API
   const fetchCountries = async () => {
@@ -141,12 +142,10 @@ export default function ResidenceInfoPage() {
           });
         
         setCountryOptions(options);
-        console.log(`Loaded ${options.length} countries`);
       } else {
         setCountryOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching countries:", error);
       setCountryOptions([]);
     } finally {
       setIsLoadingCountries(false);
@@ -185,12 +184,10 @@ export default function ResidenceInfoPage() {
           });
         
         setRegionOptions(options);
-        console.log(`Loaded ${options.length} regions for country ID ${countryId}`);
       } else {
         setRegionOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching regions:", error);
       setRegionOptions([]);
     } finally {
       setIsLoadingRegions(false);
@@ -224,12 +221,10 @@ export default function ResidenceInfoPage() {
         });
         
         setDistrictOptions(options);
-        console.log(`Loaded ${options.length} districts for region ID ${regionId}`);
       } else {
         setDistrictOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching districts:", error);
       setDistrictOptions([]);
     } finally {
       setIsLoadingDistricts(false);
@@ -268,12 +263,10 @@ export default function ResidenceInfoPage() {
           });
         
         setWardOptions(options);
-        console.log(`Loaded ${options.length} wards for district ID ${districtId}`);
       } else {
         setWardOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching wards:", error);
       setWardOptions([]);
     } finally {
       setIsLoadingWards(false);
@@ -286,12 +279,6 @@ export default function ResidenceInfoPage() {
     try {
       const response = await verificationEndpoints.fetchNationalities();
       
-      // Debug: Log the first few nationality objects to see their structure
-      if (response.jsonResult && response.jsonResult.length > 0) {
-        console.log('First nationality object:', JSON.stringify(response.jsonResult[0]));
-        console.log('Second nationality object:', JSON.stringify(response.jsonResult[1]));
-        console.log('Available keys:', Object.keys(response.jsonResult[0]));
-      }
       
       if (response.ackCode === 1 && response.jsonResult && response.jsonResult.length > 0) {
         // Create a map to track seen nationality values to handle duplicates
@@ -332,12 +319,10 @@ export default function ResidenceInfoPage() {
           });
         
         setNationalityOptions(options);
-        console.log(`Loaded ${options.length} nationalities (after processing)`);
       } else {
         setNationalityOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching nationalities:", error);
       setNationalityOptions([]);
     } finally {
       setIsLoadingNationalities(false);
@@ -366,12 +351,10 @@ export default function ResidenceInfoPage() {
           });
         
         setCountryOfOriginOptions(options);
-        console.log(`Loaded ${options.length} countries for origin`);
       } else {
         setCountryOfOriginOptions([]);
       }
     } catch (error) {
-      console.error("Error fetching countries of origin:", error);
       setCountryOfOriginOptions([]);
     } finally {
       setIsLoadingCountriesOfOrigin(false);
@@ -427,31 +410,113 @@ export default function ResidenceInfoPage() {
   });
   
   // Handle save and exit
-  const handleSaveAndExit = () => {
-    const formValues = form.getValues();
-    
-    // Convert date string to Date object
-    const data = {
-      ...formValues,
-      dateOfEntry: formValues.dateOfEntry ? new Date(formValues.dateOfEntry) : undefined,
-      // Ensure IDs are numbers
-      countryId: ensureValidId(formValues.countryId),
-      regionId: ensureValidId(formValues.regionId),
-      districtId: ensureValidId(formValues.districtId),
-      wardId: ensureValidId(formValues.wardId),
-      residenceNationalityId: ensureValidId(formValues.residenceNationalityId),
-      countryOfOriginId: ensureValidId(formValues.countryOfOriginId),
-    };
-    
-    console.log('Save and exit - data:', data);
-    updateFormData(data);
-    router.push('/application');
+  const handleSaveAndExit = async () => {
+    setIsExiting(true);
+    try {
+      const formValues = form.getValues();
+      
+      // Validate required fields before proceeding
+      const requiredFields: (keyof ResidenceInfoFormValues)[] = ['countryOfResidence', 'region', 'district', 'ward', 'street', 'phoneNumber', 'residenceNationality', 'countryOfOrigin', 'dateOfEntry'];
+      const missingFields = requiredFields.filter(field => !formValues[field]);
+      
+      if (missingFields.length > 0) {
+        showError({
+          description: `Tafadhali jaza sehemu zote zinazohitajika: ${missingFields.join(', ')}`
+        });
+        setIsExiting(false);
+        return;
+      }
+      
+      // Process date of entry - handle both string and Date formats
+      let dateOfEntry: string;
+      if (formValues.dateOfEntry) {
+        // If it's already a valid ISO string (YYYY-MM-DD), use it directly
+        if (typeof formValues.dateOfEntry === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(formValues.dateOfEntry)) {
+          dateOfEntry = formValues.dateOfEntry;
+        } else {
+          // Otherwise, try to parse it as a date
+          try {
+            const parsedDate = new Date(formValues.dateOfEntry);
+            
+            // If it's a valid date
+            if (!isNaN(parsedDate.getTime())) {
+              // Format it as YYYY-MM-DD
+              dateOfEntry = parsedDate.toISOString().split('T')[0];
+            } 
+          
+            else {
+              // Fallback to current date
+              const currentDate = new Date();
+              dateOfEntry = currentDate.toISOString().split('T')[0];
+           }
+           
+          } catch (e) {
+            // If parsing fails, leave it empty
+            dateOfEntry = '';
+          }
+        }
+      } else {
+        // If no date provided, leave it empty
+        dateOfEntry = '';
+      }
+      
+      const data = {
+        ...formValues,
+        dateOfEntry: dateOfEntry,
+        // Ensure IDs are numbers
+        countryId: ensureValidId(formValues.countryId),
+        regionId: ensureValidId(formValues.regionId),
+        districtId: ensureValidId(formValues.districtId),
+        wardId: ensureValidId(formValues.wardId),
+        residenceNationalityId: ensureValidId(formValues.residenceNationalityId),
+        countryOfOriginId: ensureValidId(formValues.countryOfOriginId),
+      };
+      
+      // Prepare the payload with the exact field names expected by the API
+      const residencePayload = {
+        applicationId: applicationId,
+        // Use the exact field names expected by the API
+        wardResidenceId: Number(data.wardId) || 0,  // Changed from wardId
+        streetName: String(data.street || ''),
+        phoneNo: String(data.phoneNumber || ''),     // Changed from phoneNumber
+        houseNo: String(data.houseNumber || ''),     // Changed from houseNumber
+        plotNo: String(data.plotNumber || ''),       // Changed from plotNumber
+        countryOfOriginId: Number(data.countryOfOriginId) || 0,
+        nationalityId: Number(data.residenceNationalityId) || 0,
+        dateOfEntry: dateOfEntry
+      };
+      
+      updateFormData(data);
+      
+      // Call the API to save residence info
+      const response = await residenceInfoEndpoints.saveResidenceInfo(residencePayload);
+      
+      if (response.ackCode === 1) {
+        // Success - show success message
+        showSuccess({
+          description: "Taarifa za makazi zimehifadhiwa"
+        });
+        setIsExiting(false);
+        // Navigate to landing page
+        router.push('/');
+      } else {
+        // Handle error
+        showError({
+          description: response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako"
+        });
+        setIsExiting(false);
+      }
+    } catch (error: any) {
+      showError({
+        description: error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako"
+      });
+      setIsExiting(false);
+    }
   };
   
   // Handle form submission
   const onSubmit = async (formValues: ResidenceInfoFormValues) => {
-    console.log('onSubmit function called with values:', formValues);
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
       // Validate required fields before proceeding
@@ -459,7 +524,6 @@ export default function ResidenceInfoPage() {
       const missingFields = requiredFields.filter(field => !formValues[field]);
       
       if (missingFields.length > 0) {
-        console.error('Missing required fields:', missingFields);
         showError({
           description: `Tafadhali jaza sehemu zote zinazohitajika: ${missingFields.join(', ')}`
         });
@@ -534,55 +598,33 @@ export default function ResidenceInfoPage() {
         dateOfEntry: dateOfEntry
       };
       
-      console.log('Form submission data:', data);
-      console.log('Residence payload:', residencePayload);
-      console.log('Additional data:', additionalData);
       updateFormData(data);
       
       // Call the API to save residence info
-      console.log('Calling API with applicationId:', applicationId);
       const response = await residenceInfoEndpoints.saveResidenceInfo(residencePayload);
-      console.log('API response received:', response);
       
       if (response.ackCode === 1) {
         // Success - show success message
         showSuccess({
           description: "Taarifa za makazi zimehifadhiwa"
         });
-        console.log('Setting autoNavigateToNext to true');
         // Set autoNavigateToNext to true to trigger automatic navigation
-        setIsLoading(false);
+        setIsSubmitting(false);
         setAutoNavigateToNext(true);
       } else {
         // Handle error
-        console.error('API returned error:', response);
         showError({
           description: response.ackMessage || "An error occurred while submitting your information"
         });
+        setIsSubmitting(false);
       }
     } catch (error: any) {
-      console.error("Error submitting residence info:", error);
-      
-      // More detailed error logging
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
-        console.error('Error response headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Error request:', error.request);
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error message:', error.message);
-      }
+      // Handle error without detailed logging
       
       showError({
         description: error.message || "An error occurred while submitting your information"
       });
-    } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
   
@@ -603,6 +645,7 @@ export default function ResidenceInfoPage() {
               <FormField
                 control={form.control}
                 name="countryOfResidence"
+                
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-neutral-500 block mb-1">Nchi ya Makazi <span className="text-red-500">*</span></FormLabel>
@@ -629,8 +672,6 @@ export default function ResidenceInfoPage() {
                           
                           // Fetch regions for this country
                           fetchRegionsForCountry(selectedOption.id);
-                          
-                          console.log(`Selected country: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('countryId', 0);
@@ -693,8 +734,6 @@ export default function ResidenceInfoPage() {
                           
                           // Fetch districts for this region
                           fetchDistrictsForRegion(selectedOption.id);
-                          
-                          console.log(`Selected region: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('regionId', 0);
@@ -706,7 +745,9 @@ export default function ResidenceInfoPage() {
                     >
                       <FormControl>
                         <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
-                          <SelectValue placeholder="Chagua Mkoa" />
+                          <SelectValue 
+                          //placeholder="Chagua Mkoa" 
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -759,8 +800,6 @@ export default function ResidenceInfoPage() {
                           
                           // Fetch wards for this district
                           fetchWardsForDistrict(selectedOption.id);
-                          
-                          console.log(`Selected district: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('districtId', 0);
@@ -772,7 +811,9 @@ export default function ResidenceInfoPage() {
                     >
                       <FormControl>
                         <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
-                          <SelectValue placeholder="Chagua Wilaya" />
+                          <SelectValue 
+                          //placeholder="Chagua Wilaya" 
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -804,7 +845,7 @@ export default function ResidenceInfoPage() {
                       onValueChange={(value) => {
                         // Find the selected option to get its ID
                         const selectedOption = wardOptions.find(
-                          opt => opt.value.toLowerCase() === value.toLowerCase()
+                          (opt: WardOption) => opt.value.toLowerCase() === value.toLowerCase()
                         );
                         
                         if (selectedOption) {
@@ -812,8 +853,6 @@ export default function ResidenceInfoPage() {
                           field.onChange(value);
                           form.setValue('wardId', selectedOption.id);
                           form.setValue('wardName', selectedOption.value);
-                          
-                          console.log(`Selected ward: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('wardId', 0);
@@ -832,7 +871,7 @@ export default function ResidenceInfoPage() {
                         {isLoadingWards ? (
                           <SelectItem value="loading" disabled>Inapakia...</SelectItem>
                         ) : wardOptions.length > 0 ? (
-                          wardOptions.map((option) => (
+                          wardOptions.map((option: WardOption) => (
                             <SelectItem key={option.id} value={option.value}>
                               {option.label}
                             </SelectItem>
@@ -856,7 +895,7 @@ export default function ResidenceInfoPage() {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                         <Input 
-                          placeholder="Ingiza Mtaa" 
+                         // placeholder="Ingiza Mtaa" 
                           className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                           {...field} 
                         />
@@ -892,8 +931,6 @@ export default function ResidenceInfoPage() {
                           field.onChange(value);
                           form.setValue('residenceNationalityId', selectedOption.id);
                           form.setValue('residenceNationalityName', selectedOption.value);
-                          
-                          console.log(`Selected nationality: ${value}, ID: ${selectedOption.id}`);
                         } else {
                           field.onChange(value);
                           form.setValue('residenceNationalityId', 0);
@@ -907,7 +944,9 @@ export default function ResidenceInfoPage() {
                         <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Uraia" />
+                            <SelectValue 
+                            //placeholder="Chagua Uraia" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -940,7 +979,7 @@ export default function ResidenceInfoPage() {
                       <div className="relative">
                         <Phone className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                         <Input 
-                          placeholder="Ingiza Namba ya Simu" 
+                          //placeholder="Ingiza Namba ya Simu" 
                           className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                           {...field} 
                         />
@@ -961,7 +1000,7 @@ export default function ResidenceInfoPage() {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                         <Input 
-                          placeholder="Ingiza Namba ya Kiwanja" 
+                         // placeholder="Ingiza Namba ya Kiwanja" 
                           className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                           {...field} 
                         />
@@ -982,7 +1021,7 @@ export default function ResidenceInfoPage() {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
                         <Input 
-                          placeholder="Ingiza Namba ya Nyumba" 
+                          //placeholder="Ingiza Namba ya Nyumba" 
                           className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                           {...field} 
                         />
@@ -997,7 +1036,7 @@ export default function ResidenceInfoPage() {
           
           {/* Anwani ya Kudumu Section */}
           <div className="mb-8">
-            <h2 className="text-xl font-medium border-b pb-2 mb-4">Anwani ya Kudumu</h2>
+            <h2 className="text-xl font-medium border-b pb-2 mb-4">Anuwani ya Kudumu</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -1021,7 +1060,6 @@ export default function ResidenceInfoPage() {
                             try {
                               return opt.value.toLowerCase() === value.toLowerCase();
                             } catch (e) {
-                              console.error('Error comparing values:', e);
                               return false;
                             }
                           });
@@ -1031,15 +1069,12 @@ export default function ResidenceInfoPage() {
                             field.onChange(value);
                             form.setValue('countryOfOriginId', selectedOption.id);
                             form.setValue('countryOfOriginName', selectedOption.value);
-                            
-                            console.log(`Selected country of origin: ${value}, ID: ${selectedOption.id}`);
-                          } else {
+                           } else {
                             field.onChange(value);
                             form.setValue('countryOfOriginId', 0);
                             form.setValue('countryOfOriginName', '');
                           }
                         } catch (error) {
-                          console.error('Error in country of origin selection:', error);
                           field.onChange(value || '');
                           form.setValue('countryOfOriginId', 0);
                           form.setValue('countryOfOriginName', '');
@@ -1052,7 +1087,9 @@ export default function ResidenceInfoPage() {
                         <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                           <div className="flex items-center">
                             <Globe className="mr-2 h-4 w-4 text-slate-400" />
-                            <SelectValue placeholder="Chagua Nchi ya Asili" />
+                            <SelectValue 
+                            //placeholder="Chagua Nchi ya Asili" 
+                            />
                           </div>
                         </SelectTrigger>
                       </FormControl>
@@ -1093,28 +1130,27 @@ export default function ResidenceInfoPage() {
           </div>
           {/* Buttons Section */}
           <div className="pt-6 mt-6 border-t border-slate-200 flex justify-between">
-            <Button 
+            <LoadingButton 
               type="button" 
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
               onClick={handleSaveAndExit}
+              isLoading={isExiting}
+              loadingText="Inaendelea..."
+              spinnerVariant="secondary"
             >
               <Save className="mr-2 h-4 w-4" />
               Hifadhi na Toka
-            </Button>
+            </LoadingButton>
             
             <LoadingButton 
               type="submit" 
-              isLoading={isLoading}
+              isLoading={isSubmitting}
               loadingText="Inaendelea..."
               spinnerVariant="primary"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
               onClick={(e) => {
-                console.log('Submit button clicked');
-                // Check for form validation errors
                 const formErrors = form.formState.errors;
                 if (Object.keys(formErrors).length > 0) {
-                  console.log('Form validation errors:', formErrors);
-                  // Show validation errors to user in toast
                   const errorMessages = Object.keys(formErrors).map(field => {
                     const fieldKey = field as keyof ResidenceInfoFormValues;
                     const error = formErrors[fieldKey];

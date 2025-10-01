@@ -74,10 +74,7 @@ export function DatePickerInput({
 
   // Update internal state when value prop changes
   React.useEffect(() => {
-    console.log("DatePickerInput value changed:", value);
-    
     if (!value) {
-      console.log("No value, clearing date state");
       setDate(undefined);
       setInputValue("");
       return;
@@ -85,44 +82,32 @@ export function DatePickerInput({
     
     try {
       const newDate = value instanceof Date ? value : new Date(value);
-      console.log("Parsed date:", newDate);
       
       if (isValidDate(newDate)) {
-        console.log("Setting date state to:", newDate);
         setDate(newDate);
         setMonth(newDate);
         const formatted = formatDate(newDate);
-        console.log("Setting input value to:", formatted);
         setInputValue(formatted);
-      } else {
-        console.log("Invalid date:", newDate);
       }
     } catch (error) {
-      console.error("Error parsing date value:", error);
+      // Silent error handling
     }
   }, [value])
 
   // Handle date selection
   const handleDateSelect = (newDate: Date | undefined, closePopup: boolean = false) => {
-    console.log("DatePickerInput handleDateSelect:", newDate, "closePopup:", closePopup);
-    
     setDate(newDate);
     const formatted = formatDate(newDate);
-    console.log("Formatted selected date:", formatted);
     
     setInputValue(formatted);
     
     // Only close the popup if explicitly requested
     if (closePopup) {
-      console.log("Closing popup as requested");
       setOpen(false);
     }
     
     if (onChange) {
-      console.log("Calling onChange with:", newDate, formatted);
       onChange(newDate, formatted);
-    } else {
-      console.log("No onChange handler provided");
     }
   }
 
@@ -146,7 +131,6 @@ export function DatePickerInput({
       }
     } catch (error) {
       // Invalid date format, just update the input value
-      console.log("Invalid date format in input")
     }
   }
 
@@ -154,18 +138,13 @@ export function DatePickerInput({
 
   return (
     <div className={className}>
-      {label && (
-        <Label htmlFor={uniqueId} className="text-sm font-medium text-neutral-500 mb-1 block">
-          {label} {required && <span className="text-red-500">*</span>}
-        </Label>
-      )}
       <div className="relative">
         <Input
           id={uniqueId}
           value={inputValue}
           placeholder={placeholder}
           className={cn(
-            "pl-3 pr-10 py-2 border rounded w-full",
+            "pl-3 pr-10 py-2 border rounded w-full h-10",
             inputClassName
           )}
           onChange={handleInputChange}

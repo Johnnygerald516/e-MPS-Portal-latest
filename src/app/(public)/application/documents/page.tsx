@@ -85,6 +85,7 @@ export default function DocumentsPage() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   
   // Get applicationId from context
   const applicationId = formData.applicationId || '';
@@ -241,9 +242,6 @@ export default function DocumentsPage() {
         throw new Error(response?.ackMessage || "Upload failed");
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      
-      // Update the document status back to pending
       setDocuments(prev => 
         prev.map(doc => 
           doc.id === documentId ? { ...doc, status: "pending" } : doc
@@ -330,10 +328,61 @@ export default function DocumentsPage() {
   const showPreviousPassportField = applicationType === "renew" || applicationType === "damage";
   
   // Handle save and exit
-  const handleSaveAndExit = () => {
-    const data = form.getValues();
-    updateFormData(data);
-    router.push('/application');
+  const handleSaveAndExit = async () => {
+    setIsExiting(true);
+    try {
+      const data = form.getValues();
+      
+      // Create document uploads object for form data
+      const documentUploads = {
+        applicantPhoto: documentFiles.applicantPhoto?.name,
+        localGovernmentLetter: documentFiles.localGovernmentLetter?.name,
+        entryProof: documentFiles.entryProof?.name,
+        parentProof: documentFiles.parentProof?.name,
+      };
+      
+      // Update global form data with type casting to allow documentUploads
+      updateFormData({
+        ...formData,
+        ...data,
+        documentUploads
+      } as typeof formData & ExtendedApplicationFormData);
+      
+      // Try to use nextStageId if available, but don't require it
+      if (nextStageId) {
+        try {
+          // Call the endpoint to proceed to the next stage
+          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (!response.ok) {
+          }
+        } catch (error) {
+        }
+      }
+      
+      // Show success toast
+      toast({
+        title: "Taarifa",
+        description: "Taarifa zimehifadhiwa kikamilifu",
+        variant: "default",
+      });
+      
+      // Navigate to landing page
+      router.push('/');
+    } catch (error) {
+      toast({
+        title: "Hitilafu",
+        description: "Samahani, kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako. Tafadhali jaribu tena.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExiting(false);
+    }
   };
   
   // Direct navigation function for the continue button
@@ -367,7 +416,6 @@ export default function DocumentsPage() {
       // If API call fails or returns non-success code, still navigate to declaration page
       router.push('/application/declaration');
     } catch (error) {
-      console.error("Error navigating to next page:", error);
       toast({
         title: "Taarifa",
         description: "Kunaendelea kwenye ukurasa unaofuata...",
@@ -435,13 +483,8 @@ export default function DocumentsPage() {
                 return;
               }
             }
-          } else {
-            // Just log the error but continue with default navigation
-            console.log('Error calling next stage API, proceeding with default navigation');
-          }
+          } 
         } catch (error) {
-          // Just log the error but continue with default navigation
-          console.error("Error proceeding to next stage:", error);
         }
       }
 
@@ -517,7 +560,6 @@ export default function DocumentsPage() {
                   applicationId={applicationId} 
                   onNextStageAvailable={(stageId) => setNextStageId(stageId)}
                   onDocumentsStatusChange={(allUploaded) => {
-                    console.log('All documents uploaded status:', allUploaded);
                     setAllDocumentsUploaded(allUploaded);
                   }}
                 />
@@ -558,7 +600,7 @@ export default function DocumentsPage() {
                     onClick={() => setIsDialogOpen(false)}
                     className="border border-gray-300 text-gray-700"
                   >
-                    Cancel
+                    Ghairi
                   </Button>
                   <Button 
                     type="button" 
@@ -582,25 +624,28 @@ export default function DocumentsPage() {
                       }
                     }}
                   >
-                    Upload
+                    Pakia
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
             </Suspense>
             <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between">
-              <Button 
+              <LoadingButton 
                 type="button" 
                 className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
                 onClick={handleSaveAndExit}
+                isLoading={isExiting}
+                loadingText="Inaendelea..."
+                spinnerVariant="secondary"
               >
                 <Save className="mr-2 h-4 w-4" />
                 Hifadhi na Toka
-              </Button>
+              </LoadingButton>
               
               <LoadingButton 
                 type="button" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+                className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
                 onClick={handleContinue}
                 disabled={false} /* Removed validation to allow proceeding without all documents */
                 isLoading={isLoading}

@@ -79,12 +79,11 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           }
         }
       } catch (error) {
-        console.warn('Failed to prefetch attachment types:', error);
       }
     };
     
     prefetchAttachmentTypes();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   // Fetch data on component mount with optimized loading
   useEffect(() => {
@@ -100,15 +99,10 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           const savedStatusesJson = localStorage.getItem(`document_statuses_${applicationId}`);
           if (savedStatusesJson) {
             const savedStatuses = JSON.parse(savedStatusesJson);
-            console.log('Loaded saved document statuses from localStorage:', savedStatuses);
-            
-            // Create initial statuses based on saved data
             const initialStatuses = types.map(type => {
-              // Find if we have a saved status for this attachment type
               const savedStatus = savedStatuses.find((s: any) => s.id === type.AttachmentTypeID);
               
               if (savedStatus) {
-                // Use the saved status
                 return {
                   id: type.AttachmentTypeID,
                   status: savedStatus.status as 'pending' | 'uploaded' | 'rejected' | 'approved',
@@ -128,7 +122,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
             return initialStatuses;
           }
         } catch (error) {
-          console.error('Error loading saved document statuses:', error);
         }
       }
       
@@ -149,7 +142,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         initializeDocumentStatuses(parsedTypes);
         attachmentTypesLoaded = true;
       } catch (e) {
-        console.warn('Failed to parse cached attachment types');
       }
     }
     
@@ -175,8 +167,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               throw new Error('Failed to fetch attachment types');
             }
           } catch (error) {
-            console.error('Error fetching attachment types:', error);
-            // Don't use fallback data, just show empty state
             setAttachmentTypes([]);
             initializeDocumentStatuses([]);
             attachmentTypesResult = [];
@@ -200,8 +190,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               const apiUrl = process.env.NEXT_PUBLIC_API_URL;
               if (apiUrl) {
                 const externalApiUrl = `${apiUrl}/applications/${applicationId}/documents`;
-                console.log('Fetching documents from:', externalApiUrl);
-                
                 const response = await fetch(externalApiUrl, {
                   method: 'GET',
                   headers: {
@@ -223,25 +211,18 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                       // Process the documents
                       processExistingDocuments(existingDocs);
                     } else {
-                      // Handle empty or invalid response silently
-                      console.log('No documents found or invalid response format');
-                    }
+                     }
                   }
                 } else {
-                  console.warn('Failed to fetch documents:', response.status);
-                }
+               }
               }
             } catch (error) {
-              console.error('Error fetching documents directly:', error);
-            }
+             }
           } catch (error) {
-            console.error('Error fetching existing documents:', error);
           }
         }
       } catch (error) {
-        console.error('Error in data fetching process:', error);
       } finally {
-        // Always ensure loading state is cleared
         setLoading(false);
       }
     };
@@ -286,8 +267,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           setApplicantPhotoUrl(applicantPhoto.fileUrl || applicantPhoto.url);
         }
       } else {
-        console.warn('Expected existingDocs to be an array but got:', typeof existingDocs);
-      }
+       }
     };
     
     fetchData();
@@ -305,7 +285,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
     
     // Notify parent component if callback is provided
     if (onDocumentsStatusChange) {
-      console.log('Notifying parent of document status change:', allUploaded);
+     
       onDocumentsStatusChange(allUploaded);
     }
   }, [documentStatuses, onDocumentsStatusChange]);
@@ -330,7 +310,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText);
         showError({ description: `Error: ${response.status} ${response.statusText}` });
         return;
       }
@@ -340,7 +319,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       if (responseData.ackCode === 1) {
         showSuccess({ description: "Successfully moved to the next stage" });
         
-        // If there's a redirect URL in the response, navigate to it
         if (responseData.jsonResult?.redirectUrl) {
           router.push(responseData.jsonResult.redirectUrl);
         }
@@ -348,7 +326,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         showError({ description: responseData.ackMessage || "Failed to proceed to the next stage" });
       }
     } catch (error) {
-      console.error("Error proceeding to next stage:", error);
       showError({ description: `An unexpected error occurred: ${(error as Error).message}` });
     } finally {
       setLoading(false);
@@ -377,12 +354,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       // If we have a fileUrl, open it directly in the PDF preview dialog
       setPdfPreviewUrl(docStatus.fileUrl);
       setPdfPreviewOpen(true);
-      
-      console.log(`Opening preview for document: ${attachment.AttachmentName}, URL: ${docStatus.fileUrl}`);
     } else {
-      // If no fileUrl, show an error
       showError({ description: "Document preview is not available" });
-      console.warn(`No fileUrl found for document: ${attachment.AttachmentName}`);
     }
   };
   
@@ -408,7 +381,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
   const handleSubmitFile = async (attachmentTypeId: number) => {
     const uploadedFile = uploadedFiles[attachmentTypeId];
     if (!uploadedFile?.base64) {
-      showError({ description: "File is not available for submission" });
+      showError({ description: "Faili haipatikani kwa ajili ya kuwasilisha." });
       return;
     }
     
@@ -430,17 +403,11 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         body: JSON.stringify(payload),
       });
       
-      // Get response text first to avoid parsing errors
       const responseText = await response.text();
-      console.log('Response text:', responseText);
-      
-      // Try to parse as JSON
       let responseData;
       try {
         responseData = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('Error parsing response:', parseError);
-        // If not valid JSON, create a generic error response
         responseData = {
           ackCode: 0,
           ackMessage: `Invalid response format: ${responseText.substring(0, 100)}`,
@@ -448,9 +415,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         };
       }
       
-      // Check if response was successful
       if (!response.ok || responseData.ackCode === 0) {
-        // Show error message from response if available
         showError({ 
           description: responseData.ackMessage || `Error ${response.status}: ${response.statusText}` 
         });
@@ -485,9 +450,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
             
             // Store in localStorage with application ID to keep separate for each application
             localStorage.setItem(`document_statuses_${applicationId}`, JSON.stringify(storableStatuses));
-            console.log('Saved document statuses to localStorage');
+          
           } catch (error) {
-            console.error('Error saving document statuses to localStorage:', error);
           }
           
           // Check if all documents are now uploaded after this update
@@ -495,19 +459,13 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           
           // Notify parent component about the status change
           if (onDocumentsStatusChange) {
-            console.log('Notifying parent of document status change after upload:', allUploaded);
-            setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
+           setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
           }
           
           return updatedStatuses;
         });
         
-        // Keep the uploaded file in state to maintain its status
-        // This ensures the UI continues to show the document as uploaded
-        // We'll just mark it as submitted in the document statuses
-        
-        // If this is an applicant photo (usually ID 1), save the URL for display
-        if (attachmentTypeId === 1 && uploadedFile.url) {
+       if (attachmentTypeId === 1 && uploadedFile.url) {
           setApplicantPhotoUrl(uploadedFile.url);
         }
         
@@ -524,16 +482,15 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         // Show success message with applicationID and nextStage if available
         if (responseData.jsonResult?.applicationID && responseData.jsonResult?.nextStage) {
           showSuccess({ 
-            description: `Document submitted successfully. Application ID: ${responseData.jsonResult.applicationID}, Next Stage: ${responseData.jsonResult.nextStage}` 
+            description: `Nyaraka imetumwa kwa mafanikio.` 
           });
         } else {
-          showSuccess({ description: "Document submitted successfully" });
+          showSuccess({ description: "Nyaraka imetumwa kwa mafanikio." });
         }
       } else {
-        showError({ description: responseData.ackMessage || "Failed to submit document" });
+        showError({ description: responseData.ackMessage || "Imeshindikana kuwasilisha nyaraka" });
       }
     } catch (error) {
-      console.error("Error submitting document:", error);
       showError({ description: `An unexpected error occurred: ${(error as Error).message}` });
     } finally {
       setUploading(null);
@@ -591,7 +548,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         )
       );
     } catch (error) {
-      console.error("Error submitting document:", error);
       showError({ description: "An error occurred while submitting the document" });
     } finally {
       setUploading(null);
@@ -644,7 +600,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       }
       
     } catch (error) {
-      console.error("Error in handleDirectUpload:", error);
       showError({ description: `An unexpected error occurred: ${(error as Error).message}` });
     } finally {
       setUploading(null);
@@ -734,7 +689,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       // Use the shared utility function
       return await convertFileToBase64(file);
     } catch (error) {
-      console.error('Error converting file to base64:', error);
       throw error;
     }
   };
@@ -792,9 +746,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         attachmentTypeId: selectedAttachment.AttachmentTypeID,
         attachment: base64Data
       };
-      
-      console.log('Payload being sent:', payload);
-      
       setUploadProgress(70);
       
       // Submit directly to the attachments endpoint
@@ -810,18 +761,14 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API error: ${response.status} ${response.statusText}`, errorText);
-        
-        // Try to parse the error response
-        try {
+       try {
           const errorData = JSON.parse(errorText);
           showError({ description: errorData.ackMessage || `Error: ${response.statusText}` });
         } catch (parseError) {
-          // If we can't parse the error, show a generic message
           showError({ description: `Failed to upload document (${response.status})` });
         }
         
-        return; // Exit early instead of throwing
+        return; 
       }
       
       const responseData = await response.json();
@@ -847,7 +794,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           
           // Notify parent component about the status change
           if (onDocumentsStatusChange) {
-            console.log('Notifying parent of document status change after upload:', allUploaded);
             setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
           }
           
@@ -879,7 +825,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         showError({ description: responseData.ackMessage || "Failed to upload document" });
       }
     } catch (error) {
-      console.error("Error uploading document:", error);
       showError({ description: "An error occurred while uploading the document" });
     } finally {
       setUploading(null);
@@ -909,8 +854,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           
           // Notify parent component about the status change
           if (onDocumentsStatusChange) {
-            console.log('Notifying parent of document status change after deletion:', allUploaded);
-            setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
+           setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
           }
           
           return updatedStatuses;
@@ -942,7 +886,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           
           // Notify parent component about the status change
           if (onDocumentsStatusChange) {
-            console.log('Notifying parent of document status change after server deletion:', allUploaded);
             setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
           }
           
@@ -959,7 +902,6 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         showError({ description: response.ackMessage || "Failed to delete document" });
       }
     } catch (error) {
-      console.error("Error deleting document:", error);
       showError({ description: "An error occurred while deleting the document" });
     } finally {
       setUploading(null);
@@ -1009,13 +951,13 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               #
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
+              JINA
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+              HALI
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Action
+              KITENDO
             </th>
           </tr>
         </thead>
@@ -1030,13 +972,14 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                   {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{attachment.AttachmentName}</div>
                   <div className="text-sm text-gray-500">{attachment.Viambatanisho}</div>
                   {/* Special instructions for Applicant Photo */}
                   {attachment.AttachmentTypeID === 1 && (
                     <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-100">
-                      <p><strong>Maelekezo:</strong> Pakia picha ya passport size.</p>
-                      <p>Aina za faili zinazokubalika: PNG, JPEG, JPG (≤1MB)</p>
+                      <p>
+                        {/* <strong>Maelekezo:</strong> */}
+                         Picha ya passport size zinazokubalika: PNG, JPEG, JPG (≤1MB)</p>
+                      {/* <p>Aina za faili zinazokubalika: PNG, JPEG, JPG (≤1MB)</p> */}
                     </div>
                   )}
                 </td>
@@ -1054,9 +997,9 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                         className="border border-blue-300 text-blue-500 hover:text-blue-600 px-3 py-1 rounded flex items-center bg-white hover:bg-blue-50"
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        Preview
+                        Angalia Nyaraka
                       </Button>
-                      <Button 
+                      {/* <Button 
                         variant="destructive" 
                         size="sm"
                         onClick={() => handleDelete(attachment.AttachmentTypeID)}
@@ -1068,8 +1011,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                         ) : (
                           <Trash2 className="h-4 w-4 mr-1" />
                         )}
-                        Remove
-                      </Button>
+                        Ondoa Nyaraka
+                      </Button> */}
                     </div>
                   ) : uploadedFiles[attachment.AttachmentTypeID] ? (
                     <div className="flex gap-2">
@@ -1081,7 +1024,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                         className="border border-blue-300 text-blue-500 hover:text-blue-600 px-3 py-1 rounded flex items-center bg-white hover:bg-blue-50"
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        Preview Document
+                       Angalia Nyaraka
                       </Button>
                       <Button 
                         variant="destructive" 
@@ -1113,12 +1056,12 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                         {uploading === attachment.AttachmentTypeID ? (
                           <>
                             <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                            Uploading...
+                            Ina Pakia Nyaraka...
                           </>
                         ) : (
                           <>
                             <Upload className="h-4 w-4 mr-1" />
-                            {attachment.AttachmentTypeID === 1 ? "Pakia Picha" : "Upload"}
+                            {attachment.AttachmentTypeID === 1 ? "Pakia Nyaraka" : "Pakia"}
                           </>
                         )}
                       </Button>
@@ -1290,7 +1233,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               <DialogTitle>
                 {selectedAttachment ? `Preview: ${selectedAttachment.AttachmentName}` : 'Document Preview'}
               </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">Please review your document carefully before submitting</p>
+              <p className="text-sm text-muted-foreground mt-1">Tafadhali kagua nyaraka zako kwa makini kabla ya kuwasilisha.</p>
             </DialogHeader>
             <div className="w-full h-full overflow-hidden">
               <iframe
@@ -1305,7 +1248,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                 onClick={() => setPdfPreviewOpen(false)} 
                 className="w-full sm:w-auto"
               >
-                Close Preview
+                Funga 
               </Button>
               
               {/* Show Submit button only for uploaded files that haven't been submitted yet */}
@@ -1323,12 +1266,12 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                   {uploading !== null ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Submitting...
+                      Inatuma...
                     </>
                   ) : (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirm & Submit Document
+                      Thibitisha na Wasilisha Nyaraka
                     </>
                   )}
                 </Button>

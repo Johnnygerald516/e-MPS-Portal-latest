@@ -47,12 +47,9 @@ function ApplicationCompleteContent(): React.ReactNode {
     const contextApplicationId = formData.applicationId;
     if (contextApplicationId) {
       setApplicationId(contextApplicationId);
-      console.log('Application ID set from context:', contextApplicationId);
     } else if (applicationIdParam) {
       setApplicationId(applicationIdParam);
-      console.log('Application ID set from URL:', applicationIdParam);
     } else {
-      console.warn('No application ID found in context or URL parameters');
     }
     
     // Set submission date on client-side
@@ -103,7 +100,6 @@ function ApplicationCompleteContent(): React.ReactNode {
           }
         }
       } catch (error) {
-        console.error("Error fetching application data:", error);
       } finally {
         setIsLoadingData(false);
       }
@@ -136,31 +132,21 @@ function ApplicationCompleteContent(): React.ReactNode {
         
         // Use a PNG data URL instead of SVG for better compatibility with jsPDF
         coatOfArmsImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFEmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTAzLTIwVDEwOjA4OjI1KzAzOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHN0RXZ0OndoZW49IjIwMjMtMDMtMjBUMTA6MDg6MjUrMDM6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7LK7UAAAAgSURBVHja7cEBAQAAAICQ/q/uCAoAAAAAAAAAAABcDStPAAGLJ8wFAAAAAElFTkSuQmCC';
-        console.log('Using embedded PNG for coat of arms');
-        
-        // Use a PNG data URL for the logo as well for better compatibility with jsPDF
-        logoImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFEmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTAzLTIwVDEwOjA4OjI1KzAzOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHN0RXZ0OndoZW49IjIwMjMtMDMtMjBUMTA6MDg6MjUrMDM6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7LK7UAAAAgSURBVHja7cEBAQAAAICQ/q/uCAoAAAAAAAAAAABcDStPAAGLJ8wFAAAAAElFTkSuQmCC';
-        console.log('Using embedded PNG for logo');
-        
-        // Try multiple applicant photo paths with proper error handling
-        applicantPhoto = await imageToBase64('/images/user.png');
+       logoImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFEmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTAzLTIwVDEwOjA4OjI1KzAzOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMy0wMy0yMFQxMDoxMDoxMCswMzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2M2OGZiN2MtZDAyNi00YjRhLTlkZGQtZmFmMzZhMWRjMGFiIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YzY4ZmI3Yy1kMDI2LTRiNGEtOWRkZC1mYWYzNmExZGMwYWIiIHN0RXZ0OndoZW49IjIwMjMtMDMtMjBUMTA6MDg6MjUrMDM6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7LK7UAAAAgSURBVHja7cEBAQAAAICQ/q/uCAoAAAAAAAAAAABcDStPAAGLJ8wFAAAAAElFTkSuQmCC';
+       applicantPhoto = await imageToBase64('/images/user.png');
         
         if (!applicantPhoto) {
-          console.log('First user image path failed, trying alternative');
           applicantPhoto = await imageToBase64('/public/images/user.png');
         }
         
         if (!applicantPhoto) {
-          console.log('Second user image path failed, trying applicant-photo.jpg');
           applicantPhoto = await imageToBase64('/images/applicant-photo.jpg');
         }
         
         // If all attempts fail, use an embedded SVG data URL as fallback
         if (!applicantPhoto) {
-          console.log('All user image loading attempts failed, using SVG placeholder');
           applicantPhoto = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iODAiIHI9IjUwIiBmaWxsPSIjZTBlMGUwIi8+PHJlY3QgeD0iMzAiIHk9IjEzMCIgd2lkdGg9IjE0MCIgaGVpZ2h0PSI3MCIgcng9IjIwIiByeT0iMjAiIGZpbGw9IiNlMGUwZTAiLz48dGV4dCB4PSIxMDAiIHk9IjE4MCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OSI+VXNlciBQaG90bzwvdGV4dD48L3N2Zz4=';
         } else {
-          console.log('User image loaded successfully');
         }
         
         setImages({
@@ -169,7 +155,6 @@ function ApplicationCompleteContent(): React.ReactNode {
           applicantPhoto: applicantPhoto
         });
       } catch (error) {
-        console.error('Error in image loading process:', error);
       }
     };
     
@@ -280,7 +265,6 @@ function ApplicationCompleteContent(): React.ReactNode {
       // Check if we have any images loaded
       const hasImages = !!(images.coatOfArms || images.logo || images.applicantPhoto);
       if (!hasImages) {
-        console.log('No images loaded, generating PDF with placeholders');
       }
       
       // Generate the PDF using our component
@@ -294,7 +278,6 @@ function ApplicationCompleteContent(): React.ReactNode {
       doc.save(`migrant-application-${applicationId}.pdf`);
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('There was an error generating the PDF. Please try again.');
     } finally {
       setIsLoading(false);

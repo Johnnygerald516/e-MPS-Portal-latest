@@ -34,7 +34,7 @@ import { useToast } from "@/components/ui/use-toast";
 // Form validation schema
 const dependantSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  gender: z.string().min(1, "Gender is required"),
+  gender: z.string().optional(),
   relationship: z.string().min(2, "Relationship is required"),
   relationshipTypeId: z.number().optional(),
   dateOfBirth: z.union([z.string(), z.date()])
@@ -94,6 +94,7 @@ export default function DependantInfoPage() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const { toast } = useToast(); // Get toast function from hook
   
   // Get applicationId from context instead of URL parameters
@@ -236,14 +237,164 @@ export default function DependantInfoPage() {
   }, [isLoadingData, countries, nationalities, form]);
   
   // Handle save and exit
-  const handleSaveAndExit = () => {
-    const data = form.getValues();
-    // If hasDependants is false, clear the dependants array
-    if (!data.hasDependants) {
-      data.dependants = [];
+  const handleSaveAndExit = async () => {
+    setIsExiting(true);
+    try {
+      const data = form.getValues();
+      
+      // If hasDependants is false, clear the dependants array
+      if (!data.hasDependants) {
+        data.dependants = [];
+      } else if (data.dependants && data.dependants.length > 0) {
+        // Validate required fields for each dependant
+        const invalidDependants = data.dependants.filter((dep, index) => {
+          const missingFields = [];
+          if (!dep.name || dep.name.trim() === '') missingFields.push('Name');
+          if (!dep.gender) missingFields.push('Gender');
+          if (!dep.relationship || dep.relationship.trim() === '') missingFields.push('Relationship');
+          if (!dep.relationshipTypeId) missingFields.push('Relationship Type');
+          if (!dep.dateOfBirth) missingFields.push('Date of Birth');
+          
+          // Validate age (must be 18 or younger)
+          if (dep.dateOfBirth && !validateDependantAge(dep.dateOfBirth)) {
+            toast({
+              title: `Dependant ${index + 1} has invalid age`,
+              description: `Dependant must be 18 years old or younger`,
+              variant: "destructive",
+            });
+            return true;
+          }
+          
+          // If document number is provided, validate related fields
+          if (dep.documentNumber && dep.documentNumber.trim() !== '') {
+            if (!dep.documentTypeId) missingFields.push('Document Type');
+            if (!dep.documentIssuedDate) missingFields.push('Document Issued Date');
+            if (!dep.documentExpiryDate) missingFields.push('Document Expiry Date');
+            if (!dep.issuedCountry || !dep.issuedCountryId) missingFields.push('Issued Country');
+          }
+          
+          if (missingFields.length > 0) {
+            toast({
+              title: `Dependant ${index + 1} has missing fields`,
+              description: `Please fill in the following fields: ${missingFields.join(', ')}`,
+              variant: "destructive",
+            });
+            return true;
+          }
+          
+          return false;
+        });
+        
+        // If there are any invalid dependants, stop the submission
+        if (invalidDependants.length > 0) {
+          setIsExiting(false);
+          return;
+        }
+      }
+      
+      updateFormData(data);
+      
+      // Format the data for API submission
+      const formatDate = (date: string | Date | undefined): string => {
+        if (!date) return '';
+        
+        // If it's already a string in ISO format (YYYY-MM-DD), use it directly
+        if (typeof date === 'string') {
+          // Check if it's already in YYYY-MM-DD format
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return date;
+          }
+          
+          // Try to parse the string to a Date
+          try {
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+              return parsedDate.toISOString().split('T')[0];
+            }
+          } catch (e) {
+            console.error('Error parsing date string:', e);
+          }
+          
+          // If we can't parse it, return empty string
+          return '';
+        }
+        
+        // Handle Date object
+        const year = date.getFullYear();
+        // Check if year is too low (likely invalid)
+        if (year < 1900) {
+          const currentYear = new Date().getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${currentYear}-${month}-${day}`;
+        }
+        return date.toISOString().split('T')[0];
+      };
+      
+      // Map dependants to API format
+      const dependants = data.dependants?.map(dep => {
+        // Base dependant data that's always included
+        const dependantData: any = {
+          dependantFullName: dep.name,
+          dependantGender: dep.gender || 'M',
+          dependantNationalityID: Number(dep.nationalityId) || 0,
+          dependantRelationTypeID: Number(dep.relationshipTypeId) || 0,
+          // Set hasDocument value based on the checkbox (1 for checked, 0 for unchecked)
+          hasDocument: dep.hasDocument ? 1 : 0
+        };
+        
+        // Include document fields with proper defaults
+        dependantData.documentTypeID = Number(dep.documentTypeId) || 0;
+        dependantData.documentNo = dep.documentNumber || '';
+        
+        dependantData.issuedDate = formatDate(dep.documentIssuedDate) || '';
+        dependantData.expireDate = formatDate(dep.documentExpiryDate) || '';
+        
+        dependantData.issuedCountryID = Number(dep.issuedCountryId) || 0;
+        
+        return dependantData;
+      }) || [];
+      
+      // Check if any dependant has documents
+      const hasAnyDocuments = data.dependants?.some(dep => dep.hasDocument) || false;
+      
+      // Create the payload with the expected structure matching the API format
+      const formattedPayload: DependantInfoPayload = {
+        applicationId: applicationId,
+        hasDocument: hasAnyDocuments ? 1 : 0,
+        dependants: dependants
+      };
+      
+      const response = await dependantInfoEndpoints.saveDependantInfo(formattedPayload);
+      
+      if (response.ackCode === 1) {
+        // Success - show success message
+        toast({
+          title: "Success",
+          description: "Dependant information saved successfully",
+          variant: "default"
+        });
+        // Navigate to landing page
+        router.push('/');
+      } else {
+        // Handle error
+        console.error('API error:', response.ackMessage);
+        toast({
+          title: "Error",
+          description: response.ackMessage || "Failed to save dependant information",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Error saving dependant info:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save dependant information",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExiting(false);
     }
-    updateFormData(data);
-    router.push('/application');
   };
 
   // Helper function to validate age
@@ -403,18 +554,10 @@ export default function DependantInfoPage() {
         dependantData.documentTypeID = Number(dep.documentTypeId) || 0;
         dependantData.documentNo = dep.documentNumber || '';
         
-        // Ensure dates are properly formatted and included in the API payload
-        console.log('Document issued date before formatting:', dep.documentIssuedDate);
-        console.log('Document expiry date before formatting:', dep.documentExpiryDate);
-        
-        // Format dates and assign to the correct API field names
         dependantData.issuedDate = formatDate(dep.documentIssuedDate) || '';
         dependantData.expireDate = formatDate(dep.documentExpiryDate) || '';
         
-        console.log('Formatted issued date for API:', dependantData.issuedDate);
-        console.log('Formatted expiry date for API:', dependantData.expireDate);
-        
-        dependantData.issuedCountryID = Number(dep.issuedCountryId) || 0;
+     dependantData.issuedCountryID = Number(dep.issuedCountryId) || 0;
         
         return dependantData;
       }) || [];
@@ -428,10 +571,7 @@ export default function DependantInfoPage() {
         dependants: dependants
       };
       
-      console.log('Sending dependant info payload:', apiPayload);
-      
-      // Call the API endpoint
-      try {
+       try {
         // Create the payload with the expected structure matching the API format
         const formattedPayload: DependantInfoPayload = {
           applicationId: applicationId,
@@ -439,7 +579,6 @@ export default function DependantInfoPage() {
           dependants: apiPayload.dependants
         };
         
-        console.log('Formatted payload for API:', formattedPayload);
         const response = await dependantInfoEndpoints.saveDependantInfo(formattedPayload);
         
         if (response.ackCode === 1) {
@@ -486,7 +625,7 @@ export default function DependantInfoPage() {
     
     append({
       name: "",
-      gender: "M", // Default to Male
+      gender: "", // Empty string to show placeholder
       relationship: "",
       relationshipTypeId: 0,
       dateOfBirth: "",
@@ -505,7 +644,7 @@ export default function DependantInfoPage() {
   
   return (
     <ApplicationLayout 
-      title="Dependant Information" 
+      title="Habari za wategemezi" 
       subtitle="Enter information about your dependants"
       applicationId={applicationId}
       currentStep="habari-za-wategemezi"
@@ -523,8 +662,8 @@ export default function DependantInfoPage() {
                   <InteractiveCheckbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    label="I have dependants to include in my application"
-                    description="Check this box if you have family members or dependants that should be included in your application"
+                    label="Nina wategemezi wa kujumuisha kwenye ombi langu"
+                    description="Tiki kisanduku hiki ikiwa una wategemezi ambao wanapaswa kujumuishwa kwenye ombi lako"
                   />
                 </FormControl>
               </FormItem>
@@ -536,29 +675,29 @@ export default function DependantInfoPage() {
               <div className="flex items-center justify-between mb-4 border-b pb-2">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-blue-500" />
-                  <h3 className="text-lg font-medium text-slate-800">Dependants</h3>
+                  <h3 className="text-lg font-medium text-slate-800">Wategemezi</h3>
                 </div>
                 <Button 
                   type="button"
                   onClick={addDependant}
-                  className="border border-blue-600 text-blue-600 hover:text-blue-600 hover:border-blue-600  px-4 py-2 rounded flex items-center bg-blue hover:bg-blue-50"
+                  className="border border-blue-500 text-blue-700 hover:text-blue-500 hover:border-blue-700  px-4 py-2 rounded flex items-center bg-blue hover:bg-blue-50"
                   size="sm"
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  Add Dependant
+                  Weka Mtegemezi
                 </Button>
               </div>
               
               {fields.length === 0 && (
                 <div className="text-center py-6 text-slate-500">
-                  <p>No dependants added yet. Click the button above to add a dependant.</p>
+                  <p>Hakuna wategemezi waliyo ongezwa bado. Bonyeza kitufe kilicho juu kuongeza mtegemezi.</p>
                 </div>
               )}
               
               {fields.map((field, index) => (
                 <div key={field.id} className="mb-6 border-b pb-6 last:border-b-0 last:pb-0">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium">Dependant #{index + 1}</h4>
+                    <h4 className="font-medium">Mtegemezi #{index + 1}</h4>
                     <Button
                       type="button"
                       onClick={() => remove(index)}
@@ -566,7 +705,7 @@ export default function DependantInfoPage() {
                       size="sm"
                     >
                       <Trash2 className="h-4 w-4 mr-1" />
-                      Remove
+                      Futa
                     </Button>
                   </div>
                   
@@ -577,10 +716,12 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-neutral-500">
-                            Full Name <span className="text-red-500">*</span>
+                            Jina Kamili <span className="text-red-500">*</span>
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter dependant's full name" className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none" {...field} />
+                            <Input 
+                            //placeholder="Weka Jina Kamili" 
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -600,9 +741,9 @@ export default function DependantInfoPage() {
                               relationshipField.onChange(numValue);
                             }
                           }}
-                          label="Relationship Type"
+                          label="Uhusiano"
                           required={true}
-                          placeholder="Select relationship type"
+                          placeholder="Chagua Aina ya Uhusiano"
                           onRelationshipTypeChange={(id, name) => {
                             // Set the relationship name based on the selected ID and name
                             form.setValue(`dependants.${index}.relationship`, name || "");
@@ -618,7 +759,7 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-neutral-500">
-                            Gender <span className="text-red-500">*</span>
+                            Jinsia <span className="text-red-500">*</span>
                           </FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
@@ -626,12 +767,12 @@ export default function DependantInfoPage() {
                           >
                             <FormControl>
                               <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
-                                <SelectValue placeholder="Select gender" />
+                                <SelectValue placeholder="Chagua Jinsia" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-60 overflow-y-auto">
-                              <SelectItem value="M">Male</SelectItem>
-                              <SelectItem value="F">Female</SelectItem>
+                              <SelectItem value="M">Mume</SelectItem>
+                              <SelectItem value="F">Mke</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -645,9 +786,9 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <DatePickerFormField
                           field={field}
-                          label="Date of Birth"
+                          label="Tarehe ya Kuzaliwa"
                           required={true}
-                          placeholder="Select date of birth"
+                          //placeholder="Chagua Tarehe ya kuzaliwa"
                         />
                       )}
                     />
@@ -658,7 +799,7 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-neutral-500">
-                            Nationality <span className="text-red-500">*</span>
+                            Utaifa <span className="text-red-500">*</span>
                           </FormLabel>
                           <Select 
                             onValueChange={(value) => {
@@ -722,8 +863,8 @@ export default function DependantInfoPage() {
                             <InteractiveCheckbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              label="This dependant has identification documents"
-                              description="Check this box if you have document information for this dependant"
+                              label="Mtegemezi ana nyaraka za utambulisho"
+                              description="Tiki kisanduku hiki ikiwa una taarifa za nyaraka za mtegemezi huyu."
                             />
                           </FormControl>
                         </FormItem>
@@ -746,8 +887,8 @@ export default function DependantInfoPage() {
                               documentTypeField.onChange(numValue);
                             }
                           }}
-                          label="Document Type"
-                          placeholder="Select document type"
+                          label="Aina ya Nyaraka"
+                          //placeholder="Select document type"
                         />
                       )}
                     />
@@ -758,10 +899,12 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-neutral-500">
-                            Document Number
+                            Namba ya Nyaraka
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter document number" className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none" {...field} />
+                            <Input 
+                           // placeholder="Enter document number" 
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -774,8 +917,8 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <DatePickerFormField
                           field={field}
-                          label="Document Issued Date"
-                          placeholder="Select issued date"
+                          label="Tarehe ya Kutolewa kwa Nyaraka"
+                         // placeholder="Select issued date"
                         />
                       )}
                     />
@@ -786,8 +929,8 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <DatePickerFormField
                           field={field}
-                          label="Document Expiry Date"
-                          placeholder="Select expiry date"
+                          label="Tarehe ya Kuisha kwa Nyaraka"
+                          //placeholder="Select expiry date"
                         />
                       )}
                     />
@@ -799,7 +942,7 @@ export default function DependantInfoPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-neutral-500">
-                            Document Issued Country
+                          Nchi Iliyo Toa Nyaraka
                           </FormLabel>
                           <Select 
                             onValueChange={(value) => {
@@ -859,18 +1002,21 @@ export default function DependantInfoPage() {
           )}
           
           <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between">
-            <Button 
+            <LoadingButton 
               type="button" 
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
               onClick={handleSaveAndExit}
+              isLoading={isExiting}
+              loadingText="Inaendelea..."
+              spinnerVariant="secondary"
             >
               <Save className="mr-2 h-4 w-4" />
               Hifadhi na Toka
-            </Button>
+            </LoadingButton>
             
             <LoadingButton 
               type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded flex items-center"
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
               isLoading={isLoading}
               loadingText="Inaendelea..."
               spinnerVariant="primary"
