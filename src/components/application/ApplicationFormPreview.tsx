@@ -149,12 +149,9 @@ const ApplicationFormPreview: React.FC<ApplicationFormPreviewProps> = ({
     <>
       <Button 
         onClick={() => {
-          console.log('Opening preview dialog...');
           try {
             setIsOpen(true);
-            console.log('Dialog state set to open');
           } catch (error) {
-            console.error('Error opening dialog:', error);
           }
         }} 
         variant="outline" 
@@ -167,17 +164,14 @@ const ApplicationFormPreview: React.FC<ApplicationFormPreviewProps> = ({
       <Dialog 
         open={isOpen} 
         onOpenChange={(open) => {
-          console.log('Dialog onOpenChange:', open);
           setIsOpen(open);
         }}
       >
         <DialogContent 
           className="max-w-4xl max-h-[90vh] overflow-y-auto"
           onEscapeKeyDown={() => {
-            console.log('Escape key pressed');
           }}
           onPointerDownOutside={() => {
-            console.log('Clicked outside dialog');
           }}
         >
           <DialogHeader>

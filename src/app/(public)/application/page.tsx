@@ -61,7 +61,6 @@ export default function ApplicationPage() {
           showError("Failed to load application types");
         }
       } catch (error) {
-        console.error("Error fetching application types:", error);
         showError("Failed to load application types. Please try again later.");
       } finally {
         setIsLoadingTypes(false);
@@ -104,7 +103,6 @@ export default function ApplicationPage() {
           showError("Failed to load renewal reasons");
         }
       } catch (error) {
-        console.error("Error fetching renewal reasons:", error);
         showError("Failed to load renewal reasons. Please try again later.");
       } finally {
         setIsLoadingReasons(false);
@@ -140,10 +138,7 @@ export default function ApplicationPage() {
       
       // Simulate API call
       setTimeout(() => {
-        console.log('Form data being submitted:', formData);
-        
-        // Open appropriate dialog based on application type ID
-        if (formData.applicationTypeId === 1) {
+         if (formData.applicationTypeId === 1) {
           // For new applications (ID 1), open migrant verification dialog
           setIsVerificationDialogOpen(true);
           showSuccess("Tafadhali thibitisha utambulisho wako ili kuendelea");
@@ -169,8 +164,7 @@ export default function ApplicationPage() {
   };
 
   const handleVerificationComplete = (verifiedApplicationId: string) => {
-    console.log('Verification complete with application ID:', verifiedApplicationId);
-    setApplicationId(verifiedApplicationId);
+     setApplicationId(verifiedApplicationId);
     // Navigate to basic info page without including applicationId in URL
     showSuccess("Uthibitisho umefanikiwa! Inaendelea na hatua inayofuata.");
     
@@ -185,8 +179,7 @@ export default function ApplicationPage() {
   };
   
   const handleRenewalComplete = (verifiedApplicationId: string) => {
-    console.log('Renewal verification complete with application ID:', verifiedApplicationId);
-    setApplicationId(verifiedApplicationId);
+   setApplicationId(verifiedApplicationId);
     // Navigate to declaration page without including applicationId in URL
     showSuccess("Uthibitisho wa kibali umefanikiwa! Inaendelea na hatua inayofuata.");
     

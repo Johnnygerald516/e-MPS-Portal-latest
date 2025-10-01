@@ -87,10 +87,7 @@ export const imageToBase64 = (imgUrl: string): Promise<string> => {
       
       // Add a timeout to handle cases where the image might hang
       const timeoutId = setTimeout(() => {
-        console.error(`Timeout loading image from ${imgUrl}`);
-        // Instead of rejecting, resolve with an empty string to prevent errors
-        // This will trigger the fallback placeholder in the PDF generation
-        resolve('');
+         resolve('');
       }, 10000); // 10 second timeout (increased from 5s)
       
       img.onload = () => {
@@ -104,24 +101,18 @@ export const imageToBase64 = (imgUrl: string): Promise<string> => {
           const dataURL = canvas.toDataURL('image/png');
           resolve(dataURL);
         } catch (canvasError) {
-          console.error('Error creating canvas for image:', canvasError);
-          // Resolve with empty string instead of rejecting
           resolve('');
         }
       };
       
       img.onerror = error => {
         clearTimeout(timeoutId);
-        console.error(`Error loading image from ${imgUrl}:`, error);
-        // Resolve with empty string instead of rejecting
         resolve('');
       };
       
       // Use the cache-busted URL to prevent caching issues
       img.src = cacheBustedUrl;
     } catch (error) {
-      console.error('Unexpected error in imageToBase64:', error);
-      // Resolve with empty string instead of rejecting
       resolve('');
     }
   });
@@ -150,7 +141,6 @@ export const generateBarcode = async (text: string): Promise<string> => {
     // Convert canvas to data URL with high quality
     return canvas.toDataURL('image/png', 1.0);
   } catch (err) {
-    console.error('Error generating barcode:', err);
     return '';
   }
 };
@@ -161,7 +151,6 @@ const formatDate = (date: Date | undefined | null): string => {
   try {
     return format(date, 'dd/MM/yyyy');
   } catch (error) {
-    console.error('Error formatting date:', error);
     return 'N/A';
   }
 };
@@ -240,10 +229,7 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     // Add barcode image with increased size
     try {
       doc.addImage(barcodeDataUrl, 'PNG', 15, 45, 60, 25);
-      console.log('Barcode added successfully');
     } catch (error) {
-      console.error('Error adding barcode image:', error);
-      // Use placeholder if image fails
       doc.rect(15, 45, 60, 25);
       doc.setFontSize(10);
       doc.text('BARCODE', 55, 60, { align: 'center' });
@@ -257,12 +243,9 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
       // else {
       //   // Fallback to default applicant photo
       //   const photoPath = '/images/immigration_logo.png';
-      //   console.log('Adding applicant photo from path:', photoPath);
       //   doc.addImage(photoPath, 'JPG', 170, 45, 25, 35);
       // }
     } catch (error) {
-      console.error('Error adding applicant photo image:', error);
-      // Use placeholder if image fails
       doc.rect(170, 45, 25, 30);
       doc.setFontSize(8);
       doc.text('PHOTO', 182.5, 62.5, { align: 'center' });
@@ -527,7 +510,6 @@ doc.setLineWidth(0.2); // Thin border (~0.2px)
     
     return doc;
   } catch (error) {
-    console.error('Error generating PDF:', error);
     throw error;
   }
 };
