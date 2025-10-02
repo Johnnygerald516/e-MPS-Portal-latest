@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV API_ENDPOINT=http://10.6.0.0.164:30033
+ENV API_ENDPOINT=http://10.6.0.164:30033
 ENV HOST=0.0.0.0
 ENV PORT=3100
 
@@ -45,7 +45,7 @@ EXPOSE 3100
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="v0.01"
+LABEL org.opencontainers.image.version="v0.0.1"
 
 # Start the application in production mode
 CMD ["npm", "run", "start", "--", "-p", "3100", "-H", "0.0.0.0"]

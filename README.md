@@ -34,3 +34,42 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Deploy with Docker
+
+This application can be deployed using Docker. The project includes a Dockerfile and docker-compose.yml for easy containerization.
+
+### Docker Image Information
+
+- Image name: migrant-fe-portal
+- Image tag: v0.0.1
+- Registry: 10.6.0.157:30000
+- Container port: 3100
+- API Endpoint: 10.6.0.164:30033
+
+### Building and Running with Docker
+
+```bash
+# Build the Docker image
+docker build -t 10.6.0.157:30000/migrant-fe-portal:v0.0.1 .
+
+# Run the container
+docker run -p 3100:3100 10.6.0.157:30000/migrant-fe-portal:v0.0.1
+```
+
+### Using Docker Compose
+
+```bash
+# Start the application using docker-compose
+docker-compose up -d
+
+# Stop the application
+docker-compose down
+```
+
+### Pushing to Registry
+
+```bash
+# Push the image to the registry
+docker push 10.6.0.157:30000/migrant-fe-portal:v0.0.1
+```

@@ -42,17 +42,12 @@ export const getReceiptByControlNumber = async (controlNumber: string): Promise<
       };
     }
 
-    console.log('[ReceiptService] Fetching receipt for control number:', controlNumber);
-    
-    // Make API request
+   // Make API request
     const response = await axios.get(`/api/applications/${controlNumber}/receipt`);
-    
-    console.log('[ReceiptService] Receipt response:', response.data);
+  
     
     return response.data;
   } catch (error) {
-    console.error('[ReceiptService] Error fetching receipt:', error);
-    
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ReceiptResponse>;
       

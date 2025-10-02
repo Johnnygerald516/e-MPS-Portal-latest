@@ -45,7 +45,6 @@ export const getApplicationStatus = async (payload: ApplicationStatusPayload): P
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApplicationStatusResponse>;
       
-      // If the server returned an error response
       if (axiosError.response?.data) {
         return axiosError.response.data;
       }

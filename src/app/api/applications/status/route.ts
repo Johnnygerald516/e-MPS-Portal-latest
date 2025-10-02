@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data);
     
   } catch (error) {
-  if (axios.isAxiosError(error)) {
+    if (axios.isAxiosError(error)) {
       // If the backend API returned an error response
       if (error.response) {
         return NextResponse.json(error.response.data, { status: error.response.status });
