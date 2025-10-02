@@ -39,6 +39,7 @@ export interface ApplicationDetails {
   PassTypeCode: string | null;
   PassValidFrom: string;
   validUntil: string;
+  paidAmount?: number;
 }
 
 export interface PhotoData {
@@ -169,7 +170,7 @@ export const convertToPassData = (response: ApplicationPassResponse): PassData |
     ResidenceDistrictName: details.ResidenceDistrictName,
     ResidenceRegionName: details.ResidenceRegionName,
     // Add the missing properties
-    paidAmount: '10,000', // Default value as used in PassPDF.tsx
+    paidAmount: details.paidAmount ? String(details.paidAmount) : undefined,
     ControlNumber: details.ControlNumber || '',
     passNumber: details.passNumber || ''
   };

@@ -376,7 +376,11 @@ doc.text(label, labelX, 76);
     doc.setFont('Times New Roman', 'normal');
     doc.text('Fee Paid:', 20, y);
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text(`${passData.paidAmount || '10,000'}`, 50, y);
+    // Format amount with commas or show fallback
+    const formattedAmount = passData.paidAmount 
+      ? Number(passData.paidAmount).toLocaleString('en-US') 
+      : 'N/A';
+    doc.text(`${formattedAmount} TZS`, 50, y);
     
     doc.setFont('Times New Roman', 'normal');
     doc.text('vide Control No', 100, y);
@@ -451,7 +455,7 @@ doc.text(label, labelX, 76);
     // First Commissioner text under signature
     doc.setFontSize(8); // Smaller font size
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
+    doc.text('For Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
     y += lineHeight * 2; // Reduced spacing after the first signature
     
     // Dependants section - positioned after the first signature with optimized spacing
@@ -505,8 +509,8 @@ doc.text(label, labelX, 76);
         doc.text(nationalityText, 120, y+4); // Nationality column (moved left)
         doc.setFontSize(9); // Reset font size
         
-        doc.text(dependant.documentNo || `DEP-${passData.id}-${index+1}`, 165, y+4); // Registration No. column
-        
+        //doc.text(dependant.documentNo , 165, y+4); // Registration No. column
+        doc.text("N/A" , 165, y+4);
         // Add complete grid of borders for each row
         // Draw outer border
         doc.rect(20, y, 170, 8); // Consistent height for all rows
@@ -569,7 +573,7 @@ doc.text(label, labelX, 76);
     // Second Commissioner text under signature
     doc.setFont('Times New Roman', 'bolditalic');
     doc.setFontSize(8); // Smaller font size
-    doc.text('Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
+    doc.text('For Commissioner General of Immigration Services', 165, y+4, { align: 'center' });
     
     // Add safety check to ensure all content fits
     if (y + 10 > pageHeight - margin) {

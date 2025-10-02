@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, Variants } from "framer-motion";
-import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, FileSearch, Phone, MessageCircleQuestionMark, CircleQuestionMarkIcon } from "lucide-react";
+import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, FileSearch, Phone } from "lucide-react";
 import { getApplicationStatus, ApplicationStatusPayload, ApplicationStatusResponse } from "@/services/application-status";
 import { ProfessionalLoader } from "@/components/ui/professional-loader";
 import PassPDFPreview from "@/components/application/PassPDFPreview";
+import BillPDFPreview from "@/components/application/BillPDFPreview";
+import ReceiptPDFPreview from "@/components/application/ReceiptPDFPreview";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableC
 // Define the application status types
 type ApplicationStatus = 
   | "received" 
-  | "billing" 
+  | "billing"
   | "under_review" 
   | "returned_for_correction" 
   | "pass_printed" 
@@ -52,8 +54,6 @@ interface ApplicationStatusData {
   controlNumber?: string;
 }
 
-// import PassPDFContent from "@/components/ui/pass-pdf-content";
-
 // Helper function to determine which action buttons to show based on StatusID
 const getActionButtons = (
   status: ApplicationStatus, 
@@ -62,12 +62,25 @@ const getActionButtons = (
   isGeneratingPDF: boolean,
   setIsGeneratingPDF: (value: boolean) => void,
   setSelectedApplicationId: (id: string) => void,
-  setIsPassPreviewOpen: (isOpen: boolean) => void
+  setIsPassPreviewOpen: (isOpen: boolean) => void,
+  setIsBillDialogOpen: (isOpen: boolean) => void,
+  setIsReceiptDialogOpen: (isOpen: boolean) => void
 ) => {
   const handlePrintBill = (id: string) => {
+    // Open bill dialog - BillPDFPreview will handle fetching
+    if (applicationData && applicationData.controlNumber) {
+      setIsBillDialogOpen(true);
+    } else {
+      console.error('No control number available for this application');
+    }
   };
   const handlePrintReceipt = (id: string) => {
-    // Implementation for printing receipt
+    // Open receipt dialog with application data
+    if (applicationData && applicationData.controlNumber) {
+      setIsReceiptDialogOpen(true);
+    } else {
+      console.error('No control number available for this application');
+    }
   };
 
   // State is passed from the parent component
@@ -253,21 +266,8 @@ function ApplicationProgressContent() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isPassPreviewOpen, setIsPassPreviewOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
-
-  // Auto-search when ID or phone number is provided in URL (only for correction flow)
-  useEffect(() => {
-    const idFromUrl = searchParams.get('id');
-    const phoneFromUrl = searchParams.get('phone');
-    const editId = searchParams.get('edit');
-    
-    // Only auto-search if coming from correction flow, not from landing page
-    if ((idFromUrl || phoneFromUrl) && !editId) {
-      if (idFromUrl) setApplicationId(idFromUrl);
-      if (phoneFromUrl) setPhoneNumber(phoneFromUrl);
-      // Trigger search automatically only for correction redirects
-      handleSearchWithId(idFromUrl || "", phoneFromUrl || "");
-    }
-  }, [searchParams]);
+  const [isBillDialogOpen, setIsBillDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
 
   // Animation variants
   const containerVariants: Variants = {
@@ -292,6 +292,23 @@ function ApplicationProgressContent() {
       },
     },
   };
+
+  // No need for fetchBillDetails - BillPDFPreview handles data fetching
+
+  // Auto-search when ID or phone number is provided in URL (only for correction flow)
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    const phoneFromUrl = searchParams.get('phone');
+    const editId = searchParams.get('edit');
+    
+    // Only auto-search if coming from correction flow, not from landing page
+    if ((idFromUrl || phoneFromUrl) && !editId) {
+      if (idFromUrl) setApplicationId(idFromUrl);
+      if (phoneFromUrl) setPhoneNumber(phoneFromUrl);
+      // Trigger search automatically only for correction redirects
+      handleSearchWithId(idFromUrl || "", phoneFromUrl || "");
+    }
+  }, [searchParams]);
 
   const handleSearchWithId = async (searchId: string, searchPhone: string = "") => {
     if (!searchId.trim() && !searchPhone.trim()) {
@@ -561,7 +578,7 @@ function ApplicationProgressContent() {
           {!applicationData && !isLoading && (
             <div className="text-center py-8 px-4 w-full"> 
               <div className="flex justify-center mb-4">
-                <CircleQuestionMarkIcon className="h-16 w-16 text-slate-300" />
+                <FileSearch className="h-16 w-16 text-slate-300" />
               </div>
               <h3 className="text-lg font-medium text-slate-600 mb-2">Hali ya Ombi</h3>
               <p className="text-slate-500 max-w-md mx-auto text-center">
@@ -605,7 +622,7 @@ function ApplicationProgressContent() {
                             <TableCell>{applicationData.applicantName}</TableCell>
                             <TableCell>{applicationData.controlNumber}</TableCell>
                             <TableCell>{getStatusBadge(applicationData.status, applicationData.statusName)}</TableCell>
-                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsPassPreviewOpen)}</TableCell>
+                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsPassPreviewOpen, setIsBillDialogOpen, setIsReceiptDialogOpen)}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -622,6 +639,24 @@ function ApplicationProgressContent() {
                     handleSearchWithId(applicationId, phoneNumber);
                   }
                 }}
+              />
+              
+              {/* Bill PDF Preview */}
+              <BillPDFPreview
+                open={isBillDialogOpen}
+                onOpenChange={setIsBillDialogOpen}
+                controlNumber={applicationData?.controlNumber || null}
+                applicationId={applicationData?.id || ''}
+                applicantName={applicationData?.applicantName || ''}
+              />
+              
+              {/* Receipt PDF Preview */}
+              <ReceiptPDFPreview
+                open={isReceiptDialogOpen}
+                onOpenChange={setIsReceiptDialogOpen}
+                controlNumber={applicationData?.controlNumber || null}
+                applicationId={applicationData?.id || ''}
+                applicantName={applicationData?.applicantName || ''}
               />
               
               {applicationData.status === "returned_for_correction" && applicationData.corrections && (
