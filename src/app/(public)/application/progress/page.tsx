@@ -71,7 +71,6 @@ const getActionButtons = (
     if (applicationData && applicationData.controlNumber) {
       setIsBillDialogOpen(true);
     } else {
-      console.error('No control number available for this application');
     }
   };
   const handlePrintReceipt = (id: string) => {
@@ -79,7 +78,6 @@ const getActionButtons = (
     if (applicationData && applicationData.controlNumber) {
       setIsReceiptDialogOpen(true);
     } else {
-      console.error('No control number available for this application');
     }
   };
 

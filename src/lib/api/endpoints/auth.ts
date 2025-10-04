@@ -7,10 +7,7 @@ export const authEndpoints = {
   signin: async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/signin', { email, password });
-      console.log(response.data)
-      // Store tokens in localStorage
       if (response.data.data.authToken) {
-        console.log(response.data.data)
         setAuth(response.data.data);  
         localStorage.setItem('auth_token', response.data.data.authToken);
       }

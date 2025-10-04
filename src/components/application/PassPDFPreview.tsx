@@ -67,10 +67,7 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
   const fetchApplicationData = async (id: string) => {
     setIsLoading(true);
     try {
-      console.log(`Fetching application data for ID: ${id}`);
-      
-      // Call the API to get pass data
-      const response = await getApplicationPass(id);
+     const response = await getApplicationPass(id);
       
       if (response.ackCode === 1 && response.jsonResult) {
         // Convert API response to PassData format
@@ -79,20 +76,19 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
         if (passData) {
           setMockPassData(passData);
         } else {
-          console.error('Failed to convert pass data');
+         
         }
       } else {
-        console.error('Error fetching pass data:', response.ackMessage);
+       
       }
     } catch (error) {
-      console.error('Error fetching application data:', error);
+      
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleOpen = () => {
-    console.log('Opening Pass PDF preview...');
     if (isAppProps) {
       props.onOpenChange(true);
     } else {
@@ -101,7 +97,6 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
   };
 
   const handleClose = () => {
-    console.log('Closing Pass PDF preview...');
     if (isAppProps) {
       props.onOpenChange(false);
       // Refresh applications if needed
@@ -116,7 +111,6 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
   const generatePDFPreview = async () => {
     try {
       setIsLoading(true);
-      console.log('Generating Pass PDF preview...');
       
       // Check if jsPDF is available
       const jsPDF = (await import('jspdf')).default;
@@ -128,7 +122,6 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
       const currentPassData = isAppProps ? mockPassData : (props as DirectPassPDFPreviewProps).passData;
       
       if (!currentPassData) {
-        console.error('No pass data available');
         return;
       }
       
@@ -146,9 +139,8 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
       const pdfDataUrl = doc.output('datauristring');
       setPdfUrl(pdfDataUrl);
       
-      console.log('Pass PDF preview generated successfully');
     } catch (error) {
-      console.error('Error generating Pass PDF preview:', error);
+      
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +161,6 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
       const currentPassData = isAppProps ? mockPassData : (props as DirectPassPDFPreviewProps).passData;
       
       if (!currentPassData) {
-        console.error('No pass data available');
         return;
       }
       
@@ -187,7 +178,7 @@ const PassPDFPreview: React.FC<PassPDFPreviewProps> = (props) => {
       doc.save(`Migrant_Pass_${currentPassData.id}.pdf`);
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
+
     } finally {
       setIsLoading(false);
     }

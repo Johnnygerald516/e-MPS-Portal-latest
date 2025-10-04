@@ -3,19 +3,12 @@ import jsPDF from 'jspdf';
 
 export const generatePDF = async (element: HTMLElement, filename: string = 'document.pdf'): Promise<Blob> => {
   try {
-    console.log('Starting high-quality PDF generation for element:', element);
-    console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
-    
-    // Create a clone of the element to avoid modifying the original
-    // Use a safer cloning approach
     let clone: HTMLElement;
     try {
       // First try the standard cloning approach
       clone = element.cloneNode(true) as HTMLElement;
     } catch (cloneError) {
-      console.error('Error cloning element, using fallback method:', cloneError);
-      // Fallback: create a new div and copy the innerHTML
-      clone = document.createElement('div');
+    clone = document.createElement('div');
       clone.innerHTML = element.innerHTML;
     }
     
@@ -33,16 +26,13 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
       clone.style.padding = '0';
       clone.style.boxSizing = 'border-box';
     } catch (styleError) {
-      console.warn('Error applying styles to clone:', styleError);
-      // Continue anyway - some styles might have applied
-    }
+   }
     
     // Add the clone to the document body temporarily - with error handling
     try {
       document.body.appendChild(clone);
     } catch (appendError) {
-      console.error('Error appending clone to body:', appendError);
-      throw new Error('Could not append clone to document body: ' + appendError);
+     throw new Error('Could not append clone to document body: ' + appendError);
     }
     
     try {
@@ -66,20 +56,19 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
                   el.style.visibility = 'visible';
                   el.style.opacity = '1';
                 } catch (elementStyleError) {
-                  console.warn('Error applying styles to element:', elementStyleError);
+                 
                 }
               }
             });
           } catch (oncloneError) {
-            console.warn('Error in onclone function:', oncloneError);
+            
           }
         }
       }).catch(canvasError => {
-        console.error('html2canvas error:', canvasError);
         throw new Error('Failed to create canvas: ' + canvasError.message);
       });
       
-      console.log('Canvas created successfully:', canvas.width, 'x', canvas.height);
+      
 
       // A4 dimensions in mm
       const imgWidth = 210;
@@ -95,7 +84,6 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
           compress: true, // Enable compression for better compatibility
         });
       } catch (pdfError) {
-        console.error('Error creating PDF:', pdfError);
         throw new Error('Failed to create PDF document: ' + pdfError);
       }
       
@@ -104,18 +92,14 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
       try {
         // Use JPEG format for better compatibility
         imgData = canvas.toDataURL('image/jpeg', 0.95);
-        console.log('Image data generated successfully');
       } catch (imgError) {
-        console.error('Error generating image data:', imgError);
         throw new Error('Failed to generate image data: ' + imgError);
       }
 
       // Add image to PDF with error handling
       try {
         pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-        console.log('Image added to PDF successfully');
       } catch (addImageError) {
-        console.error('Error adding image to PDF:', addImageError);
         throw new Error('Failed to add image to PDF: ' + addImageError);
       }
 
@@ -128,14 +112,11 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
           author: 'Immigration Department'
         });
       } catch (propError) {
-        console.warn('Error setting PDF properties:', propError);
-        // Continue anyway - properties are not critical
-      }
+     }
 
       // Return as blob
       const blob = pdf.output('blob');
-      console.log('High-quality PDF blob created, size:', blob.size);
-      return blob;
+     return blob;
     } finally {
       // Remove the clone from the document
       if (clone.parentNode) {
@@ -143,7 +124,6 @@ export const generatePDF = async (element: HTMLElement, filename: string = 'docu
       }
     }
   } catch (error) {
-    console.error('Error generating PDF:', error);
     throw error;
   }
 };
@@ -164,8 +144,7 @@ export const downloadPDF = async (element: HTMLElement, filename: string = 'docu
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Error downloading PDF:', error);
-    throw error;
+   throw error;
   }
 };
 
@@ -197,7 +176,6 @@ export const openPDFInNewTab = async (element: HTMLElement, filename: string = '
       URL.revokeObjectURL(url);
     }, 30000);
   } catch (error) {
-    console.error('Error opening PDF:', error);
-    throw error;
+   throw error;
   }
 };

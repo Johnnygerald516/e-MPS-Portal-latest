@@ -43,9 +43,6 @@ export const chatService = {
         timestamp: new Date(data.timestamp || Date.now())
       };
     } catch (error) {
-      console.error('Error getting chat response:', error);
-      
-      // Return a fallback message
       return {
         id: 'error-' + Math.random().toString(36).substring(2, 10),
         content: 'Sorry, I had trouble processing that. Please try again.',

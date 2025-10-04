@@ -44,17 +44,30 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  // Store a reference to whether this is an initial render
+  const isInitialRender = React.useRef(true);
     
   // Effect to handle automatic navigation to the next tab when autoNavigateToNext is true
   useEffect(() => {
-    if (autoNavigateToNext && nextStep) {
+    // Only navigate if:
+    // 1. autoNavigateToNext is true
+    // 2. We have a next step to navigate to
+    // 3. The component is mounted
+    // 4. This is NOT the initial render (prevents navigation on page refresh)
+    if (autoNavigateToNext && nextStep && isMounted && !isInitialRender.current) {
+      // Keep the loading state active during navigation
+      // The loading state will be handled by the next page after navigation
       const timer = setTimeout(() => {
         router.push(nextStep.href);
       }, 300); // 300ms delay before navigation - faster response
       
       return () => clearTimeout(timer);
     }
-  }, [autoNavigateToNext, nextStep, router]);
+    
+    // After the first render, set isInitialRender to false
+    isInitialRender.current = false;
+  }, [autoNavigateToNext, nextStep, router, isMounted]);
   
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">

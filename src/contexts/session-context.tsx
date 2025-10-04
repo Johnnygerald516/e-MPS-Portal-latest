@@ -89,20 +89,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // Use the authEndpoints.refreshToken function to refresh the token
       const refreshToken = localStorage.getItem("refresh_token")
       if (!refreshToken) {
-        console.log("No refresh token available, skipping refresh")
-        return
+      return
       }
       
       // Call the auth endpoint to refresh the token
       await authEndpoints.refreshToken()
-      console.log("Token refreshed successfully")
-      
-      // Reset activity timer after successful token refresh
-      resetInactivityTimer()
+  resetInactivityTimer()
       
     } catch (error: any) {
-      console.error("Token refresh failed:", error)
-      // Only logout if it's a critical auth error, not network issues
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         logout()
         router.push("/")

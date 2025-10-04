@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import SessionProtection from "@/components/application/SessionProtection";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -94,13 +95,28 @@ type BasicInfoFormValues = z.infer<typeof basicInfoSchema>;
 
 export default function BasicInfoPage() {
   const router = useRouter();
-  const { formData, updateFormData, isLoading, setIsLoading, showError, showSuccess } = useApplication();
+  const { formData, updateFormData, showError, showSuccess } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  const [isSaveAndExitLoading, setIsSaveAndExitLoading] = useState(false);
+  const [isSaveAndContinueLoading, setIsSaveAndContinueLoading] = useState(false);
+
+  // Reset autoNavigateToNext when component mounts to prevent automatic navigation on page refresh
+  useEffect(() => {
+    setAutoNavigateToNext(false);
+  }, []);
+
+  // Effect to handle navigation when autoNavigateToNext becomes true
+  useEffect(() => {
+    if (autoNavigateToNext) {
+      // Navigate to the next page (residence-info)
+      router.push('/application/residence-info');
+    }
+  }, [autoNavigateToNext, router]);
+
   // No need for verification dialog state
   
   // Get applicationId from context only
   const applicationId = formData.applicationId || '';
-  
   
   // Gender options
   const genderOptions = [
@@ -136,9 +152,9 @@ export default function BasicInfoPage() {
       lastName: data.lastName || '',
       dateOfBirth: data.dateOfBirth || '',
       gender: ensureValidGender(data.gender), // Use the ensureValidGender helper
-      maritalStatusId: data.maritalStatusId || 0,
-      nationality: data.nationality || 'Tanzania',
-      occupationId: data.occupationId || 0,
+      maritalStatusId: data.maritalStatusId,
+      nationality: data.nationality,
+      occupationId: data.occupationId,
       email: data.email || '',
       phoneNumber: data.phoneNumber || data.mobileNumber || ''
     };
@@ -358,6 +374,36 @@ export default function BasicInfoPage() {
     }
   };
   
+  // Helper function to ensure date is in the correct format for the API
+  const formatDateForApi = (dateValue: string | Date | undefined): string => {
+    if (!dateValue) return '';
+    
+    try {
+      // If it's already a valid ISO string (YYYY-MM-DD), use it directly
+      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue;
+      }
+      
+      // If it's a Date object or another format, convert to YYYY-MM-DD
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+    }
+    
+    return typeof dateValue === 'string' ? dateValue : '';
+  };
+  
+  // Get verification data from localStorage as fallback
+  let verificationDob = '';
+  let verificationPhone = '';
+  try {
+    const rawVerificationDob = localStorage.getItem('verification_dob') || '';
+    verificationDob = formatDateForApi(rawVerificationDob);
+    verificationPhone = localStorage.getItem('verification_phone') || '';
+  } catch (e) {}
+  
   // Initialize form with React Hook Form and Zod validation
   const form = useForm<BasicInfoFormValues>({
     resolver: zodResolver(basicInfoSchema),
@@ -366,9 +412,9 @@ export default function BasicInfoPage() {
       middleName: formData.middleName || '',
       surname: formData.surname || '',
       otherName: formData.otherName || '',
-      gender: undefined, // Set to undefined to show placeholder
-      // Use the date of birth directly from context
-      dateOfBirth: formData.dateOfBirth || '',
+      gender: formData.gender || undefined, // Set to undefined to show placeholder
+      // Use the date of birth with priority: context > localStorage > empty
+      dateOfBirth: formData.dateOfBirth || verificationDob || '',
       birthCountry: formData.birthCountry || 0,
       birthCountryName: formData.birthCountryName || '',
       birthRegion: formData.birthRegion || 0,
@@ -380,28 +426,51 @@ export default function BasicInfoPage() {
       occupation: formData.occupation || '',
       occupationId: formData.occupationId || 0,
       occupationDescription: formData.occupationDescription || '',
-      mobileNumber: formData.mobileNumber || '',
-    },
+      // Use the phone number with priority: context > localStorage > empty
+      mobileNumber: formData.phoneNumber || formData.mobileNumber || verificationPhone || ''
+    }
   });
-  
+
   useEffect(() => {
+    // Priority for phone number: 
+    // 1. formData from context (from verification dialog)
+    // 2. verification_phone from localStorage
+    // 3. user_phone from localStorage
     try {
-      const phoneNumber = localStorage.getItem('user_phone');
-      if (phoneNumber) {
-        form.setValue('mobileNumber', phoneNumber);
+      if (formData.phoneNumber || formData.mobileNumber) {
+        // Use phone number from context (set by verification dialog)
+        form.setValue('mobileNumber', formData.phoneNumber || formData.mobileNumber);
+      } else {
+        // Try localStorage values as fallback
+        const verificationPhone = localStorage.getItem('verification_phone');
+        const userPhone = localStorage.getItem('user_phone');
+        
+        if (verificationPhone) {
+          form.setValue('mobileNumber', verificationPhone);
+        } else if (userPhone) {
+          form.setValue('mobileNumber', userPhone);
+        }
       }
     } catch (e) {}
     
+    // Priority for date of birth:
+    // 1. formData from context (from verification dialog)
+    // 2. verification_dob from localStorage
     try {
-      const verificationDob = localStorage.getItem('verification_dob');
-      if (verificationDob) {
-        form.setValue('dateOfBirth', verificationDob);
-      } else if (formData.dateOfBirth) {
-         form.setValue('dateOfBirth', formData.dateOfBirth);
+      if (formData.dateOfBirth) {
+        // Use date of birth from context (set by verification dialog)
+        // Format it properly for the form
+        const formattedDob = formatDateForApi(formData.dateOfBirth);
+        form.setValue('dateOfBirth', formattedDob);
+      } else {
+        // Try localStorage value as fallback
+        const rawVerificationDob = localStorage.getItem('verification_dob');
+        if (rawVerificationDob) {
+          const formattedDob = formatDateForApi(rawVerificationDob);
+          form.setValue('dateOfBirth', formattedDob);
+        }
       }
-    } catch (e) {
-     
-    }
+    } catch (e) {}
     
     const occupationTypeId = form.getValues().occupationTypeId;
     if (occupationTypeId) {
@@ -500,7 +569,7 @@ export default function BasicInfoPage() {
   
   // Handle save and exit
   const handleSaveAndExit = async () => {
-    setIsLoading(true);
+    setIsSaveAndExitLoading(true);
     try {
       const formValues = form.getValues();
       const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);
@@ -550,26 +619,26 @@ export default function BasicInfoPage() {
       if (response.ackCode === 1) {
         // Success - show success message
         showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
-        setIsLoading(false);
+        setIsSaveAndExitLoading(false);
         // Navigate to landing page
         router.push('/');
       } else {
         // Handle error
         showError(response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
-        setIsLoading(false);
+        setIsSaveAndExitLoading(false);
       }
     } catch (error: any) {
       showError(error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
-      setIsLoading(false);
+      setIsSaveAndExitLoading(false);
     }
   };
   
   // Handle form submission
   const onSubmit = async (formValues: BasicInfoFormValues) => {
-    setIsLoading(true);
+    setIsSaveAndContinueLoading(true);
     try {
-       const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);        
-     const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);      
+      const selectedMaritalStatus = maritalStatusOptions.find(opt => opt.value === formValues.maritalStatus);        
+      const selectedOccupationType = occupationTypeOptions.find(opt => opt.value === formValues.occupationType);      
       const selectedOccupation = occupationOptions.find(opt => opt.value === formValues.occupation);
       const dateOfBirthValue = formValues.dateOfBirth;
       try {
@@ -596,13 +665,14 @@ export default function BasicInfoPage() {
         //email: formData.email || '', // Get from formData or empty string
         phoneNumber: formValues.mobileNumber // Use mobileNumber as phoneNumber
       } as const;
-           const payload = preparePersonalInfoPayload({ ...data, applicationId });
+      const payload = preparePersonalInfoPayload({ ...data, applicationId });
         
       // Create a properly typed object for updateFormData
       const formDataUpdate: Partial<ApplicationFormData> = {
         ...data,
         applicationId: payload.applicationId,
         gender: payload.gender, // This is now properly typed as Gender
+        currentStep: 30, // Update to residence-info step
       };
       
       updateFormData(formDataUpdate);
@@ -612,32 +682,30 @@ export default function BasicInfoPage() {
       
       if (response.ackCode === 1) {
         showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
-        setIsLoading(false);
+        setIsSaveAndContinueLoading(false);
         setAutoNavigateToNext(true);
       } else {
         showError(response.ackMessage || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
-        setIsLoading(false);
+        setIsSaveAndContinueLoading(false);
       }
     } catch (error: any) {
       showError(error.message || "Kuna hitilafu imetokea wakati wa kuhifadhi taarifa zako");
     } finally {
-      setIsLoading(false);
+      setIsSaveAndContinueLoading(false);
     }
   };
   
   // No verification dialog handlers needed
 
   return (
-    <ApplicationLayout 
-      title="Taarifa Binafsi" 
-      subtitle="Taarifa zako binafsi"
-      applicationId={applicationId}
-      currentStep="habari-binafsi"
-      autoNavigateToNext={autoNavigateToNext}
-    >
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <ApplicationLayout 
+        title="Taarifa Binafsi" 
+        subtitle="Tafadhali jaza taarifa zako Binafsi"
+        currentStep="taarifa-za-msingi"
+        applicationId={applicationId}
+      >  
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Taarifa Binafsi Section */}
           <div className="mb-">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1050,9 +1118,9 @@ export default function BasicInfoPage() {
                     <FormControl>
                       <Input 
                         {...field}
-                        className="border border-gray-300 rounded px-3 py-2 w-full bg-gray-50"
-                        disabled={true}
-                        readOnly={true}
+                        className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none"
+                        disabled={false}
+                        readOnly={false}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1067,7 +1135,7 @@ export default function BasicInfoPage() {
               type="button" 
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
               onClick={handleSaveAndExit}
-              isLoading={isLoading}
+              isLoading={isSaveAndExitLoading}
               loadingText="Inaendelea..."
               spinnerVariant="secondary"
             >
@@ -1076,7 +1144,7 @@ export default function BasicInfoPage() {
             </LoadingButton>
             <LoadingButton 
               type="submit" 
-              isLoading={isLoading}
+              isLoading={isSaveAndContinueLoading}
               loadingText="Inaendelea..."
               spinnerVariant="primary"
               className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"

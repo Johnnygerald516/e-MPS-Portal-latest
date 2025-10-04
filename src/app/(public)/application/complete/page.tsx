@@ -327,10 +327,10 @@ function ApplicationCompleteContent(): React.ReactNode {
                 </div>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Hongera! Maombi Yako Yamefanikiwa</h2>
-                <p className="text-gray-600 mt-2">
+                <h2 className="text-xl font-bold text-gray-800">Hongera! Maombi Yako Yamefanikiwa</h2>
+                {/* <p className="text-gray-600 mt-2">
                   {submissionMessage || 'Maombi yako yamewasilishwa kwa mafanikio na yatashughulikiwa hivi karibuni.'}
-                </p>
+                </p> */}
               </div>
             </>
           {/* )} */}
@@ -353,7 +353,7 @@ function ApplicationCompleteContent(): React.ReactNode {
         </div>
 
         {/* Application Details Card */}
-        <Card className="border border-gray-200 shadow-sm">
+        {/* <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Maelezo ya Maombi</h3>
@@ -381,10 +381,10 @@ function ApplicationCompleteContent(): React.ReactNode {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Action Buttons */}
-        <div className="flex justify-center space-x-6">
+        <div className="flex justify-center space-x-6 border-t border-gray-200 pt-4">
           {/* Preview Form Button */}
           <PDFPreview 
             formData={migrantFormData}

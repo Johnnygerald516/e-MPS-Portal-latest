@@ -148,23 +148,17 @@ export async function POST(
     
     // Transform the payload to match what the API expects
     const transformedBody = {
-      wardResidenceId: body.wardId || 0,
+      wardResidenceId: body.wardResidenceId || 0,
       streetName: body.streetName || '',
-      phoneNo: body.phoneNumber || '',
-      houseNo: body.houseNumber || '',
-      plotNo: body.plotNumber || '',
+      phoneNo: body.phoneNo || '',
+      houseNo: body.houseNo || '',
+      plotNo: body.plotNo || '',
       countryOfOriginId: body.countryOfOriginId || 0,
       nationalityId: body.nationalityId || 0,
       dateOfEntry: body.dateOfEntry || ''
     };
     
-    // Remove any fields that might be in the original request but shouldn't be sent to the API
-    delete body.applicationId; // This is already in the URL
-    delete body.wardId;
-    delete body.phoneNumber;
-    delete body.houseNumber;
-    delete body.plotNumber;
-    
+    // Log the transformed payload
     console.log('Transformed request body:', transformedBody);
 
     // Forward the request to the external API

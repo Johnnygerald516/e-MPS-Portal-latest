@@ -67,7 +67,7 @@ interface DocumentType {
   id: string;
   name: string;
   description: string;
-  status: "pending" | "uploading" | "uploaded" ;
+  status: "pending" | "uploading" | "uploaded" | "approved" | "rejected";
   required: boolean;
 }
 
@@ -86,6 +86,11 @@ export default function DocumentsPage() {
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  
+  // Reset autoNavigateToNext when component mounts to prevent automatic navigation on page refresh
+  useEffect(() => {
+    setAutoNavigateToNext(false);
+  }, []);
   
   // Get applicationId from context
   const applicationId = formData.applicationId || '';
@@ -261,10 +266,23 @@ export default function DocumentsPage() {
   
   // Check if all required documents are uploaded
   const checkAllDocumentsUploaded = () => {
+    // Count documents with 'uploaded' or 'approved' status
+    const uploadedDocs = documents.filter(doc => doc.status === "uploaded" || doc.status === "approved");
+    
+    // Get required documents
     const requiredDocuments = documents.filter(doc => doc.required);
-    const allUploaded = requiredDocuments.every(doc => doc.status === "uploaded");
-    setAllDocumentsUploaded(allUploaded);
-    return allUploaded;
+    
+    // Check if all required documents are uploaded or approved
+    const allRequiredUploaded = requiredDocuments.every(doc => 
+      doc.status === "uploaded" || doc.status === "approved"
+    );
+    
+    // Check if at least 4 documents are uploaded, including applicant photo
+    const validation = validateDocumentRequirements();
+    const result = validation.isValid;
+    
+    setAllDocumentsUploaded(result);
+    return result;
   };
   
   // Effect to check document status whenever documents change
@@ -313,11 +331,11 @@ export default function DocumentsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"><Clock className="h-3 w-3" /> Bado</Badge>;
       case "uploading":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Inapakia...</Badge>;
       case "uploaded":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Uploaded</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Inapakia</Badge>;
      default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -385,8 +403,55 @@ export default function DocumentsPage() {
     }
   };
   
+  // Check if validation requirements are met (at least 4 files including applicant photo)
+  const validateDocumentRequirements = () => {
+    // Get the uploaded documents from the documents state - include both 'uploaded' and 'approved' status
+    const uploadedDocuments = documents.filter((doc: DocumentType) => doc.status === "uploaded" || doc.status === "approved");
+    const uploadedCount = uploadedDocuments.length;
+    
+    // Check if applicant photo is uploaded - ID 1 is typically the applicant photo
+    // Include both 'uploaded' and 'approved' status for the photo
+    const applicantPhotoUploaded = documents.some(
+      (doc: DocumentType) => doc.id === "1" && (doc.status === "uploaded" || doc.status === "approved")
+    );
+    
+    // Return validation result with appropriate error message
+    if (uploadedCount < 4 && !applicantPhotoUploaded) {
+      // Both requirements are missing
+      return { isValid: false, message: "Tafadhali pakia angalau nyaraka 4 ikiwemo picha ya muombaji" };
+    } else if (uploadedCount < 4) {
+      // Not enough documents
+      return { isValid: false, message: "Tafadhali pakia angalau nyaraka 4 (ikiwemo picha ya muombaji)" };
+    } else if (!applicantPhotoUploaded) {
+      // Enough documents but no applicant photo
+      return { isValid: false, message: "Picha ya muombaji ni lazima iwe miongoni mwa nyaraka zilizopakiwa" };
+    }
+    
+    return { isValid: true, message: "" };
+  };
+
   // Direct navigation function for the continue button
   const handleContinue = async () => {
+    // First validate document requirements
+    const validation = validateDocumentRequirements();
+    
+    if (!validation.isValid) {
+      // Show error message if validation fails
+      toast({
+        title: "Taarifa Hazijatosheleza",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return; // Stop execution if validation fails
+    }
+    
+    // Show success message only if validation passes
+    toast({
+      title: "Mafanikio",
+      description: "Nyaraka zimehifadhiwa kikamilifu",
+      variant: "default",
+    });
+    
     setIsLoading(true);
     try {
       const data = form.getValues();
@@ -407,45 +472,58 @@ export default function DocumentsPage() {
         const responseData = await response.json();
         
         if (responseData.ackCode === 1) {
-          // Navigate to the declaration page without URL parameters
-          router.push('/application/declaration');
+          // Show success message
+          toast({
+            title: "Mafanikio",
+            description: "Nyaraka zimehifadhiwa kikamilifu",
+            variant: "default",
+          });
+          
+          // Set autoNavigateToNext to true to trigger automatic navigation in ApplicationLayout
+          // Important: Don't set isLoading to false here, let the navigation complete first
+          setAutoNavigateToNext(true);
           return;
         }
       }
       
-      // If API call fails or returns non-success code, still navigate to declaration page
+      // If API call succeeds, navigate to declaration page
       router.push('/application/declaration');
+      // Don't set isLoading to false here, let the navigation complete first
     } catch (error) {
-      toast({
-        title: "Taarifa",
-        description: "Kunaendelea kwenye ukurasa unaofuata...",
-        variant: "outline-blue",
-      });
-      // Even if there's an error, still navigate to declaration page
-      router.push('/application/declaration');
-    } finally {
+      // If there's an error, set isLoading to false and show error message
       setIsLoading(false);
+      toast({
+        title: "Hitilafu",
+        description: "Samahani, kuna hitilafu imetokea. Tafadhali jaribu tena.",
+        variant: "destructive",
+      });
     }
   };
 
   // Handle form submission
   const onSubmit = async (data: DocumentsFormValues) => {
+    // First validate document requirements
+    const validation = validateDocumentRequirements();
+    
+    if (!validation.isValid) {
+      // Show error message if validation fails
+      toast({
+        title: "Taarifa Hazijatosheleza",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return; // Stop execution if validation fails
+    }
+    
     try {
       setIsLoading(true);
       
-      // No longer validating if all documents are uploaded
-      // Just show an informational message if some documents are missing
-      const missingDocuments = documents
-        .filter(doc => doc.required && doc.status !== "uploaded")
-        .map(doc => doc.name);
-      
-      if (missingDocuments.length > 0) {
-        toast({
-          title: "Taarifa",
-          description: `Unaendelea bila kupakia nyaraka zifuatazo: ${missingDocuments.join(', ')}`,
-          variant: "outline-blue",
-        });
-      }
+      // Show success message only if validation passes
+      toast({
+        title: "Mafanikio",
+        description: "Nyaraka zimehifadhiwa kikamilifu",
+        variant: "default",
+      });
       
       // Create document uploads object for form data
       const documentUploads = {
@@ -457,6 +535,7 @@ export default function DocumentsPage() {
       
       // Update global form data with type casting to allow documentUploads
       updateFormData({
+        currentStep: 70, // Update to declaration step
         ...formData,
         ...data,
         documentUploads
@@ -477,19 +556,30 @@ export default function DocumentsPage() {
             const responseData = await response.json();
             
             if (responseData.ackCode === 1) {
+              // Show success message
+              toast({
+                title: "Mafanikio",
+                description: "Nyaraka zimehifadhiwa kikamilifu",
+                variant: "default",
+              });
+              
               // If there's a redirect URL in the response, navigate to it
               if (responseData.jsonResult?.redirectUrl) {
                 router.push(responseData.jsonResult.redirectUrl);
                 return;
               }
+              
+              // Set autoNavigateToNext to true to trigger automatic navigation in ApplicationLayout
+              setAutoNavigateToNext(true);
+              return;
             }
           } 
         } catch (error) {
+          // Continue with default navigation even if there's an error
         }
       }
 
-      // Set autoNavigateToNext to true to trigger automatic navigation
-      setIsLoading(false);
+      // Set autoNavigateToNext to true to trigger automatic navigation in ApplicationLayout
       setAutoNavigateToNext(true);
     } catch (error) {
       toast({
@@ -497,15 +587,15 @@ export default function DocumentsPage() {
         description: "Samahani, kuna hitilafu imetokea wakati wa kuwasilisha nyaraka zako. Tafadhali jaribu tena.",
         variant: "destructive",
       });
-    } finally {
+      // Only set isLoading to false if there's an error and we're not navigating
       setIsLoading(false);
     }
   };
   
   return (
-    <ApplicationLayout 
-      title="Nyaraka za Maombi" 
-      subtitle="Tafadhali pakia nyaraka zote zinazohitajika kwa ajili ya maombi yako."
+      <ApplicationLayout 
+        title="Nyaraka za Maombi" 
+        subtitle="Tafadhali pakia nyaraka zote zinazohitajika kwa ajili ya maombi yako."
       applicationId={applicationId}
       currentStep="viambatanisho"
       autoNavigateToNext={autoNavigateToNext}
@@ -532,8 +622,8 @@ export default function DocumentsPage() {
 
           <div className="mt-8 p-4 rounded-md border border-slate-100 shadow-sm">
             <div className="flex items-center justify-between mb-4 border-b pb-2">
-              <h2 className="text-lg font-medium text-slate-800">Required Documents</h2>
-              <p className="text-sm text-slate-500">Please upload all required documents</p>
+              <h2 className="text-lg font-medium text-slate-800">Nyaraka Muhimu</h2>
+              <p className="text-sm text-slate-500">Tafadhali pakia nyaraka zote muhimu.</p>
             </div>
             
             {/* Document upload instructions */}
@@ -559,8 +649,27 @@ export default function DocumentsPage() {
                 <DocumentsTable 
                   applicationId={applicationId} 
                   onNextStageAvailable={(stageId) => setNextStageId(stageId)}
-                  onDocumentsStatusChange={(allUploaded) => {
-                    setAllDocumentsUploaded(allUploaded);
+                  onDocumentsStatusChange={(updatedDocuments) => {
+                    // Update the documents state with the latest documents from the table
+                    if (updatedDocuments && updatedDocuments.length > 0) {
+                      // Convert the document format if needed
+                      const formattedDocuments = updatedDocuments.map(doc => ({
+                        id: doc.id,
+                        name: doc.name,
+                        description: doc.description,
+                        status: doc.status,
+                        required: true
+                      }));
+                      
+                      setDocuments(formattedDocuments);
+                      
+                      // Check if all required documents are uploaded
+                      // We need to do this after setting the documents state
+                      setTimeout(() => {
+                        const validation = validateDocumentRequirements();
+                        setAllDocumentsUploaded(validation.isValid);
+                      }, 0);
+                    }
                   }}
                 />
               </Suspense>
@@ -568,7 +677,9 @@ export default function DocumentsPage() {
             
             {/* Upload Dialog */}
             <Suspense fallback={null}>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                if (!open) setIsDialogOpen(false);
+              }}>
                 <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Upload {selectedDocument?.name}</DialogTitle>
@@ -647,7 +758,7 @@ export default function DocumentsPage() {
                 type="button" 
                 className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
                 onClick={handleContinue}
-                disabled={false} /* Removed validation to allow proceeding without all documents */
+                disabled={isLoading}
                 isLoading={isLoading}
                 loadingText="Inaendelea..."
                 spinnerVariant="primary"

@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { z } from "zod";
-import { CalendarIcon, User, ArrowRight, Loader2 } from "lucide-react";
+import { CalendarIcon, User, ArrowRight, Loader2, Save } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useApplication } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
+import { personalInfoEndpoints } from "@/lib/api/endpoints/personal-info";
+import { useToast } from "@/components/ui/use-toast";
 
 // Form validation schema
 const personalInfoSchema = z.object({
@@ -37,6 +39,8 @@ type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 export default function PersonalInfoPage() {
   const router = useRouter();
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
+  const { toast } = useToast();
+  const [isExiting, setIsExiting] = useState(false);
   
   // Initialize form with React Hook Form and Zod validation
   const form = useForm<PersonalInfoFormValues>({
@@ -47,20 +51,100 @@ export default function PersonalInfoPage() {
       lastName: formData.lastName,
       dateOfBirth: typeof formData.dateOfBirth === 'string' ? new Date(formData.dateOfBirth) : formData.dateOfBirth,
       gender: formData.gender as "M" | "F" | undefined,
-      nationality: formData.nationality,
+      nationality: formData.nationality || "Tanzania",
     },
   });
   
+  // Prepare data for API submission
+  const preparePersonalInfoPayload = (data: PersonalInfoFormValues) => {
+    // Format date to YYYY-MM-DD string format
+    const formatDate = (date: Date | undefined): string => {
+      if (!date) return '';
+      return date.toISOString().split('T')[0];
+    };
+
+    return {
+      applicationId: formData.applicationId || '',
+      firstName: data.firstName,
+      middleName: data.middleName || '',
+      lastName: data.lastName,
+      dateOfBirth: formatDate(data.dateOfBirth),
+      gender: data.gender || '',
+      maritalStatusId: formData.maritalStatusId || 0,
+      nationality: data.nationality || 'Tanzania',
+      occupationId: formData.occupationId || 0,
+      email: formData.email || '',
+      phoneNumber: formData.phoneNumber || formData.mobileNumber || ''
+    };
+  };
+
+  // Handle save and exit
+  const handleSaveAndExit = async () => {
+    try {
+      setIsExiting(true);
+      const data = form.getValues();
+      updateFormData(data);
+      
+      const apiPayload = preparePersonalInfoPayload(data);
+      const response = await personalInfoEndpoints.savePersonalInfo(apiPayload);
+      
+      if (response.ackCode === 1) {
+        toast({
+          title: "Success",
+          description: "Personal information saved successfully",
+          variant: "default"
+        });
+        router.push('/');
+      } else {
+        toast({
+          title: "Error",
+          description: response.ackMessage || "Failed to save personal information",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExiting(false);
+    }
+  };
+
   // Handle form submission
-  const onSubmit: SubmitHandler<PersonalInfoFormValues> = (data) => {
-    setIsLoading(true);
-    updateFormData(data);
-    
-    // Simulate API call
-    setTimeout(() => {
-      router.push("/application/residence-info");
+  const onSubmit: SubmitHandler<PersonalInfoFormValues> = async (data) => {
+    try {
+      setIsLoading(true);
+      updateFormData(data);
+      
+      const apiPayload = preparePersonalInfoPayload(data);
+      const response = await personalInfoEndpoints.savePersonalInfo(apiPayload);
+      
+      if (response.ackCode === 1) {
+        toast({
+          title: "Success",
+          description: "Personal information saved successfully",
+          variant: "default"
+        });
+        router.push("/application/residence-info");
+      } else {
+        toast({
+          title: "Error",
+          description: response.ackMessage || "Failed to save personal information",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
   
   return (
@@ -150,7 +234,6 @@ export default function PersonalInfoPage() {
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
@@ -215,10 +298,22 @@ export default function PersonalInfoPage() {
             )}
           />
           
-          <div className="pt-4 mt-4 border-t border-slate-100">
+          <div className="pt-4 mt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+            <LoadingButton 
+              type="button" 
+              className="bg-gray-500 hover:bg-gray-600 text-white flex items-center justify-center"
+              isLoading={isExiting}
+              loadingText="Inahifadhi..."
+              spinnerVariant="primary"
+              onClick={handleSaveAndExit}
+            >
+              Hifadhi na Toka
+              <Save className="ml-2 h-4 w-4" />
+            </LoadingButton>
+            
             <LoadingButton 
               type="submit" 
-              className="bg-blue-500 hover:bg-blue-600 text-white flex items-center w-full justify-center"
+              className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center flex-1"
               isLoading={isLoading}
               loadingText="Inaendelea..."
               spinnerVariant="primary"

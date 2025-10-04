@@ -6,7 +6,7 @@ const nextConfig = {
   },
   async headers() {
     // Get API URL from environment variable or use fallback
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://10.6.0.167:3300';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     console.log('Using API URL in headers:', apiUrl);
     
     return [
@@ -25,7 +25,7 @@ const nextConfig = {
   // Add API proxy configuration
   async rewrites() {
     // Get API URL from environment variable or use fallback
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://10.6.0.167:3300';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     console.log('Using API URL in rewrites:', apiUrl);
     
     return [

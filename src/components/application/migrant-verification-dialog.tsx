@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Search, Loader2, CheckCircle } from "lucide-react";
 import { verificationEndpoints } from "@/lib/api";
 import { useApplication } from "@/contexts/application-context";
+// Session management removed
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,28 @@ export default function MigrantVerificationDialog({
   const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [applicationId, setApplicationId] = useState("");
   
+  // Helper function to format date to YYYY-MM-DD format for API and storage
+  const formatDateForApi = (dateValue: string): string => {
+    if (!dateValue) return '';
+    
+    try {
+      // If it's already a valid ISO string (YYYY-MM-DD), use it directly
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue;
+      }
+      
+      // Convert to Date object and then to YYYY-MM-DD format
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      // If parsing fails, return original value
+    }
+    
+    return dateValue;
+  };
+
   const handleSearch = async () => {
     // Reset errors
     setError("");
@@ -98,10 +121,13 @@ export default function MigrantVerificationDialog({
       // Show first loading stage
       setError("Inathibitisha taarifa...");
       
+      // Format the date of birth for API
+      const formattedDateOfBirth = dateOfBirth.trim() ? formatDateForApi(dateOfBirth.trim()) : "";
+      
       // Prepare payload for API
       const payload = {
         subjectId: subjectId.trim(),
-        dateOfBirth: dateOfBirth.trim(),
+        dateOfBirth: formattedDateOfBirth,
         phoneNumber: phoneNumber.trim(),
         applicationTypeId: applicationTypeId
       };
@@ -112,13 +138,36 @@ export default function MigrantVerificationDialog({
         // Use the correct property name (applicationID instead of applicationId)
         const appId = response.jsonResult?.applicationID || response.applicationId || '';
         setApplicationId(appId);
-         updateFormData({
+        
+        // Session management removed
+        
+        // Format the date of birth for API and storage
+        const formattedDateOfBirth = dateOfBirth ? formatDateForApi(dateOfBirth) : "";
+        
+        // Update application context with all relevant information
+        updateFormData({
           applicationId: appId,
-          // Also save other relevant information
+          // Save application type
           applicationType: applicationTypeId === 1 ? "new" : "renew",
-          // Store phone number if available
-          mobileNumber: response.jsonResult?.phoneNo || phoneNumber || ""
+          // Store phone number from verification
+          mobileNumber: response.jsonResult?.phoneNo || phoneNumber || "",
+          phoneNumber: response.jsonResult?.phoneNo || phoneNumber || "",
+          // Store formatted date of birth from verification if available
+          dateOfBirth: formattedDateOfBirth,
+          currentStep: 20 // Set to basic-info step
         });
+        
+        // Also store these values in localStorage for backup
+        try {
+          if (phoneNumber) {
+            localStorage.setItem('verification_phone', phoneNumber);
+          }
+          if (formattedDateOfBirth) {
+            localStorage.setItem('verification_dob', formattedDateOfBirth);
+          }
+        } catch (e) {
+          // Ignore localStorage errors
+        }
       } else {
         setError(`Uthibitisho umeshindikana: ${response.ackMessage}`);
       }
@@ -154,14 +203,33 @@ export default function MigrantVerificationDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        onClose();
-        // Reset form when dialog is closed
-        handleReset();
-      }
-    }}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+          // Reset form when dialog is closed
+          handleReset();
+        }
+      }}
+      modal={true}
+    >
+      <DialogContent 
+        className="sm:max-w-md"
+        onEscapeKeyDown={(e) => {
+          // Prevent closing when pressing escape key
+          e.preventDefault();
+        }}
+        onPointerDownOutside={(e) => {
+          // Prevent closing when clicking outside
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          // Prevent any interaction outside the dialog
+          e.preventDefault();
+        }}
+        showCloseButton={false}
+      >
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-semibold text-blue-700">Uthibitisho wa Usajili</DialogTitle>
           <DialogDescription className="text-center">

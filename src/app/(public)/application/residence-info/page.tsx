@@ -429,6 +429,8 @@ export default function ResidenceInfoPage() {
       
       // Process date of entry - handle both string and Date formats
       let dateOfEntry: string;
+      const currentDate = new Date();
+      
       if (formValues.dateOfEntry) {
         // If it's already a valid ISO string (YYYY-MM-DD), use it directly
         if (typeof formValues.dateOfEntry === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(formValues.dateOfEntry)) {
@@ -442,22 +444,18 @@ export default function ResidenceInfoPage() {
             if (!isNaN(parsedDate.getTime())) {
               // Format it as YYYY-MM-DD
               dateOfEntry = parsedDate.toISOString().split('T')[0];
-            } 
-          
-            else {
+            } else {
               // Fallback to current date
-              const currentDate = new Date();
               dateOfEntry = currentDate.toISOString().split('T')[0];
-           }
-           
+            }
           } catch (e) {
-            // If parsing fails, leave it empty
-            dateOfEntry = '';
+            // If parsing fails, use current date
+            dateOfEntry = currentDate.toISOString().split('T')[0];
           }
         }
       } else {
-        // If no date provided, leave it empty
-        dateOfEntry = '';
+        // If no date provided, use current date
+        dateOfEntry = currentDate.toISOString().split('T')[0];
       }
       
       const data = {
@@ -475,14 +473,13 @@ export default function ResidenceInfoPage() {
       // Prepare the payload with the exact field names expected by the API
       const residencePayload = {
         applicationId: applicationId,
-        // Use the exact field names expected by the API
-        wardResidenceId: Number(data.wardId) || 0,  // Changed from wardId
+        wardResidenceId: Number(data.wardId),
         streetName: String(data.street || ''),
-        phoneNo: String(data.phoneNumber || ''),     // Changed from phoneNumber
-        houseNo: String(data.houseNumber || ''),     // Changed from houseNumber
-        plotNo: String(data.plotNumber || ''),       // Changed from plotNumber
-        countryOfOriginId: Number(data.countryOfOriginId) || 0,
-        nationalityId: Number(data.residenceNationalityId) || 0,
+        phoneNo: String(data.phoneNumber || ''),
+        houseNo: String(data.houseNumber || ''),
+        plotNo: String(data.plotNumber || ''),
+        countryOfOriginId: Number(data.countryOfOriginId),
+        nationalityId: Number(data.residenceNationalityId),
         dateOfEntry: dateOfEntry
       };
       
@@ -554,15 +551,16 @@ export default function ResidenceInfoPage() {
               dateOfEntry = currentDate.toISOString().split('T')[0];
             }
           } catch (e) {
-            // If parsing fails, leave it empty
-            dateOfEntry = '';
+            // If parsing fails, use current date
+            dateOfEntry = currentDate.toISOString().split('T')[0];
           }
         }
       } else {
-        // If no date provided, leave it empty
-        dateOfEntry = '';
+        // If no date provided, use current date
+        dateOfEntry = currentDate.toISOString().split('T')[0];
       }
       
+      // Store form values in a data object with proper type conversions
       const data = {
         ...formValues,
         dateOfEntry: dateOfEntry,
@@ -575,30 +573,21 @@ export default function ResidenceInfoPage() {
         countryOfOriginId: ensureValidId(formValues.countryOfOriginId),
       };
       
+      // Update form data in context
+      updateFormData(data);
+      
       // Prepare the payload with the exact field names expected by the API
       const residencePayload = {
         applicationId: applicationId,
-        // Use the exact field names expected by the API
-        wardResidenceId: Number(data.wardId) || 0,  // Changed from wardId
+        wardResidenceId: Number(data.wardId) || 0,
         streetName: String(data.street || ''),
-        phoneNo: String(data.phoneNumber || ''),     // Changed from phoneNumber
-        houseNo: String(data.houseNumber || ''),     // Changed from houseNumber
-        plotNo: String(data.plotNumber || ''),       // Changed from plotNumber
-        countryOfOriginId: Number(data.countryOfOriginId) || 0,
-        nationalityId: Number(data.residenceNationalityId) || 0,
-        dateOfEntry: dateOfEntry
-      };
-      
-      // Store additional data for logging purposes (keeping this for reference)
-      const additionalData = {
         phoneNo: String(data.phoneNumber || ''),
+        houseNo: String(data.houseNumber || ''),
         plotNo: String(data.plotNumber || ''),
         countryOfOriginId: Number(data.countryOfOriginId) || 0,
         nationalityId: Number(data.residenceNationalityId) || 0,
         dateOfEntry: dateOfEntry
       };
-      
-      updateFormData(data);
       
       // Call the API to save residence info
       const response = await residenceInfoEndpoints.saveResidenceInfo(residencePayload);
@@ -629,9 +618,9 @@ export default function ResidenceInfoPage() {
   };
   
   return (
-    <ApplicationLayout 
-      title="Anuwani ya Makazi" 
-      subtitle="Taarifa za makazi yako ya sasa"
+      <ApplicationLayout 
+        title="Anuwani ya Makazi" 
+        subtitle="Taarifa za makazi yako ya sasa"
       applicationId={applicationId}
       currentStep="anuwani-ya-makazi"
       autoNavigateToNext={autoNavigateToNext}

@@ -12,8 +12,7 @@ export const safeStringCompare = (a: any, b: any): boolean => {
   try {
     return String(a).toLowerCase() === String(b).toLowerCase();
   } catch (error) {
-    console.error('Error comparing strings:', error);
-    return false;
+   return false;
   }
 };
 

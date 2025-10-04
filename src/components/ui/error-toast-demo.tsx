@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Button } from "./button";
-import { useApplication } from "@/contexts/application-context";
+import { useCustomToast } from "@/hooks/use-custom-toast";
 
 export function ErrorToastDemo() {
-  const { showError } = useApplication();
+  const { showError } = useCustomToast();
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -14,8 +14,8 @@ export function ErrorToastDemo() {
         <Button 
           variant="outline" 
           size="sm"
-          className="border-red-300 text-red-700 hover:bg-red-50"
-          onClick={() => showError("API error: 404 Not Found")}
+          className="border-red-500 text-red-700 hover:bg-red-50"
+          onClick={() => showError({ description: "API error: 404 Not Found" })}
         >
           Show Error Toast
         </Button>

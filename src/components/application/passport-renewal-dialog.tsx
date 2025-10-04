@@ -93,9 +93,6 @@ export default function PassportRenewalDialog({
         applicationTypeId: applicationTypeId || 0
       };
       
-      console.log('Passport verification payload:', payload);
-      
-      // Simulate API call to search for passport
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // For demo purposes, always succeed if passport number has content
@@ -111,7 +108,6 @@ export default function PassportRenewalDialog({
           expiryDate: "01/01/2028"
         });
         
-        console.log('Generated application ID for passport renewal:', mockApplicationID);
       } else {
         setError("Hakuna Kibali iliyopatikana kwa namba uliyoingiza");
       }
@@ -169,10 +165,7 @@ export default function PassportRenewalDialog({
   };
 
   const handleContinue = () => {
-    console.log('Passport renewal complete with application ID:', passInfo.applicationID);
-    
-    // Store the applicationId in the application context
-    updateFormData({
+   updateFormData({
       applicationId: passInfo.applicationID,
       // Also save other relevant information
       applicationType: "renew",

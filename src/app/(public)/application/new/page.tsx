@@ -213,17 +213,10 @@ export default function NewApplicationPage() {
     setIsLoading(true);
     
     try {
-      // This is a placeholder for the actual API call
-      // In a real application, you would submit the form data to your backend
-      console.log("Form data submitted:", formData);
-      
-      // Simulate API call delay
-      setTimeout(() => {
-        // Navigate to success tab instead of external page
+     setTimeout(() => {
         setActiveTab("success");
       }, 2000);
     } catch (error) {
-      console.error("Error submitting application:", error);
     } finally {
       setIsLoading(false);
     }

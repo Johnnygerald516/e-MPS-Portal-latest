@@ -49,26 +49,20 @@ const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({
     try {
       setIsLoading(true);
       setError('');
-      console.log('[ReceiptPDFPreview] Fetching receipt data for:', controlNumber);
-      
-      const response = await getReceiptByControlNumber(controlNumber);
+    const response = await getReceiptByControlNumber(controlNumber);
       
       if (response.ackCode !== 1) {
         setError(response.ackMessage || 'Failed to fetch receipt data');
         setIsLoading(false);
         return;
       }
-      
-      console.log('[ReceiptPDFPreview] Receipt data received:', response.jsonResult);
-      setReceiptData(response.jsonResult);
+     setReceiptData(response.jsonResult);
       
       // Generate PDF with the fetched data
       const pdfDataUrl = await generateReceiptPDF(response.jsonResult);
-      console.log('[ReceiptPDFPreview] PDF generated successfully');
       setPdfUrl(pdfDataUrl);
       setIsLoading(false);
     } catch (error) {
-      console.error('[ReceiptPDFPreview] Error:', error);
       setError(`Failed to generate receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsLoading(false);
     }

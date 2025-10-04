@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, Trash2, CheckCircle, XCircle, FileText, Clock, AlertCircle, Image as ImageIcon, Eye } from "lucide-react";
@@ -24,7 +24,7 @@ import { fileToBase64 as convertFileToBase64 } from "@/lib/utils/base64";
 interface DocumentsTableProps {
   applicationId: string;
   onNextStageAvailable?: (nextStageId: string) => void;
-  onDocumentsStatusChange?: (allUploaded: boolean) => void;
+  onDocumentsStatusChange?: (documents: any[]) => void;
 }
 
 interface AttachmentType {
@@ -279,16 +279,40 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
     return allUploaded;
   };
   
+  // Use a ref to track previous document statuses for comparison
+  const prevDocumentStatusesRef = useRef<typeof documentStatuses>([]);
+  
   // Effect to notify parent component when document statuses change
   useEffect(() => {
-    const allUploaded = areAllDocumentsUploaded();
-    
-    // Notify parent component if callback is provided
-    if (onDocumentsStatusChange) {
-     
-      onDocumentsStatusChange(allUploaded);
+    // Skip the first render and only notify on actual changes
+    if (documentStatuses.length > 0 && attachmentTypes.length > 0 && 
+        prevDocumentStatusesRef.current.length > 0 && onDocumentsStatusChange) {
+      
+      // Check if document statuses have actually changed
+      const hasStatusChanged = documentStatuses.some((doc, index) => {
+        const prevDoc = prevDocumentStatusesRef.current[index];
+        return !prevDoc || prevDoc.status !== doc.status;
+      });
+      
+      // Only notify parent if there's an actual change
+      if (hasStatusChanged) {
+        // Create document objects for the parent component
+        const docs = documentStatuses.map(doc => ({
+          id: String(doc.id),  // Convert to string to match the expected format
+          status: doc.status,
+          name: attachmentTypes.find(at => at.AttachmentTypeID === doc.id)?.Viambatanisho || '',
+          description: attachmentTypes.find(at => at.AttachmentTypeID === doc.id)?.AttachmentName || '',
+          required: true  // Assume all documents are required
+        }));
+        
+        // Pass the document statuses to the parent component
+        onDocumentsStatusChange(docs);
+      }
     }
-  }, [documentStatuses, onDocumentsStatusChange]);
+    
+    // Update the ref with current document statuses
+    prevDocumentStatusesRef.current = [...documentStatuses];
+  }, [documentStatuses, attachmentTypes, onDocumentsStatusChange]);
   
   // Handle Save and Continue button click
   const handleSaveAndContinue = async () => {
@@ -454,13 +478,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
           } catch (error) {
           }
           
-          // Check if all documents are now uploaded after this update
-          const allUploaded = updatedStatuses.every(doc => doc.status === 'uploaded' || doc.status === 'approved');
-          
-          // Notify parent component about the status change
-          if (onDocumentsStatusChange) {
-           setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
-          }
+          // The parent component will be notified via the useEffect that watches documentStatuses
+          // No need to call onDocumentsStatusChange directly here
           
           return updatedStatuses;
         });
@@ -789,13 +808,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               : status
           );
           
-          // Check if all documents are now uploaded after this update
-          const allUploaded = updatedStatuses.every(doc => doc.status === 'uploaded' || doc.status === 'approved');
-          
-          // Notify parent component about the status change
-          if (onDocumentsStatusChange) {
-            setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
-          }
+          // The parent component will be notified via the useEffect that watches documentStatuses
+          // No need to call onDocumentsStatusChange directly here
           
           return updatedStatuses;
         });
@@ -849,13 +863,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               : status
           );
           
-          // Check if all documents are now uploaded after this update
-          const allUploaded = updatedStatuses.every(doc => doc.status === 'uploaded' || doc.status === 'approved');
-          
-          // Notify parent component about the status change
-          if (onDocumentsStatusChange) {
-           setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
-          }
+          // The parent component will be notified via the useEffect that watches documentStatuses
+          // No need to call onDocumentsStatusChange directly here
           
           return updatedStatuses;
         });
@@ -881,13 +890,8 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               : status
           );
           
-          // Check if all documents are now uploaded after this update
-          const allUploaded = updatedStatuses.every(doc => doc.status === 'uploaded' || doc.status === 'approved');
-          
-          // Notify parent component about the status change
-          if (onDocumentsStatusChange) {
-            setTimeout(() => onDocumentsStatusChange(allUploaded), 0);
-          }
+          // The parent component will be notified via the useEffect that watches documentStatuses
+          // No need to call onDocumentsStatusChange directly here
           
           return updatedStatuses;
         });
@@ -1061,7 +1065,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                         ) : (
                           <>
                             <Upload className="h-4 w-4 mr-1" />
-                            {attachment.AttachmentTypeID === 1 ? "Pakia Nyaraka" : "Pakia"}
+                            {attachment.AttachmentTypeID === 1 ? "Pakia" : "Pakia"}
                           </>
                         )}
                       </Button>
@@ -1075,7 +1079,9 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       </table>
       
       {/* Document Upload Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        if (!open) setDialogOpen(false);
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -1226,15 +1232,17 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       </Dialog>
 
       {/* PDF Preview Dialog */}
-      {pdfPreviewUrl && (
-        <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-          <DialogContent className="w-[90vw] h-[90vh] max-w-[95vw]">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedAttachment ? `Preview: ${selectedAttachment.AttachmentName}` : 'Document Preview'}
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">Tafadhali kagua nyaraka zako kwa makini kabla ya kuwasilisha.</p>
-            </DialogHeader>
+      <Dialog open={pdfPreviewOpen && pdfPreviewUrl !== null} onOpenChange={(open) => {
+        if (!open) setPdfPreviewOpen(false);
+      }}>
+        <DialogContent className="w-[90vw] h-[90vh] max-w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAttachment ? `Preview: ${selectedAttachment.AttachmentName}` : 'Document Preview'}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground mt-1">Tafadhali kagua nyaraka zako kwa makini kabla ya kuwasilisha.</p>
+          </DialogHeader>
+          {pdfPreviewUrl && (
             <div className="w-full h-full overflow-hidden">
               <iframe
                 src={pdfPreviewUrl}
@@ -1242,44 +1250,44 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                 title="PDF Preview"
               />
             </div>
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+          )}
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setPdfPreviewOpen(false)} 
+              className="w-full sm:w-auto"
+            >
+              Funga 
+            </Button>
+            
+            {/* Show Submit button only for uploaded files that haven't been submitted yet */}
+            {selectedAttachment && uploadedFiles[selectedAttachment.AttachmentTypeID] && (
               <Button 
-                variant="outline" 
-                onClick={() => setPdfPreviewOpen(false)} 
-                className="w-full sm:w-auto"
+                onClick={() => {
+                  if (selectedAttachment) {
+                    handleSubmitFile(selectedAttachment.AttachmentTypeID);
+                    setPdfPreviewOpen(false);
+                  }
+                }} 
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                disabled={uploading !== null}
               >
-                Funga 
+                {uploading !== null ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Inatuma...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Thibitisha na Wasilisha Nyaraka
+                  </>
+                )}
               </Button>
-              
-              {/* Show Submit button only for uploaded files that haven't been submitted yet */}
-              {selectedAttachment && uploadedFiles[selectedAttachment.AttachmentTypeID] && (
-                <Button 
-                  onClick={() => {
-                    if (selectedAttachment) {
-                      handleSubmitFile(selectedAttachment.AttachmentTypeID);
-                      setPdfPreviewOpen(false);
-                    }
-                  }} 
-                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
-                  disabled={uploading !== null}
-                >
-                  {uploading !== null ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Inatuma...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Thibitisha na Wasilisha Nyaraka
-                    </>
-                  )}
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

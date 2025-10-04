@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { useApplication } from "@/contexts/application-context";
+import type { ApplicationStep } from "@/contexts/application-context";
 import ApplicationLayout from "@/components/application/ApplicationLayout";
 import { parentsInfoEndpoints } from "@/lib/api";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
@@ -92,6 +93,11 @@ function ParentsInfoContent() {
   const { formData, updateFormData, isLoading, setIsLoading } = useApplication();
   const { showError, showSuccess } = useCustomToast();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  
+  // Reset autoNavigateToNext when component mounts to prevent automatic navigation on page refresh
+  useEffect(() => {
+    setAutoNavigateToNext(false);
+  }, []);
   
   // Get applicationId from context instead of URL parameters
   const applicationId = formData.applicationId || '';
@@ -524,6 +530,7 @@ function ParentsInfoContent() {
         // Map field names to match API requirements
         fatherFullName: formValues.fatherName,
         motherFullName: formValues.motherName,
+        currentStep: 50 as ApplicationStep, // Update to dependant-info step
       };
        updateFormData(data);
        const fatherDOB = formValues.fatherDateOfBirth || '';
@@ -603,9 +610,9 @@ function ParentsInfoContent() {
   };
   
   return (
-    <ApplicationLayout 
-      title="Parents Information" 
-      subtitle="Enter your parents' details"
+      <ApplicationLayout 
+        title="Parents Information" 
+        subtitle="Enter your parents' details"
       applicationId={applicationId}
       currentStep="habari-za-wazazi"
       autoNavigateToNext={autoNavigateToNext}
@@ -1209,8 +1216,8 @@ function ParentsInfoContent() {
 
 export default function ParentsInfoPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
-      <ParentsInfoContent />
-    </Suspense>
+      <Suspense fallback={<div className="container mx-auto py-8 px-4 text-center">Loading...</div>}>
+        <ParentsInfoContent />
+      </Suspense>
   );
 }

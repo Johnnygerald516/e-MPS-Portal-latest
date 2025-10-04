@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { SharedLayout } from "@/components/layout/shared-layout"
+import ApplicationWrapper from "@/components/layout/ApplicationWrapper"
+import { ApplicationProvider } from "@/contexts/application-context"
 
 export default function PublicLayout({
   children,
@@ -24,7 +26,11 @@ export default function PublicLayout({
   
   return (
     <SharedLayout>
-      {children}
+      <ApplicationProvider>
+        <ApplicationWrapper>
+          {children}
+        </ApplicationWrapper>
+      </ApplicationProvider>
       <FloatingChat />
       {/* LoadingOverlay removed to use button spinners instead */}
       <Toaster position="top-right" richColors closeButton />

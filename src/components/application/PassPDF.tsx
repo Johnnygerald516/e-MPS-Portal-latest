@@ -53,7 +53,6 @@ export const imageToBase64 = async (imgUrl: string): Promise<string> => {
       
       // Set a timeout to handle images that may hang
       const timeoutId = setTimeout(() => {
-        console.warn(`Image loading timed out for ${imgUrl}`);
         resolve('');
       }, 5000);
       
@@ -70,20 +69,17 @@ export const imageToBase64 = async (imgUrl: string): Promise<string> => {
           const dataURL = canvas.toDataURL('image/png');
           resolve(dataURL);
         } catch (canvasError) {
-          console.error('Error creating canvas for image:', canvasError);
           resolve('');
         }
       };
       
       img.onerror = error => {
         clearTimeout(timeoutId);
-        console.error(`Error loading image from ${imgUrl}:`, error);
         resolve('');
       };
       
       img.src = cacheBustedUrl;
     } catch (error) {
-      console.error('Unexpected error in imageToBase64:', error);
       resolve('');
     }
   });
@@ -112,7 +108,7 @@ export const generateQRCode = async (text: string): Promise<string> => {
     // Convert canvas to data URL with high quality
     return canvas.toDataURL('image/png', 1.0);
   } catch (err) {
-    console.error('Error generating QR code:', err);
+    
     
     // Create a simple text-based fallback
     const canvas = document.createElement('canvas');
@@ -141,7 +137,6 @@ const formatDate = (date: string | undefined | null): string => {
   try {
     return date;
   } catch (error) {
-    console.error('Error formatting date:', error);
     return 'N/A';
   }
 };
@@ -202,7 +197,7 @@ export const generatePassPDF = async (
       doc.restoreGraphicsState();
     
     } catch (error) {
-      console.error("Error adding immigration logo watermark:", error);
+      
     }
     
     
@@ -220,15 +215,13 @@ export const generatePassPDF = async (
       } else {
         // Generate QR code with just the pass ID for reliable scanning
         const qrText = `${passData.id}`;
-        console.log('Generating QR code for ID:', qrText);
         qrCodeDataUrl = await generateQRCode(qrText);
-        console.log('QR code generated successfully');
       }
       
       // Add the QR code to the PDF with increased size for better scanning
       doc.addImage(qrCodeDataUrl, 'PNG', 15, 15, 40, 40);
     } catch (error) {
-      console.error('Error adding QR code to PDF:', error);
+      
       // Fallback to a simple rectangle if QR code fails
       doc.rect(15, 15, 40, 40);
       doc.setFontSize(10);
@@ -565,8 +558,6 @@ doc.text(label, labelX, 76);
         doc.addImage(signatureBase64, 'PNG', 125, y-12, 80, 16);
       }
     } catch (error) {
-      console.error('Error adding signature to PDF:', error);
-      // If signature fails to load, draw a line
       doc.line(150, y, 180, y);
     }
     
@@ -577,13 +568,9 @@ doc.text(label, labelX, 76);
     
     // Add safety check to ensure all content fits
     if (y + 10 > pageHeight - margin) {
-      console.warn('Content may extend beyond page boundaries - adjusting scale');
-      // If content doesn't fit, we could add logic to scale the document
-      // or adjust spacing further if needed
     }
     
   } catch (error) {
-    console.error('Error generating pass PDF:', error);
     throw error;
   }
 };

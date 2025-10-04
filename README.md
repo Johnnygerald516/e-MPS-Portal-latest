@@ -42,19 +42,19 @@ This application can be deployed using Docker. The project includes a Dockerfile
 ### Docker Image Information
 
 - Image name: migrant-fe-portal
-- Image tag: v0.0.1
+- Image tag: v0.0.2
 - Registry: 10.6.0.157:30000
 - Container port: 3100
-- API Endpoint: 10.6.0.164:30033
+- API Endpoint: 10.6.0.168:30033
 
 ### Building and Running with Docker
 
 ```bash
 # Build the Docker image
-docker build -t 10.6.0.157:30000/migrant-fe-portal:v0.0.1 .
+docker build -t 10.6.0.157:30000/migrant-fe-portal:v0.0.2 .
 
 # Run the container
-docker run -p 3100:3100 10.6.0.157:30000/migrant-fe-portal:v0.0.1
+docker run -p 3100:3100 10.6.0.157:30000/migrant-fe-portal:v0.0.2
 ```
 
 ### Using Docker Compose
@@ -71,5 +71,5 @@ docker-compose down
 
 ```bash
 # Push the image to the registry
-docker push 10.6.0.157:30000/migrant-fe-portal:v0.0.1
+docker push 10.6.0.157:30000/migrant-fe-portal:v0.0.2
 ```

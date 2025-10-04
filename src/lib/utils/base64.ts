@@ -94,8 +94,7 @@ export const base64ToDataUrl = (base64: string, defaultMimeType: string = 'image
   
   // Validate the cleaned base64
   if (!isValidBase64(cleanedBase64)) {
-    console.error('Invalid base64 data detected');
-    return null;
+   return null;
   }
   
   // Detect image format
@@ -173,8 +172,7 @@ export const createFallbackImage = (): string => {
  */
 export const debugBase64Image = (base64Data: string | null, label: string = 'Image'): void => {
   if (!base64Data) {
-    console.log(`📸 ${label}: No data available`);
-    return;
+  return;
   }
   
   const isDataUrl = base64Data.startsWith('data:');
@@ -182,18 +180,5 @@ export const debugBase64Image = (base64Data: string | null, label: string = 'Ima
   const hasBase64Marker = base64Data.includes('base64,');
   const base64Part = hasBase64Marker ? base64Data.split('base64,')[1] : base64Data;
   const cleanedBase64 = cleanBase64String(base64Part);
-  
-  console.log(`📸 ${label} Analysis:`, {
-    hasData: !!base64Data,
-    dataLength: base64Data.length,
-    dataType: typeof base64Data,
-    isDataUrl,
-    mimeType,
-    hasBase64Marker,
-    base64Length: base64Part.length,
-    base64Preview: base64Part.substring(0, 30) + '...',
-    isValidBase64: isValidBase64(cleanedBase64),
-    detectedFormat: detectImageFormat(cleanedBase64),
-    isValidFormat: isDataUrl && hasBase64Marker && isValidBase64(cleanedBase64)
-  });
+
 };

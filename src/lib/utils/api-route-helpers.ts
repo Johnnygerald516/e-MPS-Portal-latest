@@ -33,10 +33,7 @@ export async function callExternalApi(
   headers?: Record<string, string>
 ) {
   try {
-    console.log(`Calling external API at: ${url}`);
-    console.log(`Method: ${method}`);
     if (body) {
-      console.log(`Request body:`, body);
     }
 
     // Set a timeout for the fetch request
@@ -56,11 +53,8 @@ export async function callExternalApi(
     
     clearTimeout(timeoutId);
     
-    console.log(`External API response status: ${response.status}`);
-    
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('External API error:', errorText);
       
       // Try to parse as JSON, fallback to plain text
       let errorData;
@@ -83,17 +77,12 @@ export async function callExternalApi(
     
     // Parse and return the response
     const responseData = await response.json();
-    console.log('External API response data:', responseData);
-    
-    return {
+   return {
       success: true,
       data: responseData,
       status: response.status
     };
   } catch (error: any) {
-    console.error('Error calling external API:', error);
-    
-    // Check if it's a connection refused error or timeout
     const isConnectionRefused = error instanceof Error && 
       (error.message.includes('ECONNREFUSED') || 
        error.message.includes('fetch failed') ||
@@ -101,7 +90,6 @@ export async function callExternalApi(
        error.name === 'AbortError');
     
     if (isConnectionRefused) {
-      console.log('Connection refused or timeout, returning fallback response');
       return {
         success: false,
         data: { 

@@ -49,6 +49,7 @@ export interface ApplicationFormData {
   formattedDateOfBirth?: string; // Added for formatted date display
   gender: Gender;
   nationality: string;
+  countryOfBirth?: string; // Country of birth name (string format)
   birthCountry?: number; // Country of birth ID
   birthCountryName?: string; // Country of birth name
   birthRegion?: number; // Region of birth ID
@@ -156,6 +157,7 @@ export const defaultApplicationValues: ApplicationFormData = {
   dateOfBirth: new Date(),
   gender: "male",
   nationality: "Tanzanian",
+  countryOfBirth: "",
   birthCountry: 0,
   birthCountryName: "",
   birthRegion: 0,
@@ -230,6 +232,7 @@ interface ApplicationContextType {
   showError: (message: string, title?: string) => void;
   showSuccess: (message: string, title?: string) => void;
   showInfo: (message: string, title?: string) => void;
+  showWarning: (message: string, title?: string) => void;
   handleApiError: (error: any) => void;
 }
 
@@ -295,10 +298,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
           ...prev,
           applicationId: storedApplicationId
         }));
-        console.log('ApplicationId loaded from localStorage:', storedApplicationId);
       }
     } catch (error) {
-      console.error('Error loading applicationId from localStorage:', error);
     }
   }, []);
 
@@ -309,10 +310,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       try {
         // Store applicationId separately in localStorage
         localStorage.setItem('applicationId', data.applicationId);
-        console.log('ApplicationId saved to localStorage:', data.applicationId);
       } catch (error) {
-        console.error('Error saving applicationId to localStorage:', error);
-      }
+    }
     }
     
     // Process date fields before updating state
@@ -320,16 +319,10 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     
     // Handle dateOfBirth specially
     if (processedData.dateOfBirth) {
-      console.log('Processing dateOfBirth in context:', processedData.dateOfBirth);
-      console.log('dateOfBirth type:', typeof processedData.dateOfBirth);
-      
-      // Ensure it's a Date object
-      if (typeof processedData.dateOfBirth === 'string') {
+     if (typeof processedData.dateOfBirth === 'string') {
         try {
           processedData.dateOfBirth = new Date(processedData.dateOfBirth);
-          console.log('Converted string to Date object:', processedData.dateOfBirth);
         } catch (e) {
-          console.error('Error converting dateOfBirth to Date:', e);
         }
       }
     }
@@ -355,27 +348,17 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     try {
       if (currentApplicationId) {
         localStorage.setItem('applicationId', currentApplicationId);
-        console.log('ApplicationId preserved:', currentApplicationId);
       }
       localStorage.removeItem('applicationFormData');
-      console.log('Form data cleared, applicationId preserved');
-    } catch (error) {
-      console.error('Error updating localStorage:', error);
-    }
+   } catch (error) {
+   }
   };
   
-  // We don't need to save all form data to localStorage anymore
-  // The applicationId is saved separately in the updateFormData function
-  // and loaded in the initial useEffect
-  
-  // Remove the old effects that were saving all form data
-  
-  // Show error toast notification
-  const showError = useCallback((message: string, title: string = "Error") => {
+ const showError = useCallback((message: string, title: string = "Error") => {
     toast({
       title: title,
       description: message,
-      variant: "thin-error"
+      variant: "error"
     });
   }, []);
   
@@ -384,7 +367,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     toast({
       title: title,
       description: message,
-      variant: "outline-green"
+      variant: "success"
     });
   }, []);
   
@@ -393,14 +376,22 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     toast({
       title: title,
       description: message,
-      variant: "outline-blue"
+      variant: "info"
+    });
+  }, []);
+  
+  // Show warning toast notification
+  const showWarning = useCallback((message: string, title: string = "Warning") => {
+    toast({
+      title: title,
+      description: message,
+      variant: "warning"
     });
   }, []);
   
   // Handle API errors consistently
   const handleApiError = useCallback((error: any) => {
-    console.error('API Error:', error);
-    const errorMessage = error?.message || 'An unexpected error occurred';
+   const errorMessage = error?.message || 'An unexpected error occurred';
     showError(errorMessage);
   }, [showError]);
 
@@ -415,6 +406,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         showError,
         showSuccess,
         showInfo,
+        showWarning,
         handleApiError
       }}
     >

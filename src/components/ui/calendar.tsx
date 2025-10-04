@@ -15,6 +15,8 @@ export interface CalendarProps {
   onSelect?: (date: Date | undefined, closePopup?: boolean) => void;
   fromYear?: number;
   toYear?: number;
+  disabled?: (date: Date) => boolean;
+  initialFocus?: boolean;
 }
 
 function Calendar({
@@ -204,13 +206,14 @@ function Calendar({
                   console.log("No onSelect handler provided");
                 }
               }}
-              disabled={!isCurrentMonth}
+              disabled={!isCurrentMonth || (props.disabled && props.disabled(day))}
               className={cn(
                 "h-8 w-full flex items-center justify-center rounded text-sm",
                 isSelected && "bg-blue-600 text-white hover:bg-blue-700",
                 !isSelected && isCurrentMonth && "hover:bg-gray-100",
                 !isSelected && !isCurrentMonth && "text-gray-300",
                 !isSelected && isToday && "bg-gray-100 font-medium",
+                props.disabled && props.disabled(day) && "text-gray-300 cursor-not-allowed",
               )}
             >
               {day.getDate()}

@@ -109,7 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Authentication error:", error)
         authEndpoints.logout()
       } finally {
         setIsLoading(false)
@@ -126,14 +125,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Try to call the real API endpoint
         const response = await authEndpoints.signin(email, password)
-        console.log("API Response:", response.data)
         if (response.data.status) {
           // Extract user data from response
           const { email, profile } = response.data.data
-          console.log("API Response:", response.data.data)
+         
           setAuth(response.data.data)
-          // Create user object from response data
-          const userData: User = {
+         const userData: User = {
             id: response.data.data.authToken.split('.')[0] || Math.random().toString(36).substring(2, 15), // Use part of token as ID if available
             email: email,
             fullName: email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()), // Temporary name until profile is complete
@@ -163,10 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (apiError) {
-        console.error("API connection error:", apiError)
-        console.log("Using fallback login mechanism")
-        
-       await new Promise(resolve => setTimeout(resolve, 1000))
+     await new Promise(resolve => setTimeout(resolve, 1000))
       
        const isAdmin = email.includes("admin")
         const hasProfile = email.includes("complete")
@@ -212,7 +206,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error("Login error:", error)
       return {
         success: false,
         hasProfile: false
@@ -249,7 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return true
     } catch (error) {
-      console.error("Registration error:", error)
       return false
     } finally {
       setIsLoading(false)
@@ -343,10 +335,7 @@ export function setAuth(authData: any) {
     
     // Update React state if setUserRef is available
     if (setUserRef) {
-      console.log("Updating user state via setAuth:", userData);
       setUserRef(userData);
-    } else {
-      console.warn("setUserRef is not available. User state not updated.");
     }
     
     return userData;

@@ -66,7 +66,5 @@ export const qaService = {
    * In a real implementation, this would update the JSON file or database
    */
   addQuestion: (id: string, patterns: string[], answer: string): void => {
-    console.log('Adding new Q&A:', { id, patterns, answer });
-    // In a real implementation, this would update the JSON file or database
   }
 };

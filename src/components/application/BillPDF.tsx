@@ -23,7 +23,6 @@ const imageToBase64 = async (imgUrl: string): Promise<string> => {
       const img = new Image();
       
       const timeoutId = setTimeout(() => {
-        console.warn(`Image loading timed out for ${imgUrl}`);
         resolve('');
       }, 5000);
       
@@ -40,20 +39,17 @@ const imageToBase64 = async (imgUrl: string): Promise<string> => {
           const dataURL = canvas.toDataURL('image/png');
           resolve(dataURL);
         } catch (canvasError) {
-          console.error('Error creating canvas for image:', canvasError);
           resolve('');
         }
       };
       
       img.onerror = error => {
         clearTimeout(timeoutId);
-        console.error(`Error loading image from ${imgUrl}:`, error);
         resolve('');
       };
       
       img.src = imgUrl;
     } catch (error) {
-      console.error('Error in imageToBase64:', error);
       resolve('');
     }
   });
@@ -73,7 +69,6 @@ const generateBarcode = (text: string): string => {
     });
     return canvas.toDataURL('image/png');
   } catch (error) {
-    console.error('[BillPDF] Error generating barcode:', error);
     return '';
   }
 };
@@ -81,19 +76,12 @@ const generateBarcode = (text: string): string => {
 // Generate Bill PDF
 export const generateBillPDF = async (billData: BillPDFData): Promise<string> => {
   try {
-    console.log('[BillPDF] Starting PDF generation');
-    console.log('[BillPDF] Bill data received:', {
-      applicationId: billData.applicationId,
-      controlNumber: billData.controlNumber,
-      name: billData.name,
-      hasBillDetails: !!billData.billDetails
-    });
+  
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     });
-    console.log('[BillPDF] jsPDF instance created');
 
     // Load coat of arms image
     let coatOfArmsBase64 = '';
@@ -106,24 +94,21 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
         window.location.origin + '/images/coat-of-arms.png',
         window.location.origin + '/images/coat_of_arm.png'
       ];
-      console.log('[BillPDF] Attempting to load coat of arms from multiple paths...');
       for (const path of imagePaths) {
         try {
-          console.log('[BillPDF] Trying path:', path);
           coatOfArmsBase64 = await imageToBase64(path);
           if (coatOfArmsBase64 && coatOfArmsBase64.length > 100) {
-            console.log('[BillPDF] ✅ Successfully loaded coat of arms from:', path);
             break;
           }
         } catch (err) {
-          console.warn('[BillPDF] ❌ Failed to load from:', path, err);
+         
         }
       }
       if (!coatOfArmsBase64) {
-        console.warn('[BillPDF] ⚠️ Could not load coat of arms from any path');
+       
       }
     } catch (error) {
-      console.error('[BillPDF] Error in coat of arms loading:', error);
+      
     }
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -138,13 +123,13 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
         const imgHeight = 20;
         doc.addImage(coatOfArmsBase64, 'PNG', (pageWidth - imgWidth) / 2, currentY, imgWidth, imgHeight);
         currentY += imgHeight + 3;
-        console.log('[BillPDF] Coat of arms added successfully');
+      
       } catch (imgError) {
-        console.error('[BillPDF] Error adding coat of arms image:', imgError);
+        
         currentY += 5;
       }
     } else {
-      console.warn('[BillPDF] No coat of arms image loaded, skipping');
+      
       currentY += 5;
     }
 
@@ -166,9 +151,9 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
       doc.setFont('times', 'bold');
       doc.text('BILL DETAILS', pageWidth / 2, currentY, { align: 'center' });
       currentY += 8;
-      console.log('[BillPDF] Header added successfully');
+      
     } catch (headerError) {
-      console.error('[BillPDF] Error adding header:', headerError);
+      
       throw headerError;
     }
 
@@ -240,7 +225,7 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
       doc.text(wordsLines, rightCol, currentY);
       currentY += lineHeight * wordsLines.length;
     } catch (wordError) {
-      console.warn('[BillPDF] Error converting amount to words:', wordError);
+      
       // Skip amount in words if it fails
       currentY += lineHeight;
     }
@@ -275,7 +260,7 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
       doc.text(String(billDate), rightCol, currentY);
       currentY += lineHeight;
     } catch (dateError) {
-      console.warn('[BillPDF] Error formatting bill date:', dateError);
+      
       currentY += lineHeight;
     }
 
@@ -291,7 +276,7 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
       doc.text(String(expiryDate), rightCol, currentY);
       currentY += lineHeight + 10;
     } catch (expiryError) {
-      console.warn('[BillPDF] Error formatting expiry date:', expiryError);
+      
       currentY += lineHeight + 10;
     }
 
@@ -307,10 +292,9 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
           const barcodeHeight = 15;
           doc.addImage(barcodeDataUrl, 'PNG', (pageWidth - barcodeWidth) / 2, currentY, barcodeWidth, barcodeHeight);
           currentY += barcodeHeight + 5;
-          console.log('[BillPDF] Barcode added successfully at bottom');
         }
       } catch (barcodeError) {
-        console.error('[BillPDF] Error adding barcode at bottom:', barcodeError);
+        
         currentY += 5;
       }
     }
@@ -324,13 +308,10 @@ export const generateBillPDF = async (billData: BillPDFData): Promise<string> =>
     doc.text(`© ${new Date().getFullYear()} United Republic of Tanzania - All Rights Reserved`, pageWidth / 2, currentY, { align: 'center' });
 
     // Return as data URL
-    console.log('[BillPDF] Generating PDF data URL');
     const pdfDataUrl = doc.output('dataurlstring');
-    console.log('[BillPDF] PDF generation complete');
     return pdfDataUrl;
   } catch (error) {
-    console.error('[BillPDF] Error generating bill PDF:', error);
-    console.error('[BillPDF] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     throw error;
   }
 };

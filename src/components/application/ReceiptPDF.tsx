@@ -28,7 +28,6 @@ const imageToBase64 = async (imgUrl: string): Promise<string> => {
       const img = new Image();
       
       const timeoutId = setTimeout(() => {
-        console.warn(`Image loading timed out for ${imgUrl}`);
         resolve('');
       }, 5000);
       
@@ -45,20 +44,17 @@ const imageToBase64 = async (imgUrl: string): Promise<string> => {
           const dataURL = canvas.toDataURL('image/png');
           resolve(dataURL);
         } catch (canvasError) {
-          console.error('Error creating canvas for image:', canvasError);
           resolve('');
         }
       };
       
       img.onerror = error => {
         clearTimeout(timeoutId);
-        console.error(`Error loading image from ${imgUrl}:`, error);
         resolve('');
       };
       
       img.src = imgUrl;
     } catch (error) {
-      console.error('Error in imageToBase64:', error);
       resolve('');
     }
   });
@@ -78,7 +74,6 @@ const generateBarcode = (text: string): string => {
     });
     return canvas.toDataURL('image/png');
   } catch (error) {
-    console.error('[ReceiptPDF] Error generating barcode:', error);
     return '';
   }
 };
@@ -86,23 +81,12 @@ const generateBarcode = (text: string): string => {
 // Generate Receipt PDF
 export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<string> => {
   try {
-    console.log('[ReceiptPDF] Starting PDF generation');
-    console.log('[ReceiptPDF] Receipt data received:', {
-      PaymentReceipt: receiptData.PaymentReceipt,
-      PaymentControlNumber: receiptData.PaymentControlNumber,
-      payerName: receiptData.payerName,
-      PaidAmount: receiptData.PaidAmount
-    });
-    
-    const doc = new jsPDF({
+   const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     });
-    console.log('[ReceiptPDF] jsPDF instance created');
-
-    // Load coat of arms image
-    let coatOfArmsBase64 = '';
+   let coatOfArmsBase64 = '';
     try {
       const imagePaths = [
         '/images/coat-of-arms.png',
@@ -111,24 +95,18 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
         window.location.origin + '/images/coat-of-arms.png',
         window.location.origin + '/images/coat_of_arm.png'
       ];
-      console.log('[ReceiptPDF] Attempting to load coat of arms from multiple paths...');
       for (const path of imagePaths) {
         try {
-          console.log('[ReceiptPDF] Trying path:', path);
           coatOfArmsBase64 = await imageToBase64(path);
           if (coatOfArmsBase64 && coatOfArmsBase64.length > 100) {
-            console.log('[ReceiptPDF] ✅ Successfully loaded coat of arms from:', path);
             break;
           }
         } catch (err) {
-          console.warn('[ReceiptPDF] ❌ Failed to load from:', path, err);
         }
       }
       if (!coatOfArmsBase64) {
-        console.warn('[ReceiptPDF] ⚠️ Could not load coat of arms from any path');
-      }
+     }
     } catch (error) {
-      console.error('[ReceiptPDF] Error in coat of arms loading:', error);
     }
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -143,13 +121,10 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
         const imgHeight = 20;
         doc.addImage(coatOfArmsBase64, 'PNG', (pageWidth - imgWidth) / 2, currentY, imgWidth, imgHeight);
         currentY += imgHeight + 3;
-        console.log('[ReceiptPDF] Coat of arms added successfully');
       } catch (imgError) {
-        console.error('[ReceiptPDF] Error adding coat of arms image:', imgError);
         currentY += 5;
       }
     } else {
-      console.warn('[ReceiptPDF] No coat of arms image loaded, skipping');
       currentY += 5;
     }
 
@@ -175,9 +150,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
       doc.setFont('times', 'italic');
       doc.text('Stakabadhi Ya malipo ya Serikali', pageWidth / 2, currentY, { align: 'center' });
       currentY += 8;
-      console.log('[ReceiptPDF] Header added successfully');
     } catch (headerError) {
-      console.error('[ReceiptPDF] Error adding header:', headerError);
       throw headerError;
     }
 
@@ -244,7 +217,6 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
       doc.text(wordsLines, rightCol, currentY);
       currentY += lineHeight * wordsLines.length;
     } catch (wordError) {
-      console.warn('[ReceiptPDF] Error converting amount to words:', wordError);
       currentY += lineHeight;
     }
 
@@ -282,7 +254,6 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
       doc.text(String(paymentDate), rightCol, currentY);
       currentY += lineHeight;
     } catch (dateError) {
-      console.warn('[ReceiptPDF] Error formatting payment date:', dateError);
       currentY += lineHeight;
     }
 
@@ -304,7 +275,6 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
       doc.text(String(issuedDate), rightCol, currentY);
       currentY += lineHeight;
     } catch (dateError) {
-      console.warn('[ReceiptPDF] Error formatting issued date:', dateError);
       currentY += lineHeight;
     }
 
@@ -325,10 +295,8 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
           const barcodeHeight = 15;
           doc.addImage(barcodeDataUrl, 'PNG', (pageWidth - barcodeWidth) / 2, currentY, barcodeWidth, barcodeHeight);
           currentY += barcodeHeight + 5;
-          console.log('[ReceiptPDF] Barcode added successfully at bottom');
         }
       } catch (barcodeError) {
-        console.error('[ReceiptPDF] Error adding barcode at bottom:', barcodeError);
         currentY += 5;
       }
     }
@@ -341,14 +309,9 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.setFont('times', 'normal');
     doc.text(`© ${new Date().getFullYear()} United Republic of Tanzania - All Rights Reserved`, pageWidth / 2, currentY, { align: 'center' });
 
-    // Return as data URL
-    console.log('[ReceiptPDF] Generating PDF data URL');
     const pdfDataUrl = doc.output('dataurlstring');
-    console.log('[ReceiptPDF] PDF generation complete');
     return pdfDataUrl;
   } catch (error) {
-    console.error('[ReceiptPDF] Error generating receipt PDF:', error);
-    console.error('[ReceiptPDF] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     throw error;
   }
 };

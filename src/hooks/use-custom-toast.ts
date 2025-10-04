@@ -10,7 +10,7 @@ export function useCustomToast() {
     toast({
       title: options.title || "Error",
       description: options.description,
-      variant: "thin-error",
+      variant: "error",
     });
   };
 
@@ -18,15 +18,23 @@ export function useCustomToast() {
     toast({
       title: options.title || "Success",
       description: options.description,
-      variant: "outline-green",
+      variant: "success",
     });
   };
 
   const showInfo = (options: ToastOptions) => {
     toast({
-      title: options.title || "Information",
+      title: options.title || "Info",
       description: options.description,
-      variant: "outline-blue",
+      variant: "info",
+    });
+  };
+  
+  const showWarning = (options: ToastOptions) => {
+    toast({
+      title: options.title || "Warning",
+      description: options.description,
+      variant: "warning",
     });
   };
 
@@ -34,5 +42,6 @@ export function useCustomToast() {
     showError,
     showSuccess,
     showInfo,
+    showWarning,
   };
 }

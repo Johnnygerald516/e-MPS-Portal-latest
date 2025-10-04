@@ -61,7 +61,7 @@ const BillPDFPreview: React.FC<BillPDFPreviewProps> = ({
         setError(response.ackMessage || 'Failed to fetch bill details');
       }
     } catch (err) {
-      console.error('Error fetching bill data:', err);
+      
       setError('An error occurred while fetching bill details');
     } finally {
       setIsLoading(false);
@@ -72,13 +72,12 @@ const BillPDFPreview: React.FC<BillPDFPreviewProps> = ({
     if (!billData) return;
 
     try {
-      console.log('Starting PDF generation with data:', billData);
+      
       const pdfDataUrl = await generateBillPDF(billData);
-      console.log('PDF generated successfully');
+      
       setPdfUrl(pdfDataUrl);
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
-      console.error('Error details:', error instanceof Error ? error.message : String(error));
+      
       setError(`Failed to generate PDF preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };

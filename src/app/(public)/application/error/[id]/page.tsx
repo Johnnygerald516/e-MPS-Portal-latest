@@ -110,8 +110,7 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
           setIsLoading(false);
         }, 1000);
       } catch (error) {
-        console.error("Error fetching application error data:", error);
-        setIsLoading(false);
+       setIsLoading(false);
       }
     };
 
@@ -141,7 +140,6 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
         setIsSubmitting(false);
       }, 2000);
     } catch (error) {
-      console.error("Error submitting corrections:", error);
       setIsSubmitting(false);
     }
   };

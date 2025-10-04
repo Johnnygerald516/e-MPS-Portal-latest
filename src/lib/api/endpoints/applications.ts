@@ -101,7 +101,6 @@ export const applicationsEndpoints = {
       const response = await api.get('/customer/applications');
       return response.data;
     } catch (error) {
-      console.error('Error fetching applications:', error);
       throw error;
     }
   },
@@ -112,7 +111,6 @@ export const applicationsEndpoints = {
       const response = await api.get(`/customer/applications/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching application ${id}:`, error);
       throw error;
     }
   },
@@ -123,7 +121,6 @@ export const applicationsEndpoints = {
       const response = await api.patch(`/customer/applications/${id}/status`, { status });
       return response.data;
     } catch (error) {
-      console.error(`Error updating application ${id} status:`, error);
       throw error;
     }
   },
@@ -134,7 +131,6 @@ export const applicationsEndpoints = {
       const response = await api.post('/application/subject', data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting personal information:', error);
       throw error;
     }
   },
@@ -145,7 +141,6 @@ export const applicationsEndpoints = {
       const response = await api.post('/application/citizenship', data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting citizenship information:', error);
       throw error;
     }
   },
@@ -156,7 +151,6 @@ export const applicationsEndpoints = {
       const response = await api.post('/application/activity', data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting activity information:', error);
       throw error;
     }
   },
@@ -167,8 +161,7 @@ export const applicationsEndpoints = {
       const response = await api.post('/application/address', data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting address information:', error);
-      throw error;
+     throw error;
     }
   },
   
@@ -182,8 +175,7 @@ export const applicationsEndpoints = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error uploading application files:', error);
-      throw error;
+    throw error;
     }
   },
   
@@ -195,8 +187,7 @@ export const applicationsEndpoints = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error fetching declaration data:', error);
-      throw error;
+     throw error;
     }
   },
   
@@ -206,8 +197,7 @@ export const applicationsEndpoints = {
       const response = await api.post(`/applications/${applicationId}/dependants`, data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting dependant information:', error);
-      throw error;
+     throw error;
     }
   },
   
@@ -217,7 +207,6 @@ export const applicationsEndpoints = {
       const response = await api.post(`/applications/${applicationId}/attachments`, data);
       return response.data;
     } catch (error) {
-      console.error('Error submitting document attachment:', error);
       throw error;
     }
   },
@@ -228,7 +217,6 @@ export const applicationsEndpoints = {
       const response = await api.post('/applications/continue', data);
       return response.data as ContinueApplicationResponse;
     } catch (error) {
-      console.error('Error continuing application:', error);
       throw error;
     }
   }

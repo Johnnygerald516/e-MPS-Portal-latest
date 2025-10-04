@@ -26,21 +26,16 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
   }, [isOpen, pdfUrl]);
 
   const handleOpen = () => {
-    console.log('Opening PDF preview...');
     setIsOpen(true);
   };
 
   const handleClose = () => {
-    console.log('Closing PDF preview...');
     setIsOpen(false);
-    // Optionally clear the PDF URL to regenerate it next time
-    // setPdfUrl(null);
   };
 
   const generatePDFPreview = async () => {
     try {
       setIsLoading(true);
-      console.log('Generating PDF preview...');
       
       // Check if jsPDF is available
       const jsPDF = (await import('jspdf')).default;
@@ -59,9 +54,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
       const pdfDataUrl = doc.output('datauristring');
       setPdfUrl(pdfDataUrl);
       
-      console.log('PDF preview generated successfully');
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
     } finally {
       setIsLoading(false);
     }

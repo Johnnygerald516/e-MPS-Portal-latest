@@ -18,12 +18,10 @@ const SimpleFormPreview: React.FC<SimpleFormPreviewProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = () => {
-    console.log('Opening preview modal...');
     setIsOpen(true);
   };
 
   const handleClose = () => {
-    console.log('Closing preview modal...');
     setIsOpen(false);
   };
 

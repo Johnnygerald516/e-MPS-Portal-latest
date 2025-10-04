@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Info, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { useApplication } from "@/contexts/application-context";
 import MigrantVerificationDialog from "@/components/application/migrant-verification-dialog";
@@ -20,17 +19,28 @@ export default function ApplicationPage() {
   const router = useRouter();
   const { showError, showSuccess, clearApplicationData } = useApplication();
   
-  // Use a ref to track if initialization has been done
-  const initializedRef = useRef(false);
+  // Initialize application data when component mounts
+  // Use a ref to ensure we only clear data once on initial load
+  const initializedRef = React.useRef(false);
   
-  // Clear application data only once when the page loads
   useEffect(() => {
-    // Only run once on mount
+    // Check if this is a direct navigation to /application (not a refresh)
+    // Only clear application data if this is a direct navigation, not a refresh
     if (!initializedRef.current) {
-      clearApplicationData();
+      // Check if this is a page refresh
+      const isPageRefresh = window.performance && 
+        window.performance.navigation && 
+        window.performance.navigation.type === 1;
+      
+      // Only clear application data if this is not a page refresh
+      if (!isPageRefresh) {
+       clearApplicationData();
+      } 
+      
       initializedRef.current = true;
     }
-  }, []);
+  }, [clearApplicationData]);
+
   const [formData, setFormData] = useState({
     applicationType: "",
     applicationTypeId: 0,
@@ -266,19 +276,18 @@ export default function ApplicationPage() {
                 </Select>
               </div>
             )}
-           <div className="flex justify-end border-t border-slate-200">
-  <LoadingButton
-    type="submit"
-    isLoading={isSubmitting}
-    loadingText="Inawasilisha..."
-    spinnerVariant="primary"
-    className="w-fit bg-blue-800 hover:bg-blue-900 text-white py-2.5 px-5 rounded mt-6 flex items-center"
-  >
-    Anza Ombi
-    <ArrowRight className="ml-2 h-4 w-4" />
-  </LoadingButton>
-</div>
-
+            <div className="flex justify-end border-t border-slate-200">
+              <LoadingButton
+                type="submit"
+                isLoading={isSubmitting}
+                loadingText="Inawasilisha..."
+                spinnerVariant="primary"
+                className="w-fit bg-blue-800 hover:bg-blue-900 text-white py-2.5 px-5 rounded mt-6 flex items-center"
+              >
+                Anza Ombi
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </LoadingButton>
+            </div>
           </form>
         </div>
       </div>

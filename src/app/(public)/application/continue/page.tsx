@@ -97,7 +97,6 @@ export default function ContinueApplicationPage() {
         });
       }
     } catch (error: any) {
-      console.error("Error continuing application:", error);
       setError(error.message || "An error occurred while trying to continue your application");
       toast({
         title: "Error",

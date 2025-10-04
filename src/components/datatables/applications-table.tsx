@@ -94,15 +94,12 @@ export function ApplicationsTable() {
           setApplications(response.data)
           setFilteredApplications(response.data)
         } else {
-          // Fallback to demo data if API response format is unexpected
-          console.warn('API response format unexpected, using demo data')
           setApplications(demoApplications)
           setFilteredApplications(demoApplications)
         }
       } catch (err) {
-        console.error('Failed to fetch applications:', err)
         setError('Failed to load applications. Using demo data.')
-        // Fallback to demo data on error
+      
         setApplications(demoApplications)
         setFilteredApplications(demoApplications)
       } finally {
@@ -191,7 +188,6 @@ export function ApplicationsTable() {
       status: 'UNPAID'
     }
     
-    console.log('Generated Bill PDF Data:', billData)
     return billData
   }
   
@@ -213,8 +209,7 @@ export function ApplicationsTable() {
       total: 45000,
       status: 'PAID'
     }
-    
-    console.log('Generated Receipt PDF Data:', receiptData)
+   
     return receiptData
   }
   
@@ -232,7 +227,7 @@ export function ApplicationsTable() {
       barcodeData: `PASS${app.id}`
     }
     
-    console.log('Generated Pass PDF Data:', passData)
+
     return passData
   }
   
@@ -247,7 +242,6 @@ export function ApplicationsTable() {
       action: {
         label: "Download PDF",
         onClick: () => {
-          console.log(`Downloading bill PDF for ${id}`)
           toast.info(`Bill PDF for application ${id} is being downloaded`)
         }
       }
@@ -264,7 +258,6 @@ export function ApplicationsTable() {
       action: {
         label: "Download PDF",
         onClick: () => {
-          console.log(`Downloading receipt PDF for ${id}`)
           toast.info(`Receipt PDF for application ${id} is being downloaded`)
         }
       }
@@ -281,7 +274,6 @@ export function ApplicationsTable() {
       action: {
         label: "Download PDF",
         onClick: () => {
-          console.log(`Downloading pass PDF for ${id}`)
           toast.info(`Pass PDF for application ${id} is being downloaded`)
         }
       }

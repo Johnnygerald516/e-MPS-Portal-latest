@@ -25,7 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useApplication } from "@/contexts/application-context";
+import { useApplication, ApplicationStep } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { dependantInfoEndpoints, DependantInfoPayload } from "@/lib/api/endpoints/dependant-info";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
@@ -132,7 +132,6 @@ export default function DependantInfoPage() {
               return date.toISOString().split('T')[0];
             }
           } catch (e) {
-            console.error('Error formatting date:', e);
           }
           
           // Default to today if invalid
@@ -187,8 +186,6 @@ export default function DependantInfoPage() {
           setNationalities(nationalitiesResponse.jsonResult);
         }
       } catch (error) {
-        console.error('Error fetching lookup data:', error);
-        // Use the toast function from the hook
         toast({
           title: "Error",
           description: "Failed to load countries and nationalities",
@@ -202,6 +199,11 @@ export default function DependantInfoPage() {
     fetchData();
   }, []);
   
+  // Reset autoNavigateToNext when component mounts to prevent automatic navigation on page refresh
+  useEffect(() => {
+    setAutoNavigateToNext(false);
+  }, []);
+  
   // Update country and nationality display names when data is loaded
   useEffect(() => {
     if (!isLoadingData && countries.length > 0 && nationalities.length > 0) {
@@ -210,7 +212,6 @@ export default function DependantInfoPage() {
       
       // Only proceed if we have dependants
       if (currentValues.dependants && currentValues.dependants.length > 0) {
-        console.log('Updating country and nationality display names for dependants');
         
         // Update each dependant's country and nationality display names
         currentValues.dependants.forEach((dep, index) => {
@@ -219,8 +220,7 @@ export default function DependantInfoPage() {
             const selectedCountry = countries.find(c => c.EntryId === dep.issuedCountryId);
             if (selectedCountry) {
               form.setValue(`dependants.${index}.issuedCountry`, selectedCountry.CountryName);
-              console.log(`Updated country for dependant ${index + 1} to ${selectedCountry.CountryName}`);
-            }
+                }
           }
           
           // Update nationality name if ID is set
@@ -228,7 +228,6 @@ export default function DependantInfoPage() {
             const selectedNationality = nationalities.find(n => n.EntryId === dep.nationalityId);
             if (selectedNationality) {
               form.setValue(`dependants.${index}.nationality`, selectedNationality.Nationality);
-              console.log(`Updated nationality for dependant ${index + 1} to ${selectedNationality.Nationality}`);
             }
           }
         });
@@ -292,7 +291,7 @@ export default function DependantInfoPage() {
         }
       }
       
-      updateFormData(data);
+      updateFormData({...data, currentStep: 60 as ApplicationStep}); // Update to documents step
       
       // Format the data for API submission
       const formatDate = (date: string | Date | undefined): string => {
@@ -312,8 +311,7 @@ export default function DependantInfoPage() {
               return parsedDate.toISOString().split('T')[0];
             }
           } catch (e) {
-            console.error('Error parsing date string:', e);
-          }
+            }
           
           // If we can't parse it, return empty string
           return '';
@@ -377,8 +375,6 @@ export default function DependantInfoPage() {
         // Navigate to landing page
         router.push('/');
       } else {
-        // Handle error
-        console.error('API error:', response.ackMessage);
         toast({
           title: "Error",
           description: response.ackMessage || "Failed to save dependant information",
@@ -386,7 +382,6 @@ export default function DependantInfoPage() {
         });
       }
     } catch (error: any) {
-      console.error('Error saving dependant info:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to save dependant information",
@@ -400,40 +395,33 @@ export default function DependantInfoPage() {
   // Helper function to validate age
   const validateDependantAge = (dateOfBirth: string | Date | undefined): boolean => {
     if (!dateOfBirth) {
-      console.log('validateDependantAge: No date of birth provided');
       return false;
     }
     
     try {
       // Calculate age based on the date of birth
       const dob = dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth);
-      console.log('validateDependantAge: Date of birth:', dob);
       
       // Check if date is valid
       if (isNaN(dob.getTime())) {
-        console.log('validateDependantAge: Invalid date');
         return false;
       }
       
       const today = new Date();
-      console.log('validateDependantAge: Today:', today);
       
       let age = today.getFullYear() - dob.getFullYear();
-      console.log('validateDependantAge: Initial age calculation:', age);
       
       // Adjust age if birthday hasn't occurred yet this year
       const monthDiff = today.getMonth() - dob.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
         age--;
-        console.log('validateDependantAge: Adjusted age after birthday check:', age);
       }
       
       // Ensure age is 18 or younger
       const isValid = age <= 18;
-      console.log('validateDependantAge: Final age:', age, 'Is valid (≤18):', isValid);
       return isValid;
     } catch (e) {
-      console.error('Error validating dependant age:', e);
+     
       return false;
     }
   };
@@ -461,8 +449,7 @@ export default function DependantInfoPage() {
             description: `Dependant must be 18 years old or younger`,
             variant: "destructive",
           });
-          console.log(`Dependant ${index + 1} age validation failed - above 18 years old`);
-          return true;
+         return true;
         }
         
         // If document number is provided, validate related fields
@@ -480,8 +467,7 @@ export default function DependantInfoPage() {
             description: `Please fill in the following fields: ${missingFields.join(', ')}`,
             variant: "destructive",
           });
-          console.log(`Dependant ${index + 1} has missing fields:`, missingFields);
-          return true;
+         return true;
         }
         
         return false;
@@ -516,7 +502,6 @@ export default function DependantInfoPage() {
               return parsedDate.toISOString().split('T')[0];
             }
           } catch (e) {
-            console.error('Error parsing date string:', e);
           }
           
           // If we can't parse it, return empty string
@@ -537,10 +522,6 @@ export default function DependantInfoPage() {
       
       // Map dependants to API format
       const dependants = data.dependants?.map(dep => {
-        // Log each dependant's data for debugging
-        console.log('Dependant form data:', JSON.stringify(dep, null, 2));
-        
-        // Base dependant data that's always included
         const dependantData: any = {
           dependantFullName: dep.name,
           dependantGender: dep.gender || 'M',
@@ -592,8 +573,6 @@ export default function DependantInfoPage() {
           setIsLoading(false);
           setAutoNavigateToNext(true);
         } else {
-          // Handle error
-          console.error('API error:', response.ackMessage);
           toast({
             title: "Error",
             description: response.ackMessage || "Failed to save dependant information",
@@ -602,8 +581,7 @@ export default function DependantInfoPage() {
           setIsLoading(false);
         }
       } catch (error: any) {
-        console.error('API call error:', error);
-        toast({
+       toast({
           title: "Error",
           description: error.message || "Failed to save dependant information",
           variant: "destructive"
@@ -612,8 +590,7 @@ export default function DependantInfoPage() {
       }
       
     } catch (error) {
-      console.error('Error submitting dependant info:', error);
-      setIsLoading(false);
+     setIsLoading(false);
     }
   };
   
@@ -643,9 +620,9 @@ export default function DependantInfoPage() {
   };
   
   return (
-    <ApplicationLayout 
-      title="Habari za wategemezi" 
-      subtitle="Enter information about your dependants"
+      <ApplicationLayout 
+        title="Habari za wategemezi" 
+        subtitle="Enter information about your dependants"
       applicationId={applicationId}
       currentStep="habari-za-wategemezi"
       autoNavigateToNext={autoNavigateToNext}
@@ -809,13 +786,6 @@ export default function DependantInfoPage() {
                               const selectedNationality = nationalities.find(n => n.EntryId === numValue);
                               const nationalityName = selectedNationality?.Nationality || "";
                               form.setValue(`dependants.${index}.nationality`, nationalityName);
-                              
-                              // Debug log for nationality selection
-                              console.log(`Selected nationality for dependant ${index + 1}:`, {
-                                nationalityId: numValue,
-                                nationalityName,
-                                foundNationality: !!selectedNationality
-                              });
                             }} 
                             value={field.value?.toString() || ""}
                           >
@@ -952,14 +922,7 @@ export default function DependantInfoPage() {
                               const selectedCountry = countries.find(c => c.EntryId === numValue);
                               const countryName = selectedCountry?.CountryName || "";
                               form.setValue(`dependants.${index}.issuedCountry`, countryName);
-                              
-                              // Debug log for country selection
-                              console.log(`Selected country for dependant ${index + 1}:`, {
-                                countryId: numValue,
-                                countryName,
-                                foundCountry: !!selectedCountry
-                              });
-                            }} 
+                             }} 
                             value={field.value?.toString() || ""}
                           >
                             <FormControl>
