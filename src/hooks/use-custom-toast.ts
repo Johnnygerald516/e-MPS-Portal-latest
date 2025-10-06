@@ -8,7 +8,7 @@ interface ToastOptions {
 export function useCustomToast() {
   const showError = (options: ToastOptions) => {
     toast({
-      title: options.title || "Error",
+      title: options.title,
       description: options.description,
       variant: "error",
     });
@@ -16,7 +16,7 @@ export function useCustomToast() {
 
   const showSuccess = (options: ToastOptions) => {
     toast({
-      title: options.title || "Success",
+      title: options.title,
       description: options.description,
       variant: "success",
     });
@@ -24,7 +24,7 @@ export function useCustomToast() {
 
   const showInfo = (options: ToastOptions) => {
     toast({
-      title: options.title || "Info",
+      title: options.title,
       description: options.description,
       variant: "info",
     });
@@ -32,7 +32,7 @@ export function useCustomToast() {
   
   const showWarning = (options: ToastOptions) => {
     toast({
-      title: options.title || "Warning",
+      title: options.title,
       description: options.description,
       variant: "warning",
     });

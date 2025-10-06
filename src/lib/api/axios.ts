@@ -4,19 +4,21 @@ let apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // Validate that we have an API URL
 if (!apiUrl) {
- // apiUrl = 'http://10.6.0.167:3300';
-  apiUrl='http://127.0.0.1:8000';
+  // Use the production API URL as fallback
+  apiUrl='http://10.6.0.168:30033';
   
   // In browser, we can show an error message
   if (typeof window !== 'undefined') {
- }
+    console.warn('API URL not found in environment variables, using fallback URL');
+  }
 }
 
 // Validate URL format
 try {
   new URL(apiUrl);
 } catch (error) {
- apiUrl='http://127.0.0.1:8000';
+  apiUrl='http://10.6.0.168:30033';
+  console.error('Invalid API URL format, using fallback URL');
 }
 
 const api = axios.create({

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migrant-fe-portal
+  labels:
+    app: migrant-fe-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: migrant-fe-portal
+  template:
+    metadata:
+      labels:
+        app: migrant-fe-portal
+    spec:
+      containers:
+      - name: migrant-fe-portal
+        image: 10.6.0.157:30000/migrant-fe-portal:v0.0.3
+        ports:
+        - containerPort: 3100
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          value: "http://10.6.0.164:30033"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: migrant-fe-portal-service
+spec:
+  selector:
+    app: migrant-fe-portal
+  ports:
+  - port: 3100
+    targetPort: 3100
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: migrant-fe-portal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: migrant-fe-portal-service
+            port:
+              number: 3100

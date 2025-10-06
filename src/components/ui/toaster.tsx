@@ -40,17 +40,16 @@ export function Toaster() {
         const icon = variant ? getToastIcon(variant) : null
         return (
           <Toast key={id} variant={variant} {...props}>
-            <div className="flex items-start gap-3 p-4 pr-8">
+            <div className="flex items-center gap-2 p-2 pr-6">
               {icon && <div className="flex-shrink-0">{icon}</div>}
               <div className="flex-1">
-                {title && <ToastTitle>{title}</ToastTitle>}
                 {description && (
-                  <ToastDescription>{description}</ToastDescription>
+                  <ToastDescription className="text-sm">{description}</ToastDescription>
                 )}
               </div>
             </div>
             {action}
-            <ToastClose />
+            <ToastClose className="absolute right-1 top-1 p-0.5" />
           </Toast>
         )
       })}

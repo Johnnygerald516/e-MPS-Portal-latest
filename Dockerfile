@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_PUBLIC_API_URL=http://10.6.0.168:30033
+ENV NEXT_PUBLIC_API_URL=http://10.6.0.164:30033
 ENV HOST=0.0.0.0
 ENV PORT=3100
 
@@ -33,7 +33,7 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV PORT 3100
 ENV HOST 0.0.0.0
-ENV NEXT_PUBLIC_API_URL http://10.6.0.168:30033
+ENV NEXT_PUBLIC_API_URL http://10.6.0.164:30033
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public
@@ -46,7 +46,7 @@ EXPOSE 3100
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="v0.0.2"
+LABEL org.opencontainers.image.version="v0.0.3"
 
 # Start the application in production mode
 CMD ["npm", "run", "start", "--", "-p", "3100", "-H", "0.0.0.0"]

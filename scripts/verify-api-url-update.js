@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const OLD_API_URL = 'http://10.6.0.164:30033';
-const NEW_API_URL = 'http://10.6.0.167:3300';
+const OLD_API_URL = 'http://10.6.0.167:3300';
+const NEW_API_URL = 'http://10.6.0.168:30033';
 
 console.log('=== API URL Update Verification ===');
 console.log(`Checking for any remaining references to: ${OLD_API_URL}`);

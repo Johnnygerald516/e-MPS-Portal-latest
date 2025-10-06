@@ -4,7 +4,7 @@
 # Variables
 $REGISTRY="10.6.0.157:30000"
 $IMAGE_NAME="migrant-fe-portal"
-$IMAGE_TAG="v0.0.2"
+$IMAGE_TAG="v0.0.3"
 $FULL_IMAGE_NAME="$REGISTRY/$IMAGE_NAME`:$IMAGE_TAG"
 
 # Display information
@@ -46,4 +46,4 @@ Write-Host "  - Registry: $REGISTRY" -ForegroundColor Cyan
 Write-Host "  - Image name: $IMAGE_NAME" -ForegroundColor Cyan
 Write-Host "  - Tag: $IMAGE_TAG" -ForegroundColor Cyan
 Write-Host "  - Container port: 3100" -ForegroundColor Cyan
-Write-Host "  - API Endpoint: 10.6.0.168:30033" -ForegroundColor Cyan
+Write-Host "  - API Endpoint: 10.6.0.164:30033" -ForegroundColor Cyan

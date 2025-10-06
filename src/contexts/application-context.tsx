@@ -354,7 +354,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
    }
   };
   
- const showError = useCallback((message: string, title: string = "Error") => {
+ const showError = useCallback((message: string, title?: string) => {
     toast({
       title: title,
       description: message,
@@ -363,7 +363,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   }, []);
   
   // Show success toast notification
-  const showSuccess = useCallback((message: string, title: string = "Success") => {
+  const showSuccess = useCallback((message: string, title?: string) => {
     toast({
       title: title,
       description: message,
@@ -372,7 +372,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   }, []);
   
   // Show info toast notification
-  const showInfo = useCallback((message: string, title: string = "Information") => {
+  const showInfo = useCallback((message: string, title?: string) => {
     toast({
       title: title,
       description: message,
@@ -381,7 +381,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   }, []);
   
   // Show warning toast notification
-  const showWarning = useCallback((message: string, title: string = "Warning") => {
+  const showWarning = useCallback((message: string, title?: string) => {
     toast({
       title: title,
       description: message,

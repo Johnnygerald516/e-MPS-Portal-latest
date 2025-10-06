@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: false,
   images: {
-    domains: ['i.pravatar.cc', '10.6.0.164', '10.6.0.167'],
+    domains: ['i.pravatar.cc', '10.6.0.164', '10.6.0.167', '10.6.0.168'],
   },
   async headers() {
     // Get API URL from environment variable or use fallback

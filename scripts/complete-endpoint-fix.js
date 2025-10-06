@@ -172,10 +172,10 @@ console.log('\n=== Environment Verification ===');
 const envPath = path.resolve(process.cwd(), '.env');
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
-  if (envContent.includes('NEXT_PUBLIC_API_URL=http://10.6.0.167:3300')) {
-    console.log('✅ Environment variable NEXT_PUBLIC_API_URL is correctly set');
+  if (envContent.includes('NEXT_PUBLIC_API_URL=http://10.6.0.168:30033')) {
+    console.log('✅ Environment variable NEXT_PUBLIC_API_URL is correctly set to 10.6.0.168:30033');
   } else {
-    console.log('⚠️ Please verify NEXT_PUBLIC_API_URL in .env file');
+    console.log('⚠️ Please verify NEXT_PUBLIC_API_URL in .env file - should be http://10.6.0.168:30033');
   }
 } else {
   console.log('❌ .env file not found');

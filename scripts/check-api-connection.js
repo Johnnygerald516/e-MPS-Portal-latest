@@ -23,8 +23,8 @@ let apiUrl = process.env.NEXT_PUBLIC_API_URL;
 // Check if API URL is defined
 if (!apiUrl) {
   console.warn('⚠️ NEXT_PUBLIC_API_URL is not defined in environment variables!');
-  console.warn('Using fallback API URL: http://10.6.0.167:3300');
-  apiUrl = 'http://10.6.0.167:3300';
+  console.warn('Using fallback API URL: http://10.6.0.168:30033');
+  apiUrl = 'http://10.6.0.168:30033';
 }
 console.log(`Checking connection to API at: ${apiUrl}`);
 
@@ -112,13 +112,12 @@ async function runChecks() {
       console.log('Running ping test...');
       const { exec } = require('child_process');
       
-      exec(`ping -n 4 10.6.0.167`, (error, stdout, stderr) => {
+      exec(`ping -n 4 10.6.0.168`, (error, stdout, stderr) => {
         if (error) {
           console.error(`Ping execution error: ${error}`);
           return;
         }
         
-        console.log(stdout);
         
         if (stderr) {
           console.error(`Ping stderr: ${stderr}`);
@@ -126,8 +125,8 @@ async function runChecks() {
         
         console.log('\n=== Recommendations ===');
         console.log('1. Check if the API server is running');
-        console.log('2. Verify network connectivity to 10.6.0.167');
-        console.log('3. Ensure port 3300 is open and accessible');
+        console.log('2. Verify network connectivity to 10.6.0.168');
+        console.log('3. Ensure port 30033 is open and accessible');
         console.log('4. Check firewall settings');
       });
     }
