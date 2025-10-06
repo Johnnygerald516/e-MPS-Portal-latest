@@ -8,27 +8,45 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle, 
-  SheetTrigger 
+  SheetTrigger,
+  SheetFooter
 } from "@/components/ui/sheet"
 import { ChatMessage, chatService } from '@/lib/chat-service'
-import { MessageCircle, Send, ArrowDown, Loader2 } from 'lucide-react'
+import { MessageCircle, Send, ArrowDown, Loader2, Trash2, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { HelpSuggestions } from './help-suggestions'
+import { conversationStorage } from '@/lib/conversation-storage'
+import { MessageBubble } from './message-bubble'
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      content: 'Hello! I\'m your Migrant Portal assistant. How can I help you today?',
-      role: 'assistant',
-      timestamp: new Date()
-    }
-  ])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [hasHistory, setHasHistory] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // Initialize messages from storage or with welcome message
+  useEffect(() => {
+    const hasStored = conversationStorage.hasStoredConversation();
+    setHasHistory(hasStored);
+    
+    if (hasStored) {
+      const storedMessages = conversationStorage.loadConversation();
+      setMessages(storedMessages);
+    } else {
+      setMessages([
+        {
+          id: 'welcome',
+          content: 'Hello! I\'m your Migrant Assistant. How can I help you today?',
+          role: 'assistant',
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [])
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -63,13 +81,20 @@ export function ChatBot() {
     setMessages(updatedMessages)
     setInputValue('')
     setIsLoading(true)
+    setHasHistory(true) // We now have conversation history
     
     try {
       // Get AI response with conversation history
       // Only send the last 10 messages to keep context manageable
       const conversationHistory = updatedMessages.slice(-10);
       const response = await chatService.getResponse(userMessage.content, conversationHistory)
-      setMessages(prev => [...prev, response])
+      
+      // Update messages with AI response
+      const messagesWithResponse = [...updatedMessages, response];
+      setMessages(messagesWithResponse)
+      
+      // Save conversation to storage
+      conversationStorage.saveConversation(messagesWithResponse);
     } catch (error) {
       // Handle error
       const errorMessage: ChatMessage = {
@@ -78,11 +103,40 @@ export function ChatBot() {
         role: 'assistant',
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, errorMessage])
+      
+      // Update messages with error
+      const messagesWithError = [...updatedMessages, errorMessage];
+      setMessages(messagesWithError)
+      
+      // Save conversation to storage
+      conversationStorage.saveConversation(messagesWithError);
     } finally {
       setIsLoading(false)
     }
   }
+
+  // Handle clicking on a suggestion
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputValue(suggestion);
+    // Focus the input field after selecting a suggestion
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+  
+  // Clear conversation history
+  const handleClearConversation = () => {
+    // Reset to initial welcome message
+    const welcomeMessage: ChatMessage = {
+      id: 'welcome-' + Math.random().toString(36).substring(2, 10),
+      content: 'Hello! I\'m your Migrant Assistant. How can I help you today?',
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages([welcomeMessage]);
+    setHasHistory(false);
+    conversationStorage.clearConversation();
+    scrollToBottom();
+  };
 
   return (
     <>
@@ -100,29 +154,37 @@ export function ChatBot() {
           <SheetHeader className="p-4 border-b">
             <SheetTitle className="flex items-center">
               <MessageCircle className="h-5 w-5 mr-2" />
-              Migrant Portal
+              Migrant Assistant
             </SheetTitle>
           </SheetHeader>
           
           {/* Chat messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex w-max max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                  message.role === 'user'
-                    ? "ml-auto bg-primary text-primary-foreground"
-                    : "bg-muted"
-                )}
-              >
-                {message.content}
-              </div>
-            ))}
+            {messages.map((message, index) => {
+              // Check if this is the latest assistant message for typing animation
+              const isLatestAssistantMessage = 
+                message.role === 'assistant' && 
+                index === messages.findLastIndex(m => m.role === 'assistant');
+                
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  isLatestAssistantMessage={isLatestAssistantMessage}
+                />
+              );
+            })}
             
             {isLoading && (
               <div className="flex w-max max-w-[80%] rounded-lg px-3 py-2 text-sm bg-muted">
                 <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            )}
+            
+            {/* Show help suggestions only when there's just the welcome message */}
+            {messages.length === 1 && !isLoading && (
+              <div className="w-full max-w-[80%]">
+                <HelpSuggestions onSuggestionClick={handleSuggestionClick} />
               </div>
             )}
             
@@ -141,28 +203,46 @@ export function ChatBot() {
             </Button>
           )}
           
-          {/* Input area */}
-          <div className="border-t p-4">
-            <form
-              className="flex space-x-2"
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSendMessage()
-              }}
-            >
-              <Input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </div>
+          {/* Footer with controls */}
+          <SheetFooter className="border-t">
+            {/* Clear conversation button - only show if there's history */}
+            {hasHistory && (
+              <div className="w-full flex justify-center py-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-muted-foreground flex gap-1"
+                  onClick={handleClearConversation}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Clear conversation
+                </Button>
+              </div>
+            )}
+            
+            {/* Input area */}
+            <div className="w-full p-4 pt-2">
+              <form
+                className="flex space-x-2"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSendMessage()
+                }}
+              >
+                <Input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
     </>

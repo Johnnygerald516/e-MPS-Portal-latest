@@ -215,7 +215,9 @@ export default function Home() {
                 >
                   {/* <motion.span variants={itemVariants} className="block">{t('landing.managing')}</motion.span> */}
                   <motion.span variants={itemVariants} className="block">Mfumo wa Walowezi</motion.span>
-                  <motion.span variants={itemVariants} className="block text-blue-600">{t('landing.inTanzania')}</motion.span>
+                  <motion.span variants={itemVariants} className="block text-blue-600">
+                    {/* {t('landing.inTanzania')} */}Tanzania
+                    </motion.span>
                 </motion.h2>
                 
                 <motion.p 
@@ -232,7 +234,7 @@ export default function Home() {
                   className="mb-2"
                 >
                   <PDFViewer 
-                    pdfPath="/api/pdf?file=MIGRANT%20PASS%20(KIBALI%20CHA%20MLOWEZI).pdf"
+                    pdfPath="/assets/MUONGOZO_WA_KIBALI_CHA_WALOWEZI_NEW.pdf"
                     buttonText="Soma Muongozo wa Kibali cha Mlowezi"
                     title="Muongozo wa Kibali cha Mlowezi"
                     variant="secondary"
@@ -270,7 +272,7 @@ export default function Home() {
                       } else if (index === 1) {
                         ServiceIcon = Users;
                       }
-                      
+                  
                       return (
                         <motion.div 
                           key={index} 
@@ -292,7 +294,7 @@ export default function Home() {
                             
                             {service.title === "Ufuatiliaji Ombi" ? (
                               <Link href="/application/progress">
-  <motion.button 
+                           <motion.button 
                                   className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                                   whileHover={{ scale: 1.05 }}
                                   transition={{ type: "spring", stiffness: 400 }}

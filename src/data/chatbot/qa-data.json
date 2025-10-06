@@ -9,9 +9,21 @@
         "start application",
         "begin application",
         "submit application",
-        "application procedure"
+        "application procedure",
+        "apply for pass",
+        "apply for permit",
+        "how to submit",
+        "application steps",
+        "how to start",
+        "start new application",
+        "fill out form",
+        "complete application",
+        "application instructions",
+        "jaza ombi",
+        "namna ya kujaza",
+        "jinsi ya kuomba"
       ],
-      "answer": "To apply for a migrant permit through the eMPS Portal:\n\n1. Create an account or log in to your existing account\n2. Click on 'Start New Application' on the dashboard\n3. Select the type of permit you need (work, study, family, etc.)\n4. Fill out all required personal information\n5. Upload the necessary supporting documents\n6. Review your application for accuracy\n7. Submit your application and pay any applicable fees\n8. You'll receive a confirmation number that you can use to track your application status"
+      "answer": "To apply for a migrant pass through the eMPS Portal:\n\n1. Create an account or log in to your existing account\n2. Click on 'Start New Application' on the dashboard\n3. Select the type of pass you need (work, study, family, etc.)\n4. Fill out all required personal information\n5. Upload the necessary supporting documents\n6. Review your application for accuracy\n7. Submit your application and pay any applicable fees\n8. You'll receive a confirmation number that you can use to track your application status"
     },
     {
       "id": "required-documents",
@@ -22,9 +34,20 @@
         "documentation needed",
         "papers required",
         "necessary documents",
-        "document requirements"
+        "document requirements",
+        "what files to upload",
+        "document checklist",
+        "required paperwork",
+        "documents for application",
+        "passport requirements",
+        "photo requirements",
+        "what to upload",
+        "nyaraka zinahitajika",
+        "hati zinazohitajika",
+        "documents for permit",
+        "documents for visa"
       ],
-      "answer": "The documents required for your migrant permit application depend on the type of permit you're applying for. Common documents include:\n\n- Valid passport (with at least 6 months validity)\n- Passport-sized photographs (recent)\n- Proof of accommodation\n- Proof of financial means\n- Medical certificate\n- Police clearance certificate\n- Employment contract (for work permits)\n- Acceptance letter (for study permits)\n- Marriage certificate (for family permits)\n\nFor specific requirements based on your permit type, please check the 'Requirements' section on the application form."
+      "answer": "The documents required for your migrant pass application depend on the type of pass you're applying for. Common documents include:\n\n- Valid passport (with at least 6 months validity)\n- Passport-sized photographs (recent)\n- Proof of accommodation\n- Proof of financial means\n- Medical certificate\n- Police clearance certificate\n- Employment contract (for work pass)\n- Acceptance letter (for study pass)\n- Marriage certificate (for family pass)\n\nFor specific requirements based on your pass type, please check the 'Requirements' section on the application form."
     },
     {
       "id": "application-status",
@@ -34,24 +57,46 @@
         "where is my application",
         "track application",
         "application progress",
-        "status of my permit",
-        "how long processing"
+        "status of my pass",
+        "how long processing",
+        "application tracking",
+        "check my application",
+        "follow up on application",
+        "application update",
+        "is my application approved",
+        "application decision",
+        "ufuatiliaji ombi",
+        "hali ya maombi",
+        "maendeleo ya ombi",
+        "ombi limefikia wapi"
       ],
-      "answer": "To check the status of your application:\n\n1. Log in to your eMPS Portal account\n2. Go to the 'My Applications' section on your dashboard\n3. Find your application in the list and click on it\n4. You'll see the current status of your application\n\nAlternatively, you can use your application reference number to check the status on the public tracking page without logging in.\n\nTypical processing times vary by permit type:\n- Tourist/Visitor permits: 5-10 business days\n- Work permits: 15-30 business days\n- Study permits: 10-20 business days\n- Family/Dependent permits: 20-40 business days"
+      "answer": "To check the status of your application:\n\n1. Log in to your eMPS Portal account\n2. Go to the 'My Applications' section on your dashboard\n3. Find your application in the list and click on it\n4. You'll see the current status of your application\n\nAlternatively, you can use your application reference number to check the status on the public tracking page without logging in.\n\nTypical processing times vary by pass type:\n- Tourist/Visitor pass: 5-10 business days\n- Work pass: 15-30 business days\n- Study pass: 10-20 business days\n- Family/Dependent pass: 20-40 business days"
     },
     {
       "id": "fees",
       "patterns": [
         "how much does it cost",
         "application fee",
-        "permit fee",
+        "pass fee",
         "payment",
-        "cost of permit",
+        "cost of pass",
         "price",
         "charges",
-        "fee structure"
+        "fee structure",
+        "how to pay",
+        "payment methods",
+        "online payment",
+        "bank transfer",
+        "credit card payment",
+        "mobile payment",
+        "ada ya maombi",
+        "gharama ya kibali",
+        "malipo",
+        "bei",
+        "cost of permit",
+        "fee schedule"
       ],
-      "answer": "Fees for migrant permits vary depending on the type and duration:\n\n- Tourist/Visitor permit: $50-100 USD\n- Work permit: $150-300 USD\n- Study permit: $100-200 USD\n- Family/Dependent permit: $100-250 USD\n\nPayments can be made online through the eMPS Portal using credit/debit cards or through approved bank transfers. All fees are non-refundable, even if your application is denied.\n\nPlease note that fees are subject to change. The exact fee will be displayed during your application process."
+      "answer": "Fees for migrant pass vary depending on the type and duration:\n\n- Tourist/Visitor pass: $50-100 USD\n- Work pass: $150-300 USD\n- Study pass: $100-200 USD\n- Family/Dependent pass: $100-250 USD\n\nPayments can be made online through the eMPS Portal using credit/debit cards or through approved bank transfers. All fees are non-refundable, even if your application is denied.\n\nPlease note that fees are subject to change. The exact fee will be displayed during your application process."
     },
     {
       "id": "processing-time",
@@ -62,9 +107,20 @@
         "when will I get",
         "application timeline",
         "duration",
-        "turnaround time"
+        "turnaround time",
+        "how many days",
+        "how many weeks",
+        "approval time",
+        "decision timeframe",
+        "processing period",
+        "expected wait",
+        "muda wa kusubiri",
+        "muda wa mchakato",
+        "itachukua muda gani",
+        "when will it be ready",
+        "time to process"
       ],
-      "answer": "Processing times for migrant permits vary depending on the type of permit and current application volumes:\n\n- Tourist/Visitor permits: 5-10 business days\n- Work permits: 15-30 business days\n- Study permits: 10-20 business days\n- Family/Dependent permits: 20-40 business days\n\nPlease note that these are estimated timeframes. Complex cases may take longer. You can check the status of your application through your eMPS Portal account at any time."
+      "answer": "Processing times for migrant pass vary depending on the type of pass and current application volumes:\n\n- Tourist/Visitor pass: 5-10 business days\n- Work pass: 15-30 business days\n- Study pass: 10-20 business days\n- Family/Dependent pass: 20-40 business days\n\nPlease note that these are estimated timeframes. Complex cases may take longer. You can check the status of your application through your eMPS Portal account at any time."
     },
     {
       "id": "technical-issues",
@@ -76,7 +132,20 @@
         "system down",
         "portal error",
         "website error",
-        "upload failed"
+        "upload failed",
+        "page not loading",
+        "site crashed",
+        "login problems",
+        "can't submit form",
+        "application freezes",
+        "browser issues",
+        "technical difficulties",
+        "system error",
+        "tatizo la kiufundi",
+        "tovuti haifanyi kazi",
+        "shida ya kupakia",
+        "can't log in",
+        "forgot password"
       ],
       "answer": "If you're experiencing technical issues with the eMPS Portal:\n\n1. Try refreshing the page or clearing your browser cache\n2. Make sure you're using a supported browser (Chrome, Firefox, Safari, or Edge)\n3. Check that your internet connection is stable\n4. Ensure uploaded documents meet the size and format requirements (PDF, JPG, PNG under 5MB)\n5. If uploading documents fails, try reducing the file size or converting to a different format\n\nIf problems persist, please contact technical support at support@emps-portal.gov with details of the issue and screenshots if possible."
     },
@@ -85,39 +154,72 @@
       "patterns": [
         "application rejected",
         "application denied",
-        "permit refused",
+        "pass refused",
         "appeal process",
         "rejected application",
         "how to appeal",
-        "reapply"
+        "reapply",
+        "application declined",
+        "denial reason",
+        "challenge rejection",
+        "second chance",
+        "reconsideration",
+        "appeal decision",
+        "ombi limekataliwa",
+        "rufaa",
+        "kukata rufaa",
+        "omba tena",
+        "application failed",
+        "why was I rejected"
       ],
       "answer": "If your application has been rejected:\n\n1. Log in to your eMPS Portal account\n2. Go to the rejected application\n3. Review the reasons for rejection carefully\n4. Click on the 'Appeal Decision' button (available for 30 days after rejection)\n5. Provide additional information or documentation addressing the reasons for rejection\n6. Submit your appeal\n\nAlternatively, you may start a new application addressing the issues that led to the rejection. Appeals typically take 15-30 business days to process."
     },
     {
-      "id": "extend-permit",
+      "id": "extend-pass",
       "patterns": [
-        "extend my permit",
-        "renew permit",
-        "permit extension",
+        "extend my pass",
+        "renew pass",
+        "pass extension",
         "stay longer",
         "extend visa",
         "renew visa",
-        "extend stay"
+        "extend stay",
+        "prolong stay",
+        "continue residence",
+        "renewal process",
+        "extension application",
+        "visa renewal",
+        "permit extension",
+        "kuongeza muda",
+        "kurefusha kibali",
+        "renewal requirements",
+        "how to extend",
+        "extension fee"
       ],
-      "answer": "To extend or renew your existing permit:\n\n1. Log in to your eMPS Portal account\n2. Go to 'My Permits' section\n3. Find the permit you wish to extend and click 'Apply for Extension'\n4. Complete the extension application form\n5. Upload any required supporting documents\n6. Pay the extension fee\n7. Submit your application\n\nImportant: Apply for extensions at least 30 days before your current permit expires to avoid penalties or being required to leave the country."
+      "answer": "To extend or renew your existing pass:\n\n1. Log in to your eMPS Portal account\n2. Go to 'My pass' section\n3. Find the pass you wish to extend and click 'Apply for Extension'\n4. Complete the extension application form\n5. Upload any required supporting documents\n6. Pay the extension fee\n7. Submit your application\n\nImportant: Apply for extensions at least 30 days before your current pass expires to avoid penalties or being required to leave the country."
     },
     {
-      "id": "change-permit-type",
+      "id": "change-pass-type",
       "patterns": [
-        "change permit type",
+        "change pass type",
         "switch visa",
-        "convert permit",
+        "convert pass",
         "change visa status",
-        "different permit",
+        "different pass",
         "change from tourist to work",
-        "change permit category"
+        "change pass category",
+        "visa conversion",
+        "permit conversion",
+        "change visa type",
+        "switch permit category",
+        "status change",
+        "visa adjustment",
+        "badilisha aina ya kibali",
+        "student to work permit",
+        "visitor to work permit",
+        "tourist to resident"
       ],
-      "answer": "To change your permit type (e.g., from tourist to work permit):\n\n1. Log in to your eMPS Portal account\n2. Go to 'My Permits' section\n3. Find your current permit and click 'Apply for Change of Status'\n4. Select the new permit type you wish to apply for\n5. Complete the application form\n6. Upload all required documents for the new permit type\n7. Pay the applicable fees\n8. Submit your application\n\nNote that not all permit types can be changed while in the country. Some changes may require you to apply from your home country."
+      "answer": "To change your pass type (e.g., from tourist to work pass):\n\n1. Log in to your eMPS Portal account\n2. Go to 'My pass' section\n3. Find your current pass and click 'Apply for Change of Status'\n4. Select the new pass type you wish to apply for\n5. Complete the application form\n6. Upload all required documents for the new pass type\n7. Pay the applicable fees\n8. Submit your application\n\nNote that not all pass types can be changed while in the country. Some changes may require you to apply from your home country."
     },
     {
       "id": "dependents",
@@ -127,12 +229,97 @@
         "family members",
         "spouse visa",
         "children visa",
-        "family permit",
+        "family pass",
         "bring wife",
         "bring husband",
-        "bring children"
+        "bring children",
+        "dependent application",
+        "family reunification",
+        "spouse permit",
+        "child permit",
+        "family migration",
+        "family visa",
+        "wategemezi",
+        "familia",
+        "mke",
+        "mume",
+        "watoto",
+        "family requirements"
       ],
-      "answer": "To include dependents (spouse, children under 18) in your permit application:\n\n1. When completing your main application, indicate that you have dependents to include\n2. Provide the required information for each dependent\n3. Upload supporting documents for each dependent (birth certificates, marriage certificates, etc.)\n4. Pay the additional fees for each dependent\n\nAlternatively, if you already have a valid permit, you can apply for dependent permits through the 'Family Applications' section of your eMPS Portal account.\n\nDependents typically receive permits valid for the same duration as the main applicant."
+      "answer": "To include dependents (spouse, children under 18) in your pass application:\n\n1. When completing your main application, indicate that you have dependents to include\n2. Provide the required information for each dependent\n3. Upload supporting documents for each dependent (birth certificates, marriage certificates, etc.)\n4. Pay the additional fees for each dependent\n\nAlternatively, if you already have a valid pass, you can apply for dependent pass through the 'Family Applications' section of your eMPS Portal account.\n\nDependents typically receive pass valid for the same duration as the main applicant."
+    },
+    {
+      "id": "help",
+      "patterns": [
+        "help",
+        "assistance",
+        "support",
+        "contact support",
+        "need help",
+        "customer service",
+        "talk to agent",
+        "speak to representative",
+        "contact information",
+        "helpline",
+        "msaada",
+        "usaidizi",
+        "maelezo",
+        "who can help me",
+        "support email",
+        "support phone",
+        "help center",
+        "FAQ",
+        "frequently asked questions"
+      ],
+      "answer": "If you need help with the eMPS Portal or your application, you have several options:\n\n1. Visit our Help Center: Access comprehensive guides and frequently asked questions at help.emps-portal.gov\n\n2. Contact Support:\n   - Email: support@emps-portal.gov\n   - Phone: +255-22-123-4567 (Mon-Fri, 8:00 AM - 4:00 PM EAT)\n\n3. In-Person Assistance:\n   - Visit any Immigration Office during working hours\n   - Schedule an appointment through the portal for personalized assistance\n\n4. Live Chat:\n   - Available on the portal during business hours\n\nFor urgent matters related to approved applications, please contact the nearest Immigration Office directly."
+    },
+    {
+      "id": "login-issues",
+      "patterns": [
+        "can't login",
+        "login problem",
+        "forgot password",
+        "reset password",
+        "account locked",
+        "login error",
+        "access denied",
+        "account issues",
+        "can't access account",
+        "password reset",
+        "account recovery",
+        "login failed",
+        "shida ya kuingia",
+        "nimesahau password",
+        "akaunti imefungwa",
+        "username not working",
+        "password not working",
+        "authentication failed"
+      ],
+      "answer": "If you're having trouble logging into your eMPS Portal account:\n\n1. For forgotten passwords:\n   - Click on 'Forgot Password' on the login page\n   - Enter the email address associated with your account\n   - Follow the instructions sent to your email to reset your password\n\n2. If your account is locked:\n   - Wait 30 minutes before trying again\n   - If still locked, contact support with your username and the email address used for registration\n\n3. For persistent login issues:\n   - Clear your browser cache and cookies\n   - Try using a different browser\n   - Ensure you're using the correct email/username\n   - Check that Caps Lock is not enabled when typing your password\n\n4. If you can't remember your registered email:\n   - Contact support at support@emps-portal.gov with your full name, date of birth, and passport number for verification"
+    },
+    {
+      "id": "pass-types",
+      "patterns": [
+        "types of passes",
+        "pass categories",
+        "different passes",
+        "visa types",
+        "permit types",
+        "available passes",
+        "which pass do I need",
+        "pass options",
+        "aina za vibali",
+        "vibali vilivyopo",
+        "work permit",
+        "student permit",
+        "visitor permit",
+        "business permit",
+        "family permit",
+        "residence permit",
+        "right pass for me",
+        "pass comparison"
+      ],
+      "answer": "The eMPS Portal offers several types of migrant passes to suit different needs:\n\n1. Work Pass: For those employed by a Tanzanian company or organization\n   - Class A: For investors and self-employed individuals\n   - Class B: For employees with specific skills\n   - Class C: For missionaries, volunteers, and NGO workers\n\n2. Student Pass: For those enrolled in Tanzanian educational institutions\n\n3. Visitor/Tourist Pass: For short-term visits (tourism, family visits, etc.)\n\n4. Business Pass: For those conducting business activities but not employed in Tanzania\n\n5. Family/Dependent Pass: For spouses and children of pass holders\n\n6. Residence Permit: For long-term residents\n\n7. Special Pass: For specific circumstances not covered by other categories\n\nEach pass type has different requirements, fees, and validity periods. When starting your application, you'll be guided to select the appropriate pass type based on your circumstances."
     }
   ]
 }

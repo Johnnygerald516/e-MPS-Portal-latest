@@ -8,10 +8,15 @@ The Migrant Assistant chatbot is designed to answer questions about the eMPS (El
 
 ## Features
 
-- Predefined Q&A for common questions about the migration process
+- Advanced pattern matching for common migration questions
+- Multilingual support with English and Swahili patterns
 - Fallback to OpenAI for questions not covered by predefined answers
-- Admin interface for managing Q&A pairs
 - Conversation history support for context-aware responses
+- Scoring system to find the most relevant answers
+- Comprehensive Q&A database with migration-specific topics
+- User feedback collection for response quality improvement
+- Typing animation for a more natural conversation experience
+- Help command to guide users on available topics
 
 ## Setup Instructions
 
@@ -48,11 +53,27 @@ Example:
   "patterns": [
     "how do I apply",
     "application process",
-    "how to apply"
+    "how to apply",
+    "start application",
+    "apply for permit",
+    "jaza ombi",
+    "namna ya kujaza"
   ],
   "answer": "To apply for a migrant permit through the eMPS Portal:\n\n1. Create an account or log in\n2. Click on 'Start New Application'\n3. Select the permit type\n4. Fill out the required information\n5. Upload supporting documents\n6. Submit your application"
 }
 ```
+
+### Pattern Matching Algorithm
+
+The chatbot uses a sophisticated matching algorithm that:
+
+1. **Direct Matching**: Checks if the user's query contains any pattern exactly
+2. **Reverse Matching**: Checks if any pattern contains the user's query
+3. **Word-level Matching**: Breaks down both the query and patterns into words and finds overlapping terms
+4. **Scoring System**: Assigns a relevance score (0-1) to each potential match
+5. **Threshold Filtering**: Only returns matches above a minimum relevance threshold (0.5)
+
+This approach ensures that even partially matching or differently phrased questions can find the appropriate answer.
 
 ## Technical Implementation
 
@@ -118,6 +139,30 @@ To improve response times, consider:
 2. Using a model with lower latency
 3. Implementing caching for common queries
 
+## Testing the Chatbot
+
+A test script is provided to verify the chatbot's pattern matching capabilities:
+
+```bash
+# Run the test script
+node scripts/test-chatbot.js
+```
+
+This script tests a variety of queries against the Q&A database and reports:
+- Which patterns were matched
+- The matching score for each query
+- The overall match rate
+- A preview of the answers
+
+You can also use the test script programmatically:
+
+```typescript
+import { runChatbotTest } from '@/lib/test-chatbot';
+
+// Run the test and see results in the console
+runChatbotTest();
+```
+
 ## Troubleshooting
 
 If the chatbot is not working as expected:
@@ -125,15 +170,46 @@ If the chatbot is not working as expected:
 1. Check that the OpenAI API key is correctly set in the `.env` file
 2. Verify that the Q&A data file exists and is properly formatted
 3. Check the browser console and server logs for any errors
-4. Ensure that the API routes are accessible and returning the expected responses
+4. Run the test script to verify pattern matching is working correctly
+5. Ensure that the API routes are accessible and returning the expected responses
+
+## Feedback Mechanism
+
+The chatbot includes a feedback collection system that allows users to rate responses and provide comments on unhelpful answers:
+
+### How It Works
+
+1. **Rating Interface**: After each assistant message, users can rate the response as helpful or unhelpful
+2. **Comment Collection**: For unhelpful responses, users can provide detailed feedback
+3. **Data Storage**: Feedback is stored both locally and sent to an API endpoint
+4. **Analytics**: Feedback data includes message ID, helpfulness rating, optional comment, and answer source (custom Q&A or OpenAI)
+
+### API Endpoint
+
+Feedback is sent to the `/api/chat/feedback` endpoint with the following structure:
+
+```json
+{
+  "messageId": "unique-message-id",
+  "isHelpful": true,
+  "comment": "Optional user comment for unhelpful responses",
+  "source": "custom_qa",
+  "timestamp": "2025-10-06T20:32:59.123Z"
+}
+```
+
+### Using Feedback Data
+
+The collected feedback can be used to:
+
+1. Identify patterns of unhelpful responses
+2. Improve the Q&A database with better answers
+3. Adjust the pattern matching algorithm
+4. Train custom models based on user interactions
 
 ## Future Enhancements
 
 Here are some potential enhancements that could be added to the chatbot in the future:
-
-### 1. User Feedback Collection
-
-Implement a feedback mechanism that allows users to rate the helpfulness of the chatbot's responses. This data can be used to improve the Q&A database and identify areas where the chatbot needs improvement.
 
 ### 2. Multi-language Support
 
