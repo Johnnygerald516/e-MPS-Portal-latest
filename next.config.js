@@ -1,8 +1,17 @@
 /** @type {import('next').NextConfig} */
+
+// Load environment variables
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+console.log('Loading next.config.js with NEXT_PUBLIC_API_URL:', apiUrl);
+
 const nextConfig = {
   reactStrictMode: false,
   images: {
-    domains: ['i.pravatar.cc', '10.6.0.164', '10.6.0.167', '10.6.0.168'],
+    domains: [
+      'i.pravatar.cc',
+      // Read image domains from environment variables
+      ...(process.env.NEXT_PUBLIC_IMAGE_DOMAINS?.split(',') || ['10.6.0.168'])
+    ],
   },
   async headers() {
     // Get API URL from environment variable or use fallback
@@ -27,6 +36,12 @@ const nextConfig = {
     // Get API URL from environment variable or use fallback
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     console.log('Using API URL in rewrites:', apiUrl);
+    
+    // If no API URL is provided, don't set up rewrites
+    if (!apiUrl) {
+      console.warn('No API URL provided, skipping rewrites');
+      return [];
+    }
     
     return [
       {

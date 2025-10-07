@@ -1,24 +1,36 @@
 import axios from 'axios';
+import { apiConfig, isValidUrl } from '../config/api-config';
 
-let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+// Get API URL from config with environment variables
+let apiUrl = apiConfig.baseUrl;
+
+// Log the API URL for debugging
+console.log('[axios] Initial API URL from config:', apiUrl);
+console.log('[axios] Direct env var check:', process.env.NEXT_PUBLIC_API_URL);
 
 // Validate that we have an API URL
 if (!apiUrl) {
-  // Use the production API URL as fallback
-  apiUrl='http://10.6.0.168:30033';
+  // Use the production API URL as fallback - read from .env.NEXT_PUBLIC_API_URL_FALLBACK
+  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || '';
+  console.log('[axios] Using fallback URL:', apiUrl);
   
   // In browser, we can show an error message
   if (typeof window !== 'undefined') {
-    console.warn('API URL not found in environment variables, using fallback URL');
+    console.warn('[axios] API URL not found in environment variables, using fallback URL');
   }
 }
 
 // Validate URL format
-try {
-  new URL(apiUrl);
-} catch (error) {
-  apiUrl='http://10.6.0.168:30033';
-  console.error('Invalid API URL format, using fallback URL');
+if (!isValidUrl(apiUrl)) {
+  const oldUrl = apiUrl;
+  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || 'http://127.0.0.1:8000';
+  console.error(`[axios] Invalid API URL format: "${oldUrl}", using fallback URL: "${apiUrl}"`);
+}
+
+// Final check - if we still don't have a valid URL, use a hardcoded fallback
+if (!apiUrl || !isValidUrl(apiUrl)) {
+  apiUrl = 'http://127.0.0.1:8000';
+  console.warn(`[axios] No valid API URL found, using default fallback: ${apiUrl}`);
 }
 
 const api = axios.create({
@@ -40,11 +52,11 @@ const publicEndpoints = [
 
 api.interceptors.request.use(
   (config) => {
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+    const apiKey = apiConfig.apiKey;
     if (apiKey) {
       config.headers['api-key'] = apiKey;
     } else {
-      config.headers['api-key'] = 'dev-api-key-placeholder';
+      config.headers['api-key'] = process.env.NEXT_PUBLIC_API_KEY_FALLBACK || 'dev-api-key-placeholder';
     }
     
       
@@ -83,7 +95,7 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
           const response = await axios.post(
-            `${apiUrl}/auth/refresh-token`,
+            `${api.defaults.baseURL}/auth/refresh-token`,
             { refreshToken }
           );
           

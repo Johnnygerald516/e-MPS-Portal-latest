@@ -4,7 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "set NEXT_TELEMETRY_DISABLED=1 && next dev --port 3001",
+    "dev-env": "node dev.js",
     "dev-safe": "node server.js",
+    "create-env": "node scripts/create-env.js",
+    "update-env": "node scripts/update-env.js",
+    "fix-lookup": "node scripts/fix-lookup-url.js",
+    "cleanup-env": "node scripts/cleanup-env.js",
     "build": "next build",
     "build:prod": "node build.js",
     "start": "next start",
@@ -12,6 +17,7 @@
     "check-api": "node scripts/check-api-connection.js",
     "check-env": "node scripts/check-env-variables.js",
     "verify-env": "node scripts/verify-env.js",
+    "test-lookup": "node scripts/test-lookup-api.js",
     "fix-endpoints": "node scripts/complete-endpoint-fix.js",
     "clean-restart": "node scripts/clean-restart.js",
     "test-chatbot": "node scripts/simple-test.js",
@@ -52,7 +58,7 @@
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.525.0",
-    "next": "15.4.4",
+    "next": "~15.4.4",
     "openai": "~4.104.0",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
@@ -85,5 +91,12 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "~10.9.2",
     "typescript": "^5"
+  },
+  "overrides": {
+    "pdfjs-dist": {
+      "engines": {
+        "node": ">=20.9.0"
+      }
+    }
   }
 }

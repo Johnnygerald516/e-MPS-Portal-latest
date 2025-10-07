@@ -120,8 +120,8 @@ export default function BasicInfoPage() {
   
   // Gender options
   const genderOptions = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
+    { value: "M", label: "Mume" },
+    { value: "F", label: "Mke" },
   ];
 
   // Use the Gender type imported from application-context
@@ -701,7 +701,7 @@ export default function BasicInfoPage() {
       <ApplicationLayout 
         title="Taarifa Binafsi" 
         subtitle="Tafadhali jaza taarifa zako Binafsi"
-        currentStep="taarifa-za-msingi"
+        currentStep="habari-binafsi"
         applicationId={applicationId}
       >  
         <Form {...form}>

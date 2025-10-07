@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { trustedHostnames } from "@/lib/config/api-config";
 
 // Define the lookup request interface
 interface LookupRequest {
@@ -8,11 +9,15 @@ interface LookupRequest {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('Lookup API route called');
+  console.log('Request URL:', request.nextUrl.toString());
   try {
     // Parse the request body
     const requestData: LookupRequest = await request.json();
     const { operationType, argument1, argument2 } = requestData;
+    // Use NEXT_PUBLIC_API_URL from environment
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    console.log('Using API URL:', apiUrl);
     if (!apiUrl) {
      return NextResponse.json(
         { 
@@ -24,7 +29,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Use the direct API endpoint
     const externalApiUrl = `${apiUrl}/applications/lookup`;
+    console.log('External API URL:', externalApiUrl);
     
     try {
       let currentUrl;
@@ -40,11 +47,14 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      const isSelfCall = currentUrl.hostname === '10.6.0.164' || 
-                         currentUrl.hostname === '10.6.0.165' || 
-                         currentUrl.hostname === 'localhost';
+      // Check if this is a call to our own API route
+      const isSelfCall = trustedHostnames.includes(currentUrl.hostname) && 
+                       request.nextUrl.pathname === currentUrl.pathname;
       
       if (isSelfCall) {
+        console.log('Detected recursive API call attempt');
+        console.log('Request URL:', request.nextUrl.toString());
+        console.log('Target URL:', externalApiUrl);
         return NextResponse.json({
           ackCode: 0,
           ackMessage: "Cannot call API recursively",

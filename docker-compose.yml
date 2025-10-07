@@ -14,7 +14,15 @@ services:
       - NODE_ENV=production
       - PORT=3100
       - HOST=0.0.0.0
-      - NEXT_PUBLIC_API_URL=http://10.6.0.168:30033
+      # API Configuration
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.6.0.168:30033}
+      - NEXT_PUBLIC_API_URL_FALLBACK=${NEXT_PUBLIC_API_URL_FALLBACK:-http://10.6.0.168:30033}
+      - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
+      - NEXT_PUBLIC_API_KEY_FALLBACK=${NEXT_PUBLIC_API_KEY_FALLBACK:-}
+      # Trusted Hostnames
+      - NEXT_PUBLIC_TRUSTED_HOSTNAMES=${NEXT_PUBLIC_TRUSTED_HOSTNAMES:-localhost,127.0.0.1,10.6.0.164,10.6.0.165}
+      # Image Domains
+      - NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS:-10.6.0.168}
     networks:
       - migrant-network
 

@@ -188,7 +188,7 @@ export default function DependantInfoPage() {
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to load countries and nationalities",
+          description: "Imeshindwa kupakia nchi na uraia.",
           variant: "destructive"
         });
       } finally {
@@ -377,14 +377,14 @@ export default function DependantInfoPage() {
       } else {
         toast({
           title: "Error",
-          description: response.ackMessage || "Failed to save dependant information",
+          description: response.ackMessage || "Imeshindwa kuhifadhi taarifa za mtegemezi.",
           variant: "destructive"
         });
       }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save dependant information",
+        description: error.message || "Imeshindwa kuhifadhi taarifa za mtegemezi.",
         variant: "destructive"
       });
     } finally {
@@ -575,7 +575,7 @@ export default function DependantInfoPage() {
         } else {
           toast({
             title: "Error",
-            description: response.ackMessage || "Failed to save dependant information",
+            description: response.ackMessage || "Imeshindwa kuhifadhi taarifa za mtegemezi.",
             variant: "destructive"
           });
           setIsLoading(false);
@@ -583,7 +583,7 @@ export default function DependantInfoPage() {
       } catch (error: any) {
        toast({
           title: "Error",
-          description: error.message || "Failed to save dependant information",
+          description: error.message || "Imeshindwa kuhifadhi taarifa za mtegemezi.",
           variant: "destructive"
         });
         setIsLoading(false);

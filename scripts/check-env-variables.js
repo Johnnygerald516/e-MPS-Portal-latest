@@ -13,6 +13,9 @@ console.log('=== Environment Variables Check ===');
 console.log('Current directory:', process.cwd());
 console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
 console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL || 'not set');
+console.log('NEXT_PUBLIC_API_URL_FALLBACK:', process.env.NEXT_PUBLIC_API_URL_FALLBACK || 'not set');
+console.log('NEXT_PUBLIC_TRUSTED_HOSTNAMES:', process.env.NEXT_PUBLIC_TRUSTED_HOSTNAMES || 'not set');
+console.log('NEXT_PUBLIC_IMAGE_DOMAINS:', process.env.NEXT_PUBLIC_IMAGE_DOMAINS || 'not set');
 
 // Check if .env file exists and read its content
 const envPath = path.resolve(process.cwd(), '.env');
@@ -60,6 +63,20 @@ if (fs.existsSync(envPath)) {
     }
   } else {
     console.error('\n❌ NEXT_PUBLIC_API_URL is not defined in .env file');
+    
+    // Check if fallback URL is defined
+    if (envVars.NEXT_PUBLIC_API_URL_FALLBACK) {
+      console.log('\nChecking fallback API URL...');
+      try {
+        const fallbackUrl = new URL(envVars.NEXT_PUBLIC_API_URL_FALLBACK);
+        console.log('✅ NEXT_PUBLIC_API_URL_FALLBACK is a valid URL format');
+        console.log('Fallback URL:', fallbackUrl.toString());
+      } catch (error) {
+        console.error('❌ NEXT_PUBLIC_API_URL_FALLBACK is not a valid URL format:', error.message);
+      }
+    } else {
+      console.error('❌ NEXT_PUBLIC_API_URL_FALLBACK is also not defined in .env file');
+    }
   }
 } else {
   console.error('\n❌ .env file not found at:', envPath);
@@ -83,7 +100,13 @@ try {
 // Recommendations
 console.log('\n=== Recommendations ===');
 console.log('1. Make sure NEXT_PUBLIC_API_URL is correctly set in .env file');
-console.log('2. Ensure the API server is running and accessible');
-console.log('3. Check that next.config.js is properly configured to use environment variables');
-console.log('4. Try restarting the Next.js development server');
-console.log('5. Clear the .next cache directory with: rm -rf .next');
+console.log('2. Set NEXT_PUBLIC_API_URL_FALLBACK as a backup in case the main URL fails');
+console.log('3. Ensure the API server is running and accessible');
+console.log('4. Check that next.config.js is properly configured to use environment variables');
+console.log('5. Try using the dev-env script: npm run dev-env');
+console.log('6. Clear the .next cache directory with: rm -rf .next');
+console.log('\n=== Example .env File ===');
+console.log('NEXT_PUBLIC_API_URL=http://127.0.0.1:8000');
+console.log('NEXT_PUBLIC_API_URL_FALLBACK=http://127.0.0.1:8000');
+console.log('NEXT_PUBLIC_TRUSTED_HOSTNAMES=localhost,127.0.0.1');
+console.log('NEXT_PUBLIC_IMAGE_DOMAINS=127.0.0.1');
