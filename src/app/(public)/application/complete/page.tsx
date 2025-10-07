@@ -76,30 +76,51 @@ function ApplicationCompleteContent(): React.ReactNode {
       
       setIsLoadingData(true);
       try {
+        console.log('Fetching application data for ID:', applicationId);
         const response = await fetch(`/api/applications/${applicationId}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.ackCode === 1 && data.jsonResult) {
-            setApplicationData(data.jsonResult);
+        
+        if (!response.ok) {
+          console.error('API response not OK:', response.status, response.statusText);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('API response received:', data);
+        
+        if (data.ackCode === 1 && data.jsonResult) {
+          console.log('Setting application data:', data.jsonResult);
+          setApplicationData(data.jsonResult);
+          
+          // Handle applicant photo - improved logic with better error handling
+          if (data.jsonResult.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && 
+              data.jsonResult.applicantPhoto.length > 0) {
             
-            // Handle applicant photo - same logic as declaration page
-            if (data.jsonResult.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && 
-                data.jsonResult.applicantPhoto.length > 0) {
-              
-              const photoItem = data.jsonResult.applicantPhoto[0];
-              
-              if (photoItem.attachmentType && typeof photoItem.attachmentType === 'string') {
-                if (photoItem.attachmentType.startsWith('data:')) {
-                  setApplicantPhoto(photoItem.attachmentType);
-                } else {
-                  const photoUrl = `data:image/jpeg;base64,${photoItem.attachmentType}`;
-                  setApplicantPhoto(photoUrl);
-                }
+            console.log('Found applicant photo data:', data.jsonResult.applicantPhoto[0]);
+            const photoItem = data.jsonResult.applicantPhoto[0];
+            
+            // Check for attachmentType or attachmentData fields
+            const photoData = photoItem.attachmentType || photoItem.attachmentData || photoItem.base64Data;
+            
+            if (photoData && typeof photoData === 'string') {
+              if (photoData.startsWith('data:')) {
+                console.log('Setting photo from data URL');
+                setApplicantPhoto(photoData);
+              } else {
+                console.log('Setting photo from base64 string');
+                const photoUrl = `data:image/jpeg;base64,${photoData}`;
+                setApplicantPhoto(photoUrl);
               }
+            } else {
+              console.warn('Photo data not found or invalid format');
             }
+          } else {
+            console.log('No applicant photo found in API response');
           }
+        } else {
+          console.error('Invalid API response format or ackCode != 1:', data);
         }
       } catch (error) {
+        console.error('Error fetching application data:', error);
       } finally {
         setIsLoadingData(false);
       }
@@ -161,99 +182,154 @@ function ApplicationCompleteContent(): React.ReactNode {
     loadImages();
   }, []);
 
-  // Prepare form data for PDF generation using the same data format as displayed on the declaration page
+  // Helper function to safely convert string to uppercase
+  const safeToUpperCase = (value: any): string => {
+    if (typeof value === 'string') {
+      return value.toUpperCase();
+    }
+    return value || '';
+  };
+
+  // Helper function to safely parse date
+  const safeParseDate = (dateValue: any): Date | undefined => {
+    if (!dateValue) return undefined;
+    try {
+      const date = new Date(dateValue);
+      return isNaN(date.getTime()) ? undefined : date;
+    } catch (e) {
+      console.error('Error parsing date:', dateValue, e);
+      return undefined;
+    }
+  };
+
+  // Log the raw application data for debugging
+  useEffect(() => {
+    if (applicationData) {
+      console.log('Application data structure:', Object.keys(applicationData));
+      if (applicationData.ApplicationDetails && applicationData.ApplicationDetails.length > 0) {
+        console.log('ApplicationDetails[0] fields:', Object.keys(applicationData.ApplicationDetails[0]));
+      }
+      if (applicationData.applicationdependants) {
+        console.log('applicationdependants length:', applicationData.applicationdependants.length);
+      }
+    }
+  }, [applicationData]);
+
+  // Prepare form data for PDF generation with improved error handling
   const migrantFormData: MigrantFormData = {
-        applicationId: applicationId,
-        
-        // Basic Information - use uppercase format as shown in declaration page
-        firstName: (applicationData?.ApplicationDetails?.[0]?.firstName || formData.firstName || '').toUpperCase(),
-        middleName: (applicationData?.ApplicationDetails?.[0]?.middleName || formData.middleName || '').toUpperCase(),
-        lastName: (applicationData?.ApplicationDetails?.[0]?.lastName || formData.lastName || '').toUpperCase(),
-        otherName: (applicationData?.ApplicationDetails?.[0]?.otherName || formData.otherName || '').toUpperCase(),
-        maritalStatus: (applicationData?.ApplicationDetails?.[0]?.maritalStatus || formData.maritalStatus || '').toUpperCase(),
-        dateOfBirth: applicationData?.ApplicationDetails?.[0]?.dateOfBirth ? 
-          new Date(applicationData.ApplicationDetails[0].dateOfBirth) : 
-          (formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined),
-        gender: (applicationData?.ApplicationDetails?.[0]?.gender || formData.gender || '').toUpperCase(),
-        mobileNumber: (applicationData?.ApplicationDetails?.[0]?.mobileNumber || formData.mobileNumber || '').toUpperCase(),
-        occupationType: (applicationData?.ApplicationDetails?.[0]?.occupationType || formData.occupationType || '').toUpperCase(),
-        occupation: (applicationData?.ApplicationDetails?.[0]?.occupationDetail || formData.employmentStatus || '').toUpperCase(),
-        
-        // Residence Information
-        countryOfResidence: (applicationData?.ApplicationDetails?.[0]?.countryOfResidence || formData.countryOfResidence || '').toUpperCase(),
-        region: (applicationData?.ApplicationDetails?.[0]?.regionOfBirth || formData.region || '').toUpperCase(),
-        district: (applicationData?.ApplicationDetails?.[0]?.districtOfResidence || formData.district || '').toUpperCase(),
-        street: (applicationData?.ApplicationDetails?.[0]?.streetOfResidence || formData.street || '').toUpperCase(),
-        permanentAddress: (applicationData?.ApplicationDetails?.[0]?.permanentAddressOrigin || formData.permanentAddressOrigin || 'SAWA NA ANWANI YA SASA').toUpperCase(),
-        dateOfEntry: applicationData?.ApplicationDetails?.[0]?.dateOfEntryTanzania ? 
-          new Date(applicationData.ApplicationDetails[0].dateOfEntryTanzania) : 
-          (formData.dateOfEntry ? new Date(formData.dateOfEntry) : undefined),
-        
-        // Parents Information
-        fatherName: (applicationData?.ApplicationDetails?.[0]?.fatherFullName || formData.fatherName || '').toUpperCase(),
-        fatherDateOfBirth: applicationData?.ApplicationDetails?.[0]?.fatherDateOfBirth ? 
-          new Date(applicationData.ApplicationDetails[0].fatherDateOfBirth) : 
-          (formData.fatherDateOfBirth ? new Date(formData.fatherDateOfBirth) : undefined),
-        fatherCountryOfBirth: (applicationData?.ApplicationDetails?.[0]?.fatherCountryOfBirth || formData.fatherCountryOfBirth || '').toUpperCase(),
-        fatherRegion: (applicationData?.ApplicationDetails?.[0]?.fatherRegionOfBirth || formData.fatherRegionOfBirth || '').toUpperCase(),
-        fatherNationality: (applicationData?.ApplicationDetails?.[0]?.fatherNationality || '').toUpperCase(),
-        fatherCountryOfResidence: (applicationData?.ApplicationDetails?.[0]?.fatherCountryOfResidence || '').toUpperCase(),
-        
-        motherName: (applicationData?.ApplicationDetails?.[0]?.motherFullName || formData.motherName || '').toUpperCase(),
-        motherDateOfBirth: applicationData?.ApplicationDetails?.[0]?.motherDateOfBirth ? 
-          new Date(applicationData.ApplicationDetails[0].motherDateOfBirth) : 
-          (formData.motherDateOfBirth ? new Date(formData.motherDateOfBirth) : undefined),
-        motherCountryOfBirth: (applicationData?.ApplicationDetails?.[0]?.motherCountryOfBirth || formData.motherCountryOfBirth || '').toUpperCase(),
-        motherRegionOfBirth: (applicationData?.ApplicationDetails?.[0]?.motherRegionOfBirth || formData.motherRegionOfBirth || '').toUpperCase(),
-        motherNationality: (applicationData?.ApplicationDetails?.[0]?.motherNationality || '').toUpperCase(),
-        motherCountryOfResidence: (applicationData?.ApplicationDetails?.[0]?.motherCountryOfResidence || '').toUpperCase(),
-        
-        // Additional fields from API data
-        nationality: (applicationData?.ApplicationDetails?.[0]?.nationality || '').toUpperCase(),
-        countryOfBirth: (applicationData?.ApplicationDetails?.[0]?.countryOfBirth || '').toUpperCase(),
-        placeOfBirth: (applicationData?.ApplicationDetails?.[0]?.placeOfBirth || '').toUpperCase(),
-        passportNumber: (applicationData?.ApplicationDetails?.[0]?.passportNumber || formData.previousPassNumber || '').toUpperCase(),
-        passportIssueDate: applicationData?.ApplicationDetails?.[0]?.passportIssueDate ? 
-          new Date(applicationData.ApplicationDetails[0].passportIssueDate) : undefined,
-        passportExpiryDate: applicationData?.ApplicationDetails?.[0]?.passportExpiryDate ? 
-          new Date(applicationData.ApplicationDetails[0].passportExpiryDate) : undefined,
-        
-        // Include dependants data with uppercase formatting and more complete information
-        dependants: applicationData?.applicationdependants ? 
-          applicationData.applicationdependants.map((dep: any) => ({
-            ...dep,
-            dependantFullName: dep.dependantFullName ? dep.dependantFullName.toUpperCase() : '',
-            dependantGender: dep.dependantGender ? dep.dependantGender.toUpperCase() : '',
-            dependantNationality: dep.dependantNationality ? dep.dependantNationality.toUpperCase() : '',
-            documentNumber: dep.documentNumber ? dep.documentNumber.toUpperCase() : '',
-            // Format dates properly
-            issueDate: dep.issueDate ? new Date(dep.issueDate) : undefined,
-            expireDate: dep.expireDate ? new Date(dep.expireDate) : undefined,
-          })) : 
-          formData.dependants ? formData.dependants.map((dep: any) => ({
-            dependantFullName: dep.name ? dep.name.toUpperCase() : '',
-            dependantRelationType: dep.relationship,
-            dependantGender: dep.gender ? dep.gender.toUpperCase() : '',
-            dependantNationality: dep.nationality ? dep.nationality.toUpperCase() : '',
-            documentNumber: dep.passportNumber ? dep.passportNumber.toUpperCase() : '',
-            expireDate: dep.passportExpiryDate instanceof Date ? dep.passportExpiryDate : undefined,
-            issueDate: dep.passportIssuedDate instanceof Date ? dep.passportIssuedDate : 
-                      (dep.dateOfBirth instanceof Date ? dep.dateOfBirth : undefined)
-          })) : [],
-        
-        // Include attachments data
-        attachments: applicationData?.applicationAttachment || [],
-        
-        // Include submission date
-        submissionDate: submissionDate
-      };
+    applicationId: applicationId,
+    
+    // Basic Information - use uppercase format with safe conversion
+    firstName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.firstName || formData.firstName),
+    middleName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.middleName || formData.middleName),
+    lastName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.lastName || formData.lastName),
+    otherName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.otherName || formData.otherName),
+    maritalStatus: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.maritalStatus || formData.maritalStatus),
+    dateOfBirth: safeParseDate(applicationData?.ApplicationDetails?.[0]?.dateOfBirth || formData.dateOfBirth),
+    gender: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.gender || formData.gender),
+    mobileNumber: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.mobileNumber || applicationData?.ApplicationDetails?.[0]?.phoneNumber || formData.mobileNumber),
+    occupationType: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.occupationType || formData.occupationType),
+    occupation: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.occupationDetail || applicationData?.ApplicationDetails?.[0]?.occupation || formData.employmentStatus),
+    
+    // Residence Information - check multiple possible field names
+    countryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.countryOfResidence || applicationData?.ApplicationDetails?.[0]?.residenceCountry || formData.countryOfResidence),
+    region: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.regionOfBirth || applicationData?.ApplicationDetails?.[0]?.regionOfResidence || applicationData?.ApplicationDetails?.[0]?.region || formData.region),
+    district: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.districtOfResidence || applicationData?.ApplicationDetails?.[0]?.district || formData.district),
+    street: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.streetOfResidence || applicationData?.ApplicationDetails?.[0]?.street || formData.street),
+    permanentAddress: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.permanentAddressOrigin || applicationData?.ApplicationDetails?.[0]?.permanentAddress || formData.permanentAddressOrigin || 'SAWA NA ANWANI YA SASA'),
+    dateOfEntry: safeParseDate(applicationData?.ApplicationDetails?.[0]?.dateOfEntryTanzania || applicationData?.ApplicationDetails?.[0]?.dateOfEntry || formData.dateOfEntry),
+    
+    // Parents Information - check multiple possible field names
+    fatherName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherFullName || applicationData?.ApplicationDetails?.[0]?.fatherName || formData.fatherName),
+    fatherDateOfBirth: safeParseDate(applicationData?.ApplicationDetails?.[0]?.fatherDateOfBirth || formData.fatherDateOfBirth),
+    fatherCountryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherCountryOfBirth || formData.fatherCountryOfBirth),
+    fatherRegion: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherRegionOfBirth || applicationData?.ApplicationDetails?.[0]?.fatherRegion || formData.fatherRegionOfBirth),
+    fatherNationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherNationality || formData.fatherNationality),
+    fatherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherCountryOfResidence || formData.fatherCountryOfResidence),
+    
+    motherName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherFullName || applicationData?.ApplicationDetails?.[0]?.motherName || formData.motherName),
+    motherDateOfBirth: safeParseDate(applicationData?.ApplicationDetails?.[0]?.motherDateOfBirth || formData.motherDateOfBirth),
+    motherCountryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherCountryOfBirth || formData.motherCountryOfBirth),
+    motherRegionOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherRegionOfBirth || applicationData?.ApplicationDetails?.[0]?.motherRegion || formData.motherRegionOfBirth),
+    motherNationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherNationality || formData.motherNationality),
+    motherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherCountryOfResidence || formData.motherCountryOfResidence),
+    
+    // Additional fields from API data
+    nationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.nationality || formData.nationality),
+    countryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.countryOfBirth || formData.countryOfBirth),
+    placeOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.placeOfBirth || formData.placeOfBirth),
+    passportNumber: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.passportNumber || formData.previousPassNumber),
+    passportIssueDate: safeParseDate(applicationData?.ApplicationDetails?.[0]?.passportIssueDate),
+    passportExpiryDate: safeParseDate(applicationData?.ApplicationDetails?.[0]?.passportExpiryDate),
+    
+    // Handle dependants data with improved error handling
+    dependants: applicationData?.applicationdependants ? 
+      applicationData.applicationdependants.map((dep: any) => {
+        try {
+          return {
+            dependantFullName: safeToUpperCase(dep.dependantFullName || dep.fullName || dep.name),
+            dependantRelationType: safeToUpperCase(dep.dependantRelationType || dep.relationType || dep.relationship),
+            dependantGender: safeToUpperCase(dep.dependantGender || dep.gender),
+            dependantNationality: safeToUpperCase(dep.dependantNationality || dep.nationality),
+            documentNumber: safeToUpperCase(dep.documentNumber || dep.passportNumber || dep.documentId),
+            issueDate: safeParseDate(dep.issueDate || dep.documentIssueDate || dep.passportIssuedDate),
+            expireDate: safeParseDate(dep.expireDate || dep.documentExpiryDate || dep.passportExpiryDate),
+          };
+        } catch (e) {
+          console.error('Error processing dependant:', dep, e);
+          return {
+            dependantFullName: 'ERROR PROCESSING DEPENDANT',
+            dependantRelationType: '',
+            dependantGender: '',
+            dependantNationality: '',
+            documentNumber: '',
+          };
+        }
+      }) : 
+      formData.dependants ? formData.dependants.map((dep: any) => {
+        try {
+          return {
+            dependantFullName: safeToUpperCase(dep.name),
+            dependantRelationType: safeToUpperCase(dep.relationship),
+            dependantGender: safeToUpperCase(dep.gender),
+            dependantNationality: safeToUpperCase(dep.nationality),
+            documentNumber: safeToUpperCase(dep.passportNumber),
+            expireDate: safeParseDate(dep.passportExpiryDate),
+            issueDate: safeParseDate(dep.passportIssuedDate || dep.dateOfBirth),
+          };
+        } catch (e) {
+          console.error('Error processing dependant from form data:', dep, e);
+          return {
+            dependantFullName: 'ERROR PROCESSING DEPENDANT',
+            dependantRelationType: '',
+            dependantGender: '',
+            dependantNationality: '',
+            documentNumber: '',
+          };
+        }
+      }) : [],
+    
+    // Include attachments data
+    attachments: applicationData?.applicationAttachment || [],
+    
+    // Include submission date
+    submissionDate: submissionDate
+  };
+  
+  // Log the prepared form data for debugging
+  useEffect(() => {
+    console.log('Prepared migrantFormData:', migrantFormData);
+  }, [migrantFormData]);
       
   // Handle PDF download
   const handleDownloadPDF = async () => {
     setIsLoading(true);
     try {
+      console.log('Starting PDF download with application ID:', applicationId);
+      
       // Check if jsPDF is loaded
       if (!jsPDF) {
+        console.error('jsPDF not loaded yet');
         alert('PDF generator is loading. Please try again in a moment.');
         setIsLoading(false);
         return;
@@ -265,6 +341,21 @@ function ApplicationCompleteContent(): React.ReactNode {
       // Check if we have any images loaded
       const hasImages = !!(images.coatOfArms || images.logo || images.applicantPhoto);
       if (!hasImages) {
+        console.warn('No images loaded for PDF generation');
+      }
+      
+      // Check if we have application data
+      if (!applicationData && !formData.firstName) {
+        console.warn('No application data available for PDF generation');
+      }
+      
+      // Log what photo source we're using
+      if (applicantPhoto) {
+        console.log('Using API photo for PDF');
+      } else if (images.applicantPhoto) {
+        console.log('Using fallback photo for PDF');
+      } else {
+        console.log('No photo available for PDF');
       }
       
       // Generate the PDF using our component
@@ -276,8 +367,10 @@ function ApplicationCompleteContent(): React.ReactNode {
       
       // Save the PDF
       doc.save(`migrant-application-${applicationId}.pdf`);
+      console.log('PDF saved successfully');
       
     } catch (error) {
+      console.error('Error generating PDF:', error);
       alert('There was an error generating the PDF. Please try again.');
     } finally {
       setIsLoading(false);

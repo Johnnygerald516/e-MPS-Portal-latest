@@ -36,6 +36,13 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
   const generatePDFPreview = async () => {
     try {
       setIsLoading(true);
+      console.log('Generating PDF preview with data:', {
+        applicationId: formData.applicationId,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        // Log other key fields to help debug
+        hasPhoto: !!photoUrl
+      });
       
       // Check if jsPDF is available
       const jsPDF = (await import('jspdf')).default;
@@ -52,9 +59,12 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
       
       // Convert the PDF to a data URL
       const pdfDataUrl = doc.output('datauristring');
+      console.log('PDF generated successfully');
       setPdfUrl(pdfDataUrl);
       
     } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      alert('There was an error generating the PDF preview. Please try again or download the PDF directly.');
     } finally {
       setIsLoading(false);
     }

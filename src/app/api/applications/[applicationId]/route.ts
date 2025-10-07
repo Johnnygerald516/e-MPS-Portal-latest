@@ -29,6 +29,7 @@ export async function GET(
 ) {
   try {
     const { applicationId } = params;
+    console.log(`API route: Fetching application data for ID: ${applicationId}`);
     
     // Check if API URL is configured
     if (!process.env.NEXT_PUBLIC_API_URL) {
@@ -44,22 +45,56 @@ export async function GET(
     
     // Call the real external API endpoint
     const externalApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/applications/${applicationId}`;
+    console.log(`Calling external API: ${externalApiUrl}`);
     
     try {
       const response = await fetch(externalApiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           // Add any required authentication headers here
           // 'Authorization': 'Bearer your-token',
         },
+        cache: 'no-store', // Prevent caching issues
+        next: { revalidate: 0 } // Force revalidation
       });
 
       if (!response.ok) {
+        console.error(`External API error: ${response.status} ${response.statusText}`);
+        try {
+          // Try to parse error response
+          const errorData = await response.text();
+          console.error('Error response:', errorData);
+        } catch (e) {
+          // Ignore parsing error
+        }
         throw new Error(`External API error: ${response.status}`);
       }
 
-      const externalData = await response.json();
+      const responseText = await response.text();
+      console.log('Raw API response:', responseText.substring(0, 200) + '...');
+      
+      let externalData;
+      try {
+        externalData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse API response as JSON:', parseError);
+        return NextResponse.json(
+          { 
+            ackCode: 0, 
+            message: "Invalid JSON response from API",
+            rawResponse: responseText.substring(0, 500) // Include part of the raw response for debugging
+          },
+          { status: 500 }
+        );
+      }
+      
+      // Log the structure of the response for debugging
+      console.log('API response structure:', Object.keys(externalData));
+      if (externalData.jsonResult) {
+        console.log('jsonResult structure:', Object.keys(externalData.jsonResult));
+      }
       
       // Return the external API response directly without transformation
       // This preserves the original structure with ApplicationDetails, applicantPhoto, applicationAttachment, applicationdependants

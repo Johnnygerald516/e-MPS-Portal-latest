@@ -161,6 +161,11 @@ export const generateMigrantFormPDF = async (
   formData: MigrantFormData,
   applicantPhotoImage?: string
 ) => {
+  console.log('Starting PDF generation with data:', { 
+    applicationId: formData.applicationId,
+    hasName: !!formData.firstName,
+    hasPhoto: !!applicantPhotoImage?.substring(0, 30)
+  });
   try {
     // Set document properties
     doc.setProperties({
