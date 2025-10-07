@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import SessionProtection from "@/components/application/SessionProtection";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -8,7 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { useState, useEffect } from "react";
+import { MotionForm, MotionField } from "@/components/ui/motion-components";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { Save, ArrowRight } from "lucide-react";
+import { format } from "date-fns";
 import {
   Form,
   FormControl,
@@ -26,18 +29,18 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
-import { ArrowRight, Save, Calendar } from "lucide-react";
 import { useApplication, Gender, ApplicationFormData } from "@/contexts/application-context";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { personalInfoEndpoints } from "@/lib/api";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
 import { useCustomToast } from "@/hooks/use-custom-toast";
-import { format } from "date-fns";
+import { getExtendedSpinTimeProps } from "@/lib/utils/button-utils";
+import { formatDateForApi, formatDateForDisplay, parseDateString, getBestDateValue } from "@/lib/utils/date-utils";
 
 // Application type options with icons
 const applicationTypes = [
   { value: "new", label: "New Application", icon: <ArrowRight className="h-5 w-5 text-blue-600" /> },
-  { value: "renew", label: "Renew Application", icon: <Save className="h-5 w-5 text-green-600" /> },
+  { value: "renew", label: "Renew Application", icon: <Save className="h-5 w-5 text-green-600" /> }
 ];
 
 
@@ -113,10 +116,97 @@ export default function BasicInfoPage() {
     }
   }, [autoNavigateToNext, router]);
 
+  // Simple date formatter
+  const formatDateOfBirth = (dateValue: Date | string | undefined) => {
+    if (!dateValue) return '';
+    
+    try {
+      // If it's a string in YYYY-MM-DD format, convert to DD/MM/YYYY
+      if (typeof dateValue === 'string' && dateValue.includes('-')) {
+        const [year, month, day] = dateValue.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // If it's a Date object
+      if (dateValue instanceof Date) {
+        return format(dateValue, 'dd/MM/yyyy');
+      }
+      
+      // Return as is for any other format
+      return String(dateValue);
+    } catch (e) {
+      return String(dateValue);
+    }
+  };
+
+  // Helper function to ensure date is in the correct format for the API
+  const formatDateForApi = (dateValue: string | Date | undefined): string => {
+    if (!dateValue) return '';
+    
+    try {
+      // If it's already a valid ISO string (YYYY-MM-DD), use it directly
+      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue;
+      }
+      
+      // If it's a Date object or another format, convert to YYYY-MM-DD
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+    }
+    
+    return typeof dateValue === 'string' ? dateValue : '';
+  };
+
   // No need for verification dialog state
   
   // Get applicationId from context only
   const applicationId = formData.applicationId || '';
+  
+  // Get verification data from localStorage as fallback
+  let verificationDob = '';
+  let verificationPhone = '';
+  try {
+    const formattedVerificationDob = localStorage.getItem('verification_dob_formatted') || '';
+    const rawVerificationDob = localStorage.getItem('verification_dob') || '';
+    const originalVerificationDob = localStorage.getItem('verification_dob_raw') || '';
+    
+    // Use the formatted version first, then try to format the raw version
+    verificationDob = formattedVerificationDob || formatDateForApi(rawVerificationDob) || formatDateForApi(originalVerificationDob);
+    
+    // Get phone number
+    verificationPhone = localStorage.getItem('verification_phone') || '';
+ } catch (e) {
+  }
+
+  // Initialize the form
+  const form = useForm<BasicInfoFormValues>({
+    resolver: zodResolver(basicInfoSchema),
+    defaultValues: {
+      firstName: formData.firstName || '',
+      middleName: formData.middleName || '',
+      surname: formData.surname || '',
+      otherName: formData.otherName || '',
+      gender: formData.gender || undefined, // Set to undefined to show placeholder
+      // Use the date of birth with priority: context > localStorage > empty
+      dateOfBirth: formData.dateOfBirth || verificationDob || '',
+      birthCountry: formData.birthCountry || 0,
+      birthCountryName: formData.birthCountryName || '',
+      birthRegion: formData.birthRegion || 0,
+      birthRegionName: formData.birthRegionName || '',
+      maritalStatus: formData.maritalStatus || '',
+      maritalStatusId: formData.maritalStatusId || 0,
+      occupationType: formData.occupationType || '',
+      occupationTypeId: formData.occupationTypeId || 0,
+      occupation: formData.occupation || '',
+      occupationId: formData.occupationId || 0,
+      occupationDescription: formData.occupationDescription || '',
+      // Use the phone number with priority: context > localStorage > empty
+      mobileNumber: formData.phoneNumber || formData.mobileNumber || verificationPhone || ''
+    }
+  });
   
   // Gender options
   const genderOptions = [
@@ -348,88 +438,11 @@ export default function BasicInfoPage() {
   } catch (e) {}
   
   if (formData.dateOfBirth instanceof Date) {
+    // Handle Date object if needed
   } else if (typeof formData.dateOfBirth === 'string') {
+    // Handle string date if needed
   }
   
-  // Simple date formatter
-  const formatDateOfBirth = (dateValue: Date | string | undefined) => {
-    if (!dateValue) return '';
-    
-    try {
-      // If it's a string in YYYY-MM-DD format, convert to DD/MM/YYYY
-      if (typeof dateValue === 'string' && dateValue.includes('-')) {
-        const [year, month, day] = dateValue.split('-');
-        return `${day}/${month}/${year}`;
-      }
-      
-      // If it's a Date object
-      if (dateValue instanceof Date) {
-        return format(dateValue, 'dd/MM/yyyy');
-      }
-      
-      // Return as is for any other format
-      return String(dateValue);
-    } catch (e) {
-      return String(dateValue);
-    }
-  };
-  
-  // Helper function to ensure date is in the correct format for the API
-  const formatDateForApi = (dateValue: string | Date | undefined): string => {
-    if (!dateValue) return '';
-    
-    try {
-      // If it's already a valid ISO string (YYYY-MM-DD), use it directly
-      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-        return dateValue;
-      }
-      
-      // If it's a Date object or another format, convert to YYYY-MM-DD
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
-      }
-    } catch (e) {
-    }
-    
-    return typeof dateValue === 'string' ? dateValue : '';
-  };
-  
-  // Get verification data from localStorage as fallback
-  let verificationDob = '';
-  let verificationPhone = '';
-  try {
-    const rawVerificationDob = localStorage.getItem('verification_dob') || '';
-    verificationDob = formatDateForApi(rawVerificationDob);
-    verificationPhone = localStorage.getItem('verification_phone') || '';
-  } catch (e) {}
-  
-  // Initialize form with React Hook Form and Zod validation
-  const form = useForm<BasicInfoFormValues>({
-    resolver: zodResolver(basicInfoSchema),
-    defaultValues: {
-      firstName: formData.firstName || '',
-      middleName: formData.middleName || '',
-      surname: formData.surname || '',
-      otherName: formData.otherName || '',
-      gender: formData.gender || undefined, // Set to undefined to show placeholder
-      // Use the date of birth with priority: context > localStorage > empty
-      dateOfBirth: formData.dateOfBirth || verificationDob || '',
-      birthCountry: formData.birthCountry || 0,
-      birthCountryName: formData.birthCountryName || '',
-      birthRegion: formData.birthRegion || 0,
-      birthRegionName: formData.birthRegionName || '',
-      maritalStatus: formData.maritalStatus || '',
-      maritalStatusId: formData.maritalStatusId || 0,
-      occupationType: formData.occupationType || '',
-      occupationTypeId: formData.occupationTypeId || 0,
-      occupation: formData.occupation || '',
-      occupationId: formData.occupationId || 0,
-      occupationDescription: formData.occupationDescription || '',
-      // Use the phone number with priority: context > localStorage > empty
-      mobileNumber: formData.phoneNumber || formData.mobileNumber || verificationPhone || ''
-    }
-  });
 
   useEffect(() => {
     // Priority for phone number: 
@@ -451,26 +464,57 @@ export default function BasicInfoPage() {
           form.setValue('mobileNumber', userPhone);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+   }
     
     // Priority for date of birth:
-    // 1. formData from context (from verification dialog)
-    // 2. verification_dob from localStorage
+    // 1. formData.dateOfBirth from context (from verification dialog)
+    // 2. formData.formattedDateOfBirth from context
+    // 3. verification_dob_all from localStorage (JSON with all formats)
+    // 4. verification_dob_formatted from localStorage
+    // 5. verification_dob from localStorage
+    // 6. verification_dob_raw from localStorage
     try {
+      // First try to get the date from context in various formats
       if (formData.dateOfBirth) {
-        // Use date of birth from context (set by verification dialog)
         // Format it properly for the form
         const formattedDob = formatDateForApi(formData.dateOfBirth);
-        form.setValue('dateOfBirth', formattedDob);
+       form.setValue('dateOfBirth', formattedDob);
+      } else if (formData.formattedDateOfBirth) {
+       form.setValue('dateOfBirth', formData.formattedDateOfBirth);
       } else {
-        // Try localStorage value as fallback
+        // Try localStorage values as fallback with priority
+        try {
+          // First try the JSON with all formats
+          const allFormatsJson = localStorage.getItem('verification_dob_all');
+          if (allFormatsJson) {
+            const allFormats = JSON.parse(allFormatsJson);
+            if (allFormats.formatted) {
+              form.setValue('dateOfBirth', allFormats.formatted);
+              return; // Exit early if we found a valid date
+            }
+          }
+        } catch (jsonError) {
+       }
+        
+        // Try individual localStorage values in priority order
+        const formattedVerificationDob = localStorage.getItem('verification_dob_formatted');
         const rawVerificationDob = localStorage.getItem('verification_dob');
-        if (rawVerificationDob) {
-          const formattedDob = formatDateForApi(rawVerificationDob);
-          form.setValue('dateOfBirth', formattedDob);
+        const originalVerificationDob = localStorage.getItem('verification_dob_raw');
+        
+        // Use getBestDateValue utility to find the best value
+        const bestDateValue = getBestDateValue(
+          formattedVerificationDob || '',
+          rawVerificationDob || '',
+          originalVerificationDob || ''
+        );
+        
+        if (bestDateValue) {
+          form.setValue('dateOfBirth', bestDateValue);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+    }
     
     const occupationTypeId = form.getValues().occupationTypeId;
     if (occupationTypeId) {
@@ -617,6 +661,19 @@ export default function BasicInfoPage() {
       const response = await personalInfoEndpoints.savePersonalInfo(payload);
       
       if (response.ackCode === 1) {
+        // Clear verification data from localStorage after successful submission
+        try {
+          // Clear all verification-related localStorage items
+          localStorage.removeItem('verification_dob_formatted');
+          localStorage.removeItem('verification_dob');
+          localStorage.removeItem('verification_dob_raw');
+          localStorage.removeItem('verification_dob_all');
+          localStorage.removeItem('verification_phone');
+          localStorage.removeItem('user_phone');
+          localStorage.removeItem('debug_dob');
+        } catch (e) {
+       }
+        
         // Success - show success message
         showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
         setIsSaveAndExitLoading(false);
@@ -681,6 +738,23 @@ export default function BasicInfoPage() {
       const response = await personalInfoEndpoints.savePersonalInfo(payload);
       
       if (response.ackCode === 1) {
+        // Clear verification data from localStorage after successful submission
+        try {
+          // Clear all verification-related localStorage items
+          localStorage.removeItem('verification_dob_formatted');
+          localStorage.removeItem('verification_dob');
+          localStorage.removeItem('verification_dob_raw');
+          localStorage.removeItem('verification_dob_all');
+          localStorage.removeItem('verification_phone');
+          localStorage.removeItem('user_phone');
+          localStorage.removeItem('debug_dob');
+          
+          // We keep the user_entered_dob as it might be needed in other parts of the application
+          // but we could clear it too if needed
+          // localStorage.removeItem('user_entered_dob');
+        } catch (e) {
+        }
+        
         showSuccess("Taarifa zako zimehifadhiwa kikamilifu");
         setIsSaveAndContinueLoading(false);
         setAutoNavigateToNext(true);
@@ -707,7 +781,7 @@ export default function BasicInfoPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Taarifa Binafsi Section */}
-          <div className="mb-">
+          <div className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -1146,15 +1220,15 @@ export default function BasicInfoPage() {
               type="submit" 
               isLoading={isSaveAndContinueLoading}
               loadingText="Inaendelea..."
-              spinnerVariant="primary"
-              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
+              extendedSpinTime={true}
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center min-w-[180px]"
             >
               <ArrowRight className="mr-2 h-4 w-4" />
               Hifadhi na Endelea
             </LoadingButton>
           </div>
         </form>
-      </Form>
-    </ApplicationLayout>
+        </Form>
+      </ApplicationLayout>
   );
 }

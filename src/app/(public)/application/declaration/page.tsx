@@ -13,6 +13,7 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { useApplication } from "@/contexts/application-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
+import { getExtendedSpinTimeProps } from "@/lib/utils/button-utils";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
@@ -66,11 +67,11 @@ interface LookupResponse {
   ackMessage: string;
   jsonResult: LookupItem[];
 }
-
 export default function DeclarationPage() {
   const { formData, updateFormData, setIsLoading, isLoading } = useApplication();
   const router = useRouter();
   const [autoNavigateToNext, setAutoNavigateToNext] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Reset autoNavigateToNext when component mounts to prevent automatic navigation on page refresh
   useEffect(() => {
@@ -90,8 +91,55 @@ export default function DeclarationPage() {
     return () => clearTimeout(timer);
   }, [setIsLoading]);
   
-  // State for image viewer dialog
-  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  // Set isMounted to true after component mounts
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+  
+  // Store a reference to whether this is an initial render
+  const isInitialRender = React.useRef(true);
+  
+  // Find the current step index in the navigation items
+  const navigationItems = [
+    { id: 'habari-binafsi', label: 'Habari Binafsi', href: '/application/basic-info' },
+    { id: 'anuwani-ya-makazi', label: 'Anuwani ya Makazi', href: '/application/residence-info' },
+    { id: 'habari-za-wazazi', label: 'Habari za Wazazi', href: '/application/parents-info' },
+    { id: 'habari-za-wategemezi', label: 'Habari za Wategemezi', href: '/application/dependant-info' },
+    { id: 'viambatanisho', label: 'Viambatanisho', href: '/application/documents' },
+    { id: 'tamko-rasmi', label: 'Tamko Rasmi', href: '/application/declaration' },
+    { id: 'complete', label: 'Mafanikio', href: '/application/complete' }
+  ];
+  
+  const currentStepIndex = navigationItems.findIndex(item => item.id === 'tamko-rasmi');
+  
+  // Get the next step if it exists
+  const nextStep = currentStepIndex >= 0 && currentStepIndex < navigationItems.length - 1 
+    ? navigationItems[currentStepIndex + 1] 
+    : null;
+
+  // Effect to handle automatic navigation to the next tab when autoNavigateToNext is true
+  useEffect(() => {
+    // Only navigate if:
+    // 1. autoNavigateToNext is true
+    // 2. We have a next step to navigate to
+    // 3. The component is mounted
+    // 4. This is NOT the initial render (prevents navigation on page refresh)
+    if (autoNavigateToNext && nextStep && isMounted && !isInitialRender.current) {
+      // Keep the loading state active during navigation
+      // The loading state will be handled by the next page after navigation
+      const timer = setTimeout(() => {
+        router.push(nextStep.href);
+      }, 300); // 300ms delay before navigation - faster response
+      
+      return () => clearTimeout(timer);
+    }
+    
+    // After the first render, set isInitialRender to false
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+    }
+  }, [autoNavigateToNext, nextStep, router, isMounted]);
   const [currentDocument, setCurrentDocument] = useState<DocumentInfo | null>(null);
   
   // State for edit dialogs
@@ -112,6 +160,7 @@ export default function DeclarationPage() {
   // State for application data
   const [applicationData, setApplicationData] = useState<any>(null);
   const [isLoadingApplicationData, setIsLoadingApplicationData] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   
   // Function to fetch application data - used by dialogs
   const fetchApplicationData = async () => {
@@ -323,18 +372,19 @@ export default function DeclarationPage() {
                     if (attachment.attachmentData && typeof attachment.attachmentData === 'string') {
                       // Direct base64 data
                       attachmentMap[attachmentKey] = attachment.attachmentData;
-                    } else if (attachment.attachmentID) {
-                      // Fetch the attachment data using the attachment ID
-                      const attachmentResponse = await fetch(`/api/applications/documents/${attachment.attachmentID}`);
+                    } 
+                    // else if (attachment.attachmentID) {
+                    //   // Fetch the attachment data using the attachment ID
+                    //   const attachmentResponse = await fetch(`/api/applications/documents/${attachment.attachmentID}`);
                       
-                      if (attachmentResponse.ok) {
-                        const attachmentData = await attachmentResponse.json();
+                    //   if (attachmentResponse.ok) {
+                    //     const attachmentData = await attachmentResponse.json();
                         
-                        if (attachmentData.ackCode === 1 && attachmentData.jsonResult) {
-                          attachmentMap[attachmentKey] = attachmentData.jsonResult;
-                        }
-                      }
-                    }
+                    //     if (attachmentData.ackCode === 1 && attachmentData.jsonResult) {
+                    //       attachmentMap[attachmentKey] = attachmentData.jsonResult;
+                    //     }
+                    //   }
+                    // }
                   }
                 } catch (error) {
                  }
@@ -454,36 +504,38 @@ export default function DeclarationPage() {
     return processApiImageData(photoItem);
   };
   
-
-
   // Handle save and exit
   const handleSaveAndExit = () => {
-    // Save current form state
-    updateFormData({
-      agreeTerms: form.getValues().agreeTerms
-    });
-    
-    // Navigate back to application start
-    router.push('/application');
+    setIsExiting(true);
+    try {
+      // Save current form state
+      updateFormData({
+        agreeTerms: form.getValues().agreeTerms
+      });
+      
+      // Show success toast
+      toast({
+        title: "Taarifa zimehifadhiwa",
+        description: "Taarifa zako zimehifadhiwa kikamilifu",
+        variant: "default"
+      });
+      
+      // Navigate back to application start
+      router.push('/');
+    } catch (error) {
+      toast({
+        title: "Hitilafu",
+        description: "Imeshindwa kuhifadhi taarifa",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExiting(false);
+    }
   };
   
   // Handle form submission
-  const onSubmit = async (data: DeclarationFormValues) => {
+  const onSubmit = async (values: DeclarationFormValues) => {
     setIsLoading(true);
-    
-    // Update form data immediately
-    updateFormData(data);
-    
-    // Show immediate feedback to user
-    toast({
-      title: "Submitting Application",
-      description: "Please wait while we process your submission...",
-      variant: "default"
-    });
-    
-    // Trigger navigation immediately to improve perceived performance
-    // This will show the complete page with a loading state while the API call completes
-    setAutoNavigateToNext(true);
     
     try {
       // Check if all required information is present - do this check in parallel with navigation
@@ -511,8 +563,8 @@ export default function DeclarationPage() {
         updateFormData({
           submissionError: `Missing information: ${missingFields.join(', ')}`
         });
-        // Keep loading state active for better user experience
-        // Will be cleared after navigation to complete page
+        // Navigate to complete page even with missing fields
+        router.push('/application/complete');
         return;
       }
       
@@ -526,7 +578,7 @@ export default function DeclarationPage() {
         });
         
         if (!response.ok) {
-          throw new Error(`Failed to submit declaration: ${response.status} ${response.statusText}`);
+          throw new Error(`Imeshindikana kuwasilisha tamko: ${response.status} ${response.statusText}`);
         }
         
         const result = await response.json();
@@ -536,95 +588,83 @@ export default function DeclarationPage() {
           updateFormData({
             submissionStatus: 'success',
             currentStep: 80, // Update to complete step
-            submissionMessage: "Application submitted successfully"
+            submissionMessage: "Ombi limewasilishwa kwa mafanikio"
           });
           
           // Show success toast
           toast({
             title: "Success",
-            description: "Application submitted successfully",
+            description: "Ombi limewasilishwa kwa mafanikio",
             variant: "default"
           });
+          
+          // Set autoNavigateToNext to true to trigger navigation
+          setAutoNavigateToNext(true);
+          
+          // Force navigation to complete page immediately
+          router.push('/application/complete');
         } else {
           // Store error in context
           updateFormData({
             submissionStatus: 'error',
-            submissionError: result.ackMessage || "Failed to submit declaration"
+            submissionError: result.ackMessage || "Imeshindikana kuwasilisha tamko"
           });
           
           // Show error toast
           toast({
             title: "Error",
-            description: result.ackMessage || "Failed to submit declaration",
+            description: result.ackMessage || "Imeshindikana kuwasilisha tamko",
             variant: "destructive"
           });
+          
+          // Reset loading state
+          setIsLoading(false);
         }
       } catch (error) {
         updateFormData({
           submissionStatus: 'error',
-          submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
+          submissionError: error instanceof Error ? error.message : "Imeshindikana kuwasilisha tamko"
         });
         
         // Show error toast
         toast({
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to submit declaration",
+          description: error instanceof Error ? error.message : "Imeshindikana kuwasilisha tamko",
           variant: "destructive"
         });
+        
+        // Reset loading state
+        setIsLoading(false);
       }
     } catch (error) {
       updateFormData({
         submissionStatus: 'error',
-        submissionError: error instanceof Error ? error.message : "Failed to submit declaration"
+        submissionError: error instanceof Error ? error.message : "Imeshindikana kuwasilisha tamko"
       });
       
       // Show error toast
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit declaration",
+        description: error instanceof Error ? error.message : "Imeshindikana kuwasilisha tamko",
         variant: "destructive"
       });
       
-      // Only set loading to false if we're not navigating away
+      // Reset loading state
       setIsLoading(false);
     }
-    // Remove the finally block to keep loading state active during navigation
-    // The loading state will be handled by the complete page after navigation
-  };
-
-   useEffect(() => {
-setTimeout(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetch(`/api/applications/${applicationId}`);
-      if (!response.ok) throw new Error(`${response.status}`);
-      const data = await response.json();
-      
-      // Handle applicantPhoto array structure from real API
-      if (data.ackCode === 1 && data.jsonResult?.applicantPhoto && Array.isArray(data.jsonResult.applicantPhoto) && data.jsonResult.applicantPhoto.length > 0) {
-        const photoItem = data.jsonResult.applicantPhoto[0];
-        
-        // Check if it has attachmentType with base64 data
-        if (photoItem.attachmentType && typeof photoItem.attachmentType === "string") {
-          setApplicantPhoto(getPhotoSrc(photoItem.attachmentType)); // normalize once
-        } else {
-          setPhotoError("Picha ya muombaji haikupatikana");
-        }
-      } else {
-        setPhotoError("Picha ya muombaji haikupatikana");
+    
+    // Add a safety timeout to reset loading state and force navigation if nothing happens
+    const safetyTimer = setTimeout(() => {
+      // Force navigation to complete page as a last resort
+      if (isLoading) {
+        console.log('Safety timer triggered - forcing navigation to complete page');
+        setIsLoading(false);
+        router.push('/application/complete');
       }
-    } catch (error) {
-      setPhotoError("Imeshindikana kupakua picha");
-    } finally {
-      setIsLoadingPhoto(false);
-    }
+    }, 2000); // Reduced to 2 seconds for faster fallback
+    
+    return () => clearTimeout(safetyTimer);
   };
-  fetchData();
-}, 500);
-}, []);
-
-
-
 
 // Helper to normalize photo string
 const getPhotoSrc = (photo?: string) => {
@@ -673,7 +713,9 @@ const SimpleBase64Image = ({ base64, alt, className }: { base64: string; alt: st
 };
 
 // Debug the current applicant photo state
-debugBase64Image(applicantPhoto, 'Current Applicant Photo State');
+if (applicantPhoto) {
+  debugBase64Image(applicantPhoto, 'Current Applicant Photo State');
+}
 
 
 return (
@@ -1087,23 +1129,24 @@ return (
           </div>
           
     <div className="flex justify-between">
-      <Button 
+      <LoadingButton 
         type="button" 
-        variant="outline" 
         onClick={handleSaveAndExit}
+        isLoading={isExiting}
+        loadingText="Inahifadhi..."
         className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-6 py-2 rounded flex items-center"
       >
-        <Save className="h-4 w-4 mr-2" />
+        <Save className="mr-2 h-4 w-4" />
         Hifadhi na Toka
-      </Button>
-            
+      </LoadingButton>
+      
       <LoadingButton 
         type="submit" 
         isLoading={isLoading}
         loadingText="Inawasilisha Maombi..."
-        spinnerVariant="primary"
-        disabled={!form.formState.isValid || isLoading}
         className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center min-w-[180px] justify-center"
+        disabled={!form.formState.isValid || isLoading}
+        extendedSpinTime={false} // Disable extended spin time to allow faster navigation
         title="Click to submit your application"
       >
         <CheckCircle className="h-4 w-4 mr-2" />

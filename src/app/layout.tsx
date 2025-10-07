@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "E-Migrant Portal | Immigration Service Department",
   description: "Modern web portal for migrant services",
+  icons: {
+    icon: "/immigration_logo.png",
+    shortcut: "/immigration_logo.png",
+    apple: "/immigration_logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,8 +33,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/immigration_logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/immigration_logo.png" type="image/png" />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background overflow-x-hidden`}
+        style={{ minHeight: '100vh' }}
       >
         <ThemeProvider
           defaultTheme="system" 

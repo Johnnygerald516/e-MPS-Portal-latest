@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Search, Loader2, CheckCircle } from "lucide-react";
 import { verificationEndpoints } from "@/lib/api";
 import { useApplication } from "@/contexts/application-context";
+import { formatDateForApi, formatDateForDisplay, parseDateString } from "@/lib/utils/date-utils";
 // Session management removed
 import {
   Dialog,
@@ -41,27 +42,7 @@ export default function MigrantVerificationDialog({
   const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [applicationId, setApplicationId] = useState("");
   
-  // Helper function to format date to YYYY-MM-DD format for API and storage
-  const formatDateForApi = (dateValue: string): string => {
-    if (!dateValue) return '';
-    
-    try {
-      // If it's already a valid ISO string (YYYY-MM-DD), use it directly
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-        return dateValue;
-      }
-      
-      // Convert to Date object and then to YYYY-MM-DD format
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
-      }
-    } catch (e) {
-      // If parsing fails, return original value
-    }
-    
-    return dateValue;
-  };
+  // Using the imported formatDateForApi function from date-utils.ts
 
   const handleSearch = async () => {
     // Reset errors
@@ -141,19 +122,30 @@ export default function MigrantVerificationDialog({
         
         // Session management removed
         
-        // Format the date of birth for API and storage
+        // Format the date of birth for API and storage using our utility function
         const formattedDateOfBirth = dateOfBirth ? formatDateForApi(dateOfBirth) : "";
+        const displayDateOfBirth = dateOfBirth ? formatDateForDisplay(dateOfBirth) : "";
         
-        // Update application context with all relevant information
-        updateFormData({
+        // Create a Date object from the formatted date for proper handling
+        let dateOfBirthObject = undefined;
+        try {
+          if (formattedDateOfBirth) {
+            dateOfBirthObject = parseDateString(formattedDateOfBirth);
+          }
+        } catch (e) {
+        }
+        
+      updateFormData({
           applicationId: appId,
           // Save application type
           applicationType: applicationTypeId === 1 ? "new" : "renew",
           // Store phone number from verification
           mobileNumber: response.jsonResult?.phoneNo || phoneNumber || "",
           phoneNumber: response.jsonResult?.phoneNo || phoneNumber || "",
-          // Store formatted date of birth from verification if available
-          dateOfBirth: formattedDateOfBirth,
+          // Store date of birth in multiple formats to ensure compatibility
+          dateOfBirth: dateOfBirthObject || formattedDateOfBirth,
+          formattedDateOfBirth: formattedDateOfBirth,
+          displayDateOfBirth: displayDateOfBirth,
           currentStep: 20 // Set to basic-info step
         });
         
@@ -162,11 +154,22 @@ export default function MigrantVerificationDialog({
           if (phoneNumber) {
             localStorage.setItem('verification_phone', phoneNumber);
           }
-          if (formattedDateOfBirth) {
+          if (dateOfBirth) {
+            // Store date in multiple formats to ensure compatibility across components
+            localStorage.setItem('verification_dob_raw', dateOfBirth);
             localStorage.setItem('verification_dob', formattedDateOfBirth);
+            localStorage.setItem('verification_dob_formatted', formattedDateOfBirth);
+            localStorage.setItem('verification_dob_display', displayDateOfBirth);
+            
+            // Store as JSON string with all formats for easier retrieval
+            const dateFormats = JSON.stringify({
+              raw: dateOfBirth,
+              formatted: formattedDateOfBirth,
+              display: displayDateOfBirth
+            });
+            localStorage.setItem('verification_dob_all', dateFormats);
           }
         } catch (e) {
-          // Ignore localStorage errors
         }
       } else {
         setError(`Uthibitisho umeshindikana: ${response.ackMessage}`);

@@ -3,6 +3,7 @@
 import React, { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApplication } from '@/contexts/application-context';
+import { PageWrapper } from './page-wrapper';
 
 interface ApplicationWrapperProps {
   children: ReactNode;
@@ -43,8 +44,8 @@ export default function ApplicationWrapper({ children }: ApplicationWrapperProps
   }, []);
   
   return (
-    <>
+    <PageWrapper variant="pop">
       {children}
-    </>
+    </PageWrapper>
   );
 }

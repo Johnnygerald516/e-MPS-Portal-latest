@@ -1,19 +1,25 @@
 "use client";
 
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "./button";
+import { buttonVariants } from "./button";
 import { LoadingSpinner } from "./loading-spinner";
 import { cn } from "../../lib/utils";
 import { Loader2 } from "lucide-react";
+import { VariantProps } from "class-variance-authority";
 
-interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface LoadingButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
   loadingText?: string;
-  spinnerSize?: "small" | "medium" | "large";
-  spinnerVariant?: "default" | "primary" | "secondary" | "fancy" | "white";
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
+  asChild?: boolean;
   title?: string;
+  extendedSpinTime?: boolean;
+  spinnerSize?: "small" | "medium" | "large";
+  spinnerVariant?: "default" | "primary" | "secondary" | "fancy" | "white";
 }
 
 const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
@@ -27,8 +33,37 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
     variant, 
     size, 
     title,
+    extendedSpinTime = false,
     ...props 
   }, ref) => {
+    // State to track if we're showing extended loading time
+    const [showExtendedLoading, setShowExtendedLoading] = useState(false);
+    
+    // Check if this is a "Hifadhi na Endelea" button
+    const isHifadhiNaEndelea = 
+      children === "Hifadhi na Endelea" || 
+      loadingText?.includes("Hifadhi") || 
+      extendedSpinTime;
+      
+    // Effect to handle extended loading time
+    useEffect(() => {
+      let timer: NodeJS.Timeout;
+      
+      if (isLoading && isHifadhiNaEndelea) {
+        setShowExtendedLoading(true);
+        // Keep showing loading state for 1.5 seconds even after isLoading becomes false
+        timer = setTimeout(() => {
+          setShowExtendedLoading(false);
+        }, 1500);
+      }
+      
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }, [isLoading, isHifadhiNaEndelea]);
+    
+    // Use either the prop loading state or our extended loading state
+    const effectiveLoading = isLoading || showExtendedLoading;
     // Determine spinner size in pixels
     const spinnerSizeMap = {
       small: "h-4 w-4",
@@ -49,20 +84,22 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
       "animate-spin", 
       spinnerSizeMap[spinnerSize], 
       spinnerColorMap[spinnerVariant],
-      isLoading ? "opacity-100" : "opacity-0",
-      "transition-opacity duration-150 ease-in-out"
+      effectiveLoading ? "opacity-100" : "opacity-0",
+      "transition-opacity duration-150 ease-in-out",
+      isHifadhiNaEndelea && "transition-opacity duration-500 ease-in-out" // Slower transition for Hifadhi buttons
     );
 
     return (
       <Button
         className={cn(
           "relative transition-all", 
-          isLoading && "cursor-progress",
+          effectiveLoading && "cursor-progress",
+          isHifadhiNaEndelea && "min-w-[180px]", // Ensure consistent width for Hifadhi buttons
           className
         )}
         variant={variant}
         size={size}
-        disabled={isLoading || props.disabled}
+        disabled={effectiveLoading || props.disabled}
         ref={ref}
         title={title}
         {...props}
@@ -70,7 +107,7 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
         <span className="flex items-center justify-center gap-2">
           {/* Always render the spinner but control visibility with opacity */}
           <Loader2 className={spinnerClasses} />
-          {isLoading ? loadingText : children}
+          {effectiveLoading ? loadingText : children}
         </span>
       </Button>
     );

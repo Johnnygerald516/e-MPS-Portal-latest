@@ -59,6 +59,7 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
       // Keep the loading state active during navigation
       // The loading state will be handled by the next page after navigation
       const timer = setTimeout(() => {
+        // Force navigation to the next step
         router.push(nextStep.href);
       }, 300); // 300ms delay before navigation - faster response
       
@@ -68,6 +69,17 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
     // After the first render, set isInitialRender to false
     isInitialRender.current = false;
   }, [autoNavigateToNext, nextStep, router, isMounted]);
+  
+  // Special case for declaration page navigation to complete page
+  useEffect(() => {
+    if (currentStep === 'tamko-rasmi' && autoNavigateToNext && isMounted) {
+      const timer = setTimeout(() => {
+        router.push('/application/complete');
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, autoNavigateToNext, isMounted, router]);
   
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 border border-slate-200 rounded mt-2 bg-white mb-2">

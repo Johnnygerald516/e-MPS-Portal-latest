@@ -16,16 +16,15 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { InteractiveCheckbox } from "@/components/ui/interactive-checkbox";
 import { RelationshipTypeSelect } from "@/components/ui/relationship-type-select";
 import { DocumentTypeSelect } from "@/components/ui/document-type-select";
+import { DatePickerFormField } from "@/components/ui/date-picker-form-field";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { useApplication, ApplicationStep } from "@/contexts/application-context";
+import { useCustomToast } from "@/hooks/use-custom-toast";
+import { getExtendedSpinTimeProps } from "@/lib/utils/button-utils";
 import ApplicationLayout from '@/components/application/ApplicationLayout';
 import { dependantInfoEndpoints, DependantInfoPayload } from "@/lib/api/endpoints/dependant-info";
 import { verificationEndpoints } from "@/lib/api/endpoints/verification";
@@ -58,7 +57,7 @@ const dependantSchema = z.object({
       // Ensure age is 18 or younger
       return age <= 18;
     }, {
-      message: "Dependant must be 18 years old or younger",
+      message: "Mtegemezi lazima awe na umri wa miaka 18 au chini yake.",
     }),
   // Make hasDocument a required boolean to match the expected type
   hasDocument: z.boolean(),
@@ -258,7 +257,7 @@ export default function DependantInfoPage() {
           if (dep.dateOfBirth && !validateDependantAge(dep.dateOfBirth)) {
             toast({
               title: `Dependant ${index + 1} has invalid age`,
-              description: `Dependant must be 18 years old or younger`,
+              description: `Mtegemezi lazima awe na umri wa miaka 18 au chini yake.`,
               variant: "destructive",
             });
             return true;
@@ -446,7 +445,7 @@ export default function DependantInfoPage() {
           // Use the toast function from the hook
           toast({
             title: `Dependant ${index + 1} has invalid age`,
-            description: `Dependant must be 18 years old or younger`,
+            description: `Mtegemezi lazima awe na umri wa miaka 18 au chini yake.`,
             variant: "destructive",
           });
          return true;
@@ -620,9 +619,9 @@ export default function DependantInfoPage() {
   };
   
   return (
-      <ApplicationLayout 
-        title="Habari za wategemezi" 
-        subtitle="Enter information about your dependants"
+    <ApplicationLayout 
+      title="Habari za wategemezi" 
+      subtitle="Enter information about your dependants"
       applicationId={applicationId}
       currentStep="habari-za-wategemezi"
       autoNavigateToNext={autoNavigateToNext}
@@ -844,21 +843,21 @@ export default function DependantInfoPage() {
                   
                   {form.watch(`dependants.${index}.hasDocument`) && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4 mt-2">
-                    <FormField
-                      control={form.control}
-                      name={`dependants.${index}.documentTypeId`}
-                      render={({ field: documentTypeField }) => (
-                        <DocumentTypeSelect
-                          field={{
-                            value: documentTypeField.value?.toString() || "",
-                            onChange: (value: string) => {
-                              // Convert string value to number for the ID
-                              const numValue = parseInt(value);
-                              documentTypeField.onChange(numValue);
-                            }
-                          }}
-                          label="Aina ya Nyaraka"
-                          //placeholder="Select document type"
+                      <FormField
+                        control={form.control}
+                        name={`dependants.${index}.documentTypeId`}
+                        render={({ field: documentTypeField }) => (
+                          <DocumentTypeSelect
+                            field={{
+                              value: documentTypeField.value?.toString() || "",
+                              onChange: (value: string) => {
+                                // Convert string value to number for the ID
+                                const numValue = parseInt(value);
+                                documentTypeField.onChange(numValue);
+                              }
+                            }}
+                            label="Aina ya Nyaraka"
+                            //placeholder="Select document type"
                         />
                       )}
                     />
@@ -979,9 +978,10 @@ export default function DependantInfoPage() {
             
             <LoadingButton 
               type="submit" 
-              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center"
+              className="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded flex items-center min-w-[180px]"
               isLoading={isLoading}
               loadingText="Inaendelea..."
+              extendedSpinTime={true}
               spinnerVariant="primary"
             >
               <ArrowRight className="mr-2 h-4 w-4" />
@@ -991,5 +991,5 @@ export default function DependantInfoPage() {
         </form>
       </Form>
     </ApplicationLayout>
-  );
+    )
 }

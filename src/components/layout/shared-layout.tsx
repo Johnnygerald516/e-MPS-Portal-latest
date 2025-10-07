@@ -145,8 +145,20 @@ export function SharedLayout({ children }: SharedLayoutProps) {
       </motion.header>
       
       {/* Main content area */}
-      <main className="flex-grow bg-slate-50">
-        {children}
+      <main className="flex-grow bg-slate-50 page-transition">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ 
+            duration: 0.3, 
+            ease: "easeInOut",
+            type: "tween"
+          }}
+          className="min-h-[calc(100vh-200px)]"
+        >
+          {children}
+        </motion.div>
       </main>
       
       {/* Footer */}

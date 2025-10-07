@@ -73,9 +73,7 @@ export const apiConfig = {
  */
 export const trustedHostnames = [
   'localhost',
-  '127.0.0.1',
-  '10.6.0.164',
-  '10.6.0.165',
+  '10.6.0.168',
   // Read additional trusted hostnames from environment variables if available
   ...(process.env.NEXT_PUBLIC_TRUSTED_HOSTNAMES?.split(',') || [])
 ];

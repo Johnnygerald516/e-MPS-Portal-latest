@@ -137,6 +137,106 @@
   input, select, textarea {
     outline: none;
   }
+
+  /* Prevent layout shifts and smooth transitions */
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Enhanced page transitions - very subtle */
+  .page-transition {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .page-transition-exit {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .page-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+
+  /* Pop animation for forms - very subtle */
+  .pop-animation {
+    animation: popIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes popIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.97) translateY(15px);
+    }
+    50% {
+      transform: scale(1.01) translateY(-3px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Prevent content jumping */
+  main {
+    min-height: calc(100vh - 200px);
+    position: relative;
+  }
+
+  /* Smooth loading states */
+  .loading-container {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Form container stability */
+  .form-container {
+    min-height: 600px;
+    position: relative;
+  }
+
+  /* Prevent button jumping during loading */
+  .button-stable {
+    min-width: 120px;
+    min-height: 40px;
+    position: relative;
+  }
+
+  /* Skeleton loading for smooth transitions */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
   
   /* Custom form styles - apply these with the .custom-form class */
   .custom-form input, 

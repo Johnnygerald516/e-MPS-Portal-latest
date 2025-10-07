@@ -46,7 +46,8 @@ export interface ApplicationFormData {
   surname: string; // Added for the new form
   otherName?: string; // Added for the new form
   dateOfBirth: Date | string;
-  formattedDateOfBirth?: string; // Added for formatted date display
+  formattedDateOfBirth?: string; // Added for formatted date display (YYYY-MM-DD)
+  displayDateOfBirth?: string; // Added for human-readable date display (DD/MM/YYYY)
   gender: Gender;
   nationality: string;
   countryOfBirth?: string; // Country of birth name (string format)
