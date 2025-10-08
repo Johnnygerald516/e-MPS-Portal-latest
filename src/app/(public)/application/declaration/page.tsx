@@ -141,6 +141,7 @@ export default function DeclarationPage() {
     }
   }, [autoNavigateToNext, nextStep, router, isMounted]);
   const [currentDocument, setCurrentDocument] = useState<DocumentInfo | null>(null);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   
   // State for edit dialogs
   const [isPersonalInfoDialogOpen, setIsPersonalInfoDialogOpen] = useState(false);
@@ -1156,6 +1157,32 @@ return (
   </form>
 </Form>
 
-</ApplicationLayout>
+      {/* Image Viewer Dialog */}
+      <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{currentDocument?.title || 'Picha'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-4">
+            {currentDocument?.imagePath ? (
+              <Base64Image
+                base64={currentDocument.imagePath}
+                alt={currentDocument.title}
+                width={400}
+                height={500}
+                className="max-w-full max-h-[70vh] object-contain rounded-md"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 w-full bg-slate-100 rounded-md">
+                <span className="text-slate-400">Hakuna picha</span>
+              </div>
+            )}
+            {currentDocument?.description && (
+              <p className="mt-4 text-sm text-gray-600">{currentDocument.description}</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </ApplicationLayout>
 );
 }

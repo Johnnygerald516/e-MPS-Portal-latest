@@ -27,9 +27,10 @@ export async function POST(request: Request) {
     
     // If no custom answer, use OpenAI as fallback
     if (!process.env.OPENAI_API_KEY) {
+      // Return a friendly message when OpenAI API key is not available
       return NextResponse.json({
         id: 'no-api-key',
-        content: "I'm sorry, but I'm currently unable to process your request due to a configuration issue. Please try again later or contact support.",
+        content: "I'm sorry, but I can only answer questions from my predefined knowledge base at the moment. For more complex questions, please contact support.",
         timestamp: new Date().toISOString(),
       });
     }

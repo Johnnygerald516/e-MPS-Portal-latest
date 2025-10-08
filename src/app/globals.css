@@ -325,6 +325,49 @@
   }
 }
 
+/* Custom scrollbar styling */
+@layer utilities {
+  /* For Webkit browsers (Chrome, Safari, etc.) */
+  ::-webkit-scrollbar {
+    width: 3px; /* Ultra thin scrollbar */
+    height: 3px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(160, 160, 160, 0.4); /* Semi-transparent for a more subtle look */
+    border-radius: 1.5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(160, 160, 160, 0.6); /* Slightly more visible on hover */
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin; /* Firefox's thinnest option */
+    scrollbar-color: rgba(160, 160, 160, 0.4) transparent;
+  }
+
+  /* For Edge and IE */
+  *::-ms-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  *::-ms-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-ms-scrollbar-thumb {
+    background: rgba(160, 160, 160, 0.4);
+    border-radius: 1.5px;
+  }
+}
+
 /* hide next icon css */
 #__next-build-watcher,
 nextjs-portal {

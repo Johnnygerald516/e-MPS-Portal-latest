@@ -245,19 +245,19 @@ function ApplicationCompleteContent(): React.ReactNode {
     fatherCountryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherCountryOfBirth || formData.fatherCountryOfBirth),
     fatherRegion: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherRegionOfBirth || applicationData?.ApplicationDetails?.[0]?.fatherRegion || formData.fatherRegionOfBirth),
     fatherNationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherNationality || formData.fatherNationality),
-    fatherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherCountryOfResidence || formData.fatherCountryOfResidence),
+    fatherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.fatherCountryOfResidence || formData.fatherCountryName || ''),
     
     motherName: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherFullName || applicationData?.ApplicationDetails?.[0]?.motherName || formData.motherName),
     motherDateOfBirth: safeParseDate(applicationData?.ApplicationDetails?.[0]?.motherDateOfBirth || formData.motherDateOfBirth),
     motherCountryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherCountryOfBirth || formData.motherCountryOfBirth),
     motherRegionOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherRegionOfBirth || applicationData?.ApplicationDetails?.[0]?.motherRegion || formData.motherRegionOfBirth),
     motherNationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherNationality || formData.motherNationality),
-    motherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherCountryOfResidence || formData.motherCountryOfResidence),
+    motherCountryOfResidence: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.motherCountryOfResidence || formData.motherCountryName || ''),
     
     // Additional fields from API data
     nationality: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.nationality || formData.nationality),
     countryOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.countryOfBirth || formData.countryOfBirth),
-    placeOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.placeOfBirth || formData.placeOfBirth),
+    placeOfBirth: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.placeOfBirth || ''),  // formData doesn't have placeOfBirth property
     passportNumber: safeToUpperCase(applicationData?.ApplicationDetails?.[0]?.passportNumber || formData.previousPassNumber),
     passportIssueDate: safeParseDate(applicationData?.ApplicationDetails?.[0]?.passportIssueDate),
     passportExpiryDate: safeParseDate(applicationData?.ApplicationDetails?.[0]?.passportExpiryDate),

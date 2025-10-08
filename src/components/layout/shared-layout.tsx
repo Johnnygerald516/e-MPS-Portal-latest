@@ -92,7 +92,7 @@ export function SharedLayout({ children }: SharedLayoutProps) {
             <div className="flex items-center space-x-2 sm:space-x-4 mb-1 sm:mb-0 overflow-x-auto w-full sm:w-auto">
               <Link href="/" className="text-xs whitespace-nowrap text-white hover:text-[#f0e7c3] transition-colors duration-200 flex items-center gap-1">
                 <Home className="h-3 w-3 mr-4" />
-                e-Walowezi Portal
+                e-Migrant Portal
               </Link>
             </div>
             

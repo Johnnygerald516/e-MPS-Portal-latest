@@ -15,7 +15,8 @@ const defaults = {
   NEXT_PUBLIC_API_URL: 'http://127.0.0.1:8000',
   NEXT_PUBLIC_API_URL_FALLBACK: 'http://127.0.0.1:8000',
   NEXT_PUBLIC_TRUSTED_HOSTNAMES: 'localhost,127.0.0.1',
-  NEXT_PUBLIC_IMAGE_DOMAINS: '127.0.0.1'
+  NEXT_PUBLIC_IMAGE_DOMAINS: '127.0.0.1',
+  OPENAI_API_KEY: ''
 };
 
 // Environment variables to prompt for
@@ -38,6 +39,11 @@ const envVars = [
   {
     name: 'NEXT_PUBLIC_IMAGE_DOMAINS',
     description: 'Comma-separated list of domains for Next.js Image component',
+    required: false
+  },
+  {
+    name: 'OPENAI_API_KEY',
+    description: 'OpenAI API Key for the chatbot functionality',
     required: false
   }
 ];

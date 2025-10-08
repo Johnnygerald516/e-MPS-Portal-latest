@@ -68,10 +68,10 @@ export default function ApplicationPage() {
         if (response.ackCode === 1 && response.jsonResult) {
           setApplicationTypes(response.jsonResult);
         } else {
-          showError("Failed to load application types");
+          showError("Imeshindikana kupakia aina za ombi.");
         }
       } catch (error) {
-        showError("Failed to load application types. Please try again later.");
+        showError("Imeshindikana kupakia aina za ombi. Tafadhali jaribu tena baadaye.");
       } finally {
         setIsLoadingTypes(false);
       }

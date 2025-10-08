@@ -1,9 +1,18 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client only if API key is available
+let openai: OpenAI | null = null;
+
+try {
+  if (process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+} catch (error) {
+  console.warn('OpenAI client initialization failed:', error);
+  // Continue without OpenAI client
+}
 
 // System prompt with information about the migrant portal system
 const SYSTEM_PROMPT = `
@@ -60,6 +69,16 @@ export const openaiService = {
     conversationHistory: { role: 'user' | 'assistant'; content: string }[] = []
   ) => {
     try {
+      // Check if OpenAI client is available
+      if (!openai) {
+        return {
+          id: 'openai-unavailable',
+          content: "I'm sorry, but I can only answer questions from my predefined knowledge base at the moment.",
+          role: 'assistant',
+          timestamp: new Date(),
+        };
+      }
+      
       // Prepare messages with system prompt and conversation history
       const messages = [
         { role: 'system', content: SYSTEM_PROMPT },
