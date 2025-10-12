@@ -17,6 +17,7 @@ const nextConfig = {
     // Get API URL from environment variable or use fallback
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     console.log('Using API URL in headers:', apiUrl);
+    console.log('Using .env file:', process.env.NODE_ENV);
     
     return [
       {

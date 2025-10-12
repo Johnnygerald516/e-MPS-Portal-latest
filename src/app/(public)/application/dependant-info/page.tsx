@@ -290,7 +290,52 @@ export default function DependantInfoPage() {
         }
       }
       
-      updateFormData({...data, currentStep: 60 as ApplicationStep}); // Update to documents step
+      updateFormData({...data, currentStep: 40 as ApplicationStep}); // Update to documents step
+      
+      // If there are no dependants, use the attachments endpoint with newStageId
+      if (!data.hasDependants || (data.dependants && data.dependants.length === 0)) {
+        // The next stage ID for documents page is 60
+        const nextStageId = '60';
+        
+        try {
+          // Call the endpoint to proceed to the next stage
+          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          const responseData = await response.json();
+          
+          if (response.ok && responseData.ackCode === 1) {
+            // Success - show success message
+            toast({
+              title: "Success",
+              description: "Hakuna wategemezi. Taarifa zimehifadhiwa.",
+              variant: "default"
+            });
+            // Navigate to landing page
+            router.push('/');
+          } else {
+            toast({
+              title: "Error",
+              description: responseData.ackMessage || "Imeshindwa kuhifadhi taarifa.",
+              variant: "destructive"
+            });
+            setIsExiting(false);
+          }
+        } catch (error: any) {
+          toast({
+            title: "Error",
+            description: error.message || "Imeshindwa kuhifadhi taarifa.",
+            variant: "destructive"
+          });
+          setIsExiting(false);
+        }
+        
+        return;
+      }
       
       // Format the data for API submission
       const formatDate = (date: string | Date | undefined): string => {
@@ -483,6 +528,52 @@ export default function DependantInfoPage() {
     updateFormData(data);
     
     try {
+      // If there are no dependants, use the attachments endpoint with newStageId
+      if (!data.hasDependants || (data.dependants && data.dependants.length === 0)) {
+        // The next stage ID for documents page is 60
+        const nextStageId = '60';
+        
+        try {
+          // Call the endpoint to proceed to the next stage
+          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          const responseData = await response.json();
+          
+          if (response.ok && responseData.ackCode === 1) {
+            // Success - show success message
+            toast({
+              title: "Success",
+              description: "Hakuna wategemezi. Umehamishiwa kwenye hatua inayofuata.",
+              variant: "default"
+            });
+            // Set autoNavigateToNext to true to trigger automatic navigation
+            setIsLoading(false);
+            setAutoNavigateToNext(true);
+          } else {
+            toast({
+              title: "Error",
+              description: responseData.ackMessage || "Imeshindwa kuhamisha kwenye hatua inayofuata.",
+              variant: "destructive"
+            });
+            setIsLoading(false);
+          }
+        } catch (error: any) {
+          toast({
+            title: "Error",
+            description: error.message || "Imeshindwa kuhamisha kwenye hatua inayofuata.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+        }
+        
+        return;
+      }
+      
       // Format the data for API submission
       const formatDate = (date: string | Date | undefined): string => {
         if (!date) return '';
@@ -523,7 +614,7 @@ export default function DependantInfoPage() {
       const dependants = data.dependants?.map(dep => {
         const dependantData: any = {
           dependantFullName: dep.name,
-          dependantGender: dep.gender || 'M',
+          dependantGender: dep.gender || '',
           dependantNationalityID: Number(dep.nationalityId) || 0,
           dependantRelationTypeID: Number(dep.relationshipTypeId) || 0,
           // Set hasDocument value based on the checkbox (1 for checked, 0 for unchecked)

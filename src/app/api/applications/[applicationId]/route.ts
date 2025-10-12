@@ -45,8 +45,6 @@ export async function GET(
     
     // Call the real external API endpoint
     const externalApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/applications/${applicationId}`;
-    console.log(`Calling external API: ${externalApiUrl}`);
-    
     try {
       const response = await fetch(externalApiUrl, {
         method: 'GET',
