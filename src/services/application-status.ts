@@ -14,6 +14,13 @@ export interface ApplicationStatusResult {
   StatusID: number;
   statusName: string;
   controlNumber?: string;
+  assessorComments?: string;
+  corrections?: {
+    field: string;
+    issue: string;
+    instruction: string;
+  }[];
+  rejectionReason?: string;
 }
 
 export interface ApplicationStatusResponse {

@@ -13,7 +13,13 @@ ENV PORT=3100
 # Install dependencies only when needed
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm install --legacy-peer-deps
+# Configure npm to use a more reliable registry and add retry logic
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm install --legacy-peer-deps || \
+    (npm cache clean --force && npm install --legacy-peer-deps --no-package-lock)
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -31,9 +37,9 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV PORT 3100
-ENV HOST 0.0.0.0
+ENV NODE_ENV=production
+ENV PORT=3100
+ENV HOST=0.0.0.0
 ARG NEXT_PUBLIC_API_URL=http://10.6.0.168:30033
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
@@ -48,7 +54,7 @@ EXPOSE 3100
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="v0.0.4"
+LABEL org.opencontainers.image.version="v0.0.1"
 
 # Start the application in production mode
 CMD ["npm", "run", "start", "--", "-p", "3100", "-H", "0.0.0.0"]

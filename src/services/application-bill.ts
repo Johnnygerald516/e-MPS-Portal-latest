@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { apiConfig } from '@/lib/config/api-config';
 
 export interface BillDetails {
   applicationID: string;
@@ -35,7 +36,7 @@ export const getApplicationBill = async (controlNumber: string): Promise<BillRes
     }
 
     // Make API request
-    const response = await axios.get(`/api/applications/${controlNumber}/bill`);
+    const response = await axios.get(`${apiConfig.baseUrl}/applications/${controlNumber}/bill`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -4,8 +4,14 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, Variants } from "framer-motion";
 import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, FileSearch, Phone } from "lucide-react";
 import { getApplicationStatus, ApplicationStatusPayload, ApplicationStatusResponse } from "@/services/application-status";
+import { getApplicationPass } from "@/services/application-pass";
+import { convertToPassData } from "@/services/application-pass";
+import { generatePassPDF } from "@/components/application/PassPDF";
+import { getBillData, convertToBillPDFData } from "@/services/bill-service";
+import { generateBillPDF } from "@/components/application/BillPDF";
+import { getReceiptData, convertToReceiptPDFData } from "@/services/receipt-service";
+import { generateReceiptPDF } from "@/components/application/ReceiptPDF";
 import { ProfessionalLoader } from "@/components/ui/professional-loader";
-import PassPDFPreview from "@/components/application/PassPDFPreview";
 import BillPDFPreview from "@/components/application/BillPDFPreview";
 import ReceiptPDFPreview from "@/components/application/ReceiptPDFPreview";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,6 +21,14 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "@/components/ui/table";
+import { useToast } from "@/components/ui/use-toast";
+
+// Add html2canvas type to window object
+declare global {
+  interface Window {
+    html2canvas: any;
+  }
+}
 
 // Define the application status types
 type ApplicationStatus = 
@@ -53,7 +67,6 @@ interface ApplicationStatusData {
   lastName?: string;
   controlNumber?: string;
 }
-
 // Helper function to determine which action buttons to show based on StatusID
 const getActionButtons = (
   status: ApplicationStatus, 
@@ -62,35 +75,211 @@ const getActionButtons = (
   isGeneratingPDF: boolean,
   setIsGeneratingPDF: (value: boolean) => void,
   setSelectedApplicationId: (id: string) => void,
-  setIsPassPreviewOpen: (isOpen: boolean) => void,
   setIsBillDialogOpen: (isOpen: boolean) => void,
-  setIsReceiptDialogOpen: (isOpen: boolean) => void
+  setIsReceiptDialogOpen: (isOpen: boolean) => void,
+  toastFn: any // Pass the toast function as a parameter
 ) => {
-  const handlePrintBill = (id: string) => {
-    // Open bill dialog - BillPDFPreview will handle fetching
-    if (applicationData && applicationData.controlNumber) {
-      setIsBillDialogOpen(true);
-    } else {
+  const handlePrintBill = async (id: string) => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      if (!applicationData || !applicationData.controlNumber) {
+        throw new Error('No control number available');
+      }
+      
+      // Fetch bill data
+      const billData = await getBillData(applicationData.controlNumber);
+      
+      // Convert bill data to PDF data format
+      const billPDFData = convertToBillPDFData(billData);
+      
+      // Generate PDF
+      const jsPDF = (await import('jspdf')).default;
+      const doc = new jsPDF();
+      
+      // Generate the bill PDF
+      const pdfDataUrl = await generateBillPDF(billPDFData);
+      
+      try {
+        // Using the data URL directly
+        const link = document.createElement('a');
+        link.href = pdfDataUrl;
+        link.download = `Bill_${applicationData.controlNumber}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 100);
+        
+        // Show success toast
+        toastFn({
+          title: 'Success',
+          description: 'Bill downloaded successfully.',
+          variant: 'default',
+        });
+      } catch (error) {
+        throw new Error(`Failed to download bill: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } catch (error: any) {
+      toastFn({
+        title: 'Error',
+        description: `Failed to download bill: ${error.message || 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
-  const handlePrintReceipt = (id: string) => {
-    // Open receipt dialog with application data
-    if (applicationData && applicationData.controlNumber) {
-      setIsReceiptDialogOpen(true);
-    } else {
+  
+  const handlePrintReceipt = async (id: string) => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      if (!applicationData || !applicationData.controlNumber) {
+        throw new Error('No control number available');
+      }
+      
+      // Fetch receipt data
+      const receiptData = await getReceiptData(applicationData.controlNumber);
+      
+      // Convert receipt data to PDF data format
+      const receiptPDFData = convertToReceiptPDFData(receiptData);
+      
+      // Generate the receipt PDF
+      const pdfDataUrl = await generateReceiptPDF(receiptPDFData);
+      
+      try {
+        // Using the data URL directly
+        // Create a download link
+        const link = document.createElement('a');
+        link.href = pdfDataUrl;
+        link.download = `Receipt_${applicationData.controlNumber}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 100);
+        
+        // Show success toast
+        toastFn({
+          title: 'Success',
+          description: 'Receipt downloaded successfully.',
+          variant: 'default',
+        });
+      } catch (error) {
+        throw new Error(`Failed to download receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } catch (error: any) {
+      toastFn({
+        title: 'Error',
+        description: `Failed to download receipt: ${error.message || 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
   // State is passed from the parent component
 
-  const handlePrintPass = (id: string) => {
-    setSelectedApplicationId(id);
-    setIsPassPreviewOpen(true);
+  const handlePrintPass = async (id: string, toastFn: any) => {
+    try {
+      setIsGeneratingPDF(true);
+      const response = await getApplicationPass(id);
+      
+      if (!response || response.ackCode !== 1) {
+        const errorMsg = response?.ackMessage || 'Failed to fetch pass data';
+        throw new Error(errorMsg);
+      }
+      
+      // Convert API response to pass data
+      if (!response.jsonResult) {
+        throw new Error('No data received from server');
+      }
+      
+      
+      const passData = convertToPassData(response.jsonResult);
+      
+      if (!passData) {
+        throw new Error('Failed to process pass data');
+      }
+      
+    
+      if (typeof window !== 'undefined' && !window.html2canvas) {
+        window.html2canvas = () => Promise.resolve(document.createElement('canvas'));
+      }
+      
+      const jsPDF = (await import('jspdf')).default;
+      const doc = new jsPDF();
+      
+      await generatePassPDF(doc, passData);
+      try {
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        // Create a download link
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Migrant_Pass_${id}.pdf`;
+        document.body.appendChild(link);
+        
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+       // Show success toast
+        toastFn({
+          title: 'Success',
+          description: 'Pass downloaded successfully.',
+          variant: 'default',
+        });
+      } catch (blobError) {
+        
+        try {
+          // Second try: Using data URL
+          const pdfDataUrl = doc.output('datauristring');
+          
+          // Create a download link
+          const link = document.createElement('a');
+          link.href = pdfDataUrl;
+          link.download = `Migrant_Pass_${id}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          
+          // Clean up
+          setTimeout(() => {
+            document.body.removeChild(link);
+          }, 100);
+         
+        } catch (dataUrlError) {
+        try {
+            doc.save(`Migrant_Pass_${id}.pdf`);
+          } catch (saveError) {
+            throw new Error('All PDF download methods failed');
+          }
+        }
+      }
+    } catch (error: any) {
+      toastFn({
+        title: 'Error',
+        description: `Failed to download pass: ${error.message || 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleMarekebisho = (id: string) => {
   };
-
   // Use StatusID from applicationData if available, otherwise fall back to status string
   const statusId = applicationData?.statusId;
 
@@ -101,7 +290,7 @@ const getActionButtons = (
         return (
           <div className="flex space-x-2">
             <Button 
-              onClick={() => handlePrintPass(applicationId)} 
+              onClick={() => handlePrintPass(applicationId, toastFn)} 
               size="sm" 
               variant="outline" 
               className="flex items-center gap-1 text-green-600 border-green-200 hover:bg-green-50"
@@ -114,7 +303,7 @@ const getActionButtons = (
                 </>
               ) : (
                 <>
-                  <Printer className="h-4 w-4" /> <span>Preview Pass</span>
+                  <Printer className="h-4 w-4" /> <span>Pakua Kibali</span>
                 </>
               )}
             </Button>
@@ -142,9 +331,19 @@ const getActionButtons = (
               size="sm" 
               variant="outline" 
               className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+              disabled={isGeneratingPDF}
             >
-              <CreditCard className="h-4 w-4" />
-              <span>Print Bill</span>
+              {isGeneratingPDF ? (
+                <>
+                  <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  <span>Pakua Bili</span>
+                </>
+              )}
             </Button>
           </div>
         );
@@ -156,9 +355,19 @@ const getActionButtons = (
               size="sm" 
               variant="outline" 
               className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+              disabled={isGeneratingPDF}
             >
-              <Receipt className="h-4 w-4" />
-              <span>Print Receipt</span>
+              {isGeneratingPDF ? (
+                <>
+                  <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Receipt className="h-4 w-4" />
+                  <span>Pakua Risiti</span>
+                </>
+              )}
             </Button>
           </div>
         );
@@ -177,9 +386,19 @@ const getActionButtons = (
             size="sm" 
             variant="outline" 
             className="flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+            disabled={isGeneratingPDF}
           >
-            <CreditCard className="h-4 w-4" />
-            <span>Print Bill</span>
+            {isGeneratingPDF ? (
+              <>
+                <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="h-4 w-4" />
+                <span>Pakua Bili</span>
+              </>
+            )}
           </Button>
         </div>
       );
@@ -191,9 +410,19 @@ const getActionButtons = (
             size="sm" 
             variant="outline" 
             className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+            disabled={isGeneratingPDF}
           >
-            <Receipt className="h-4 w-4" />
-            <span>Print Receipt</span>
+            {isGeneratingPDF ? (
+              <>
+                <ProfessionalLoader size="sm" color="secondary" thickness="thin" className="mr-1" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Receipt className="h-4 w-4" />
+                <span>Pakua Risiti</span>
+              </>
+            )}
           </Button>
         </div>
       );
@@ -215,7 +444,7 @@ const getActionButtons = (
       return (
         <div className="flex space-x-2">
           <Button 
-            onClick={() => handlePrintPass(applicationId)} 
+            onClick={() => handlePrintPass(applicationId, toastFn)} 
             size="sm" 
             variant="outline" 
             className="flex items-center gap-1 text-green-600 border-green-200 hover:bg-green-50"
@@ -228,7 +457,7 @@ const getActionButtons = (
               </>
             ) : (
               <>
-                <Printer className="h-4 w-4" /> <span>Preview Pass</span>
+                <Printer className="h-4 w-4" /> <span>Pakua Kibali</span>
               </>
             )}
           </Button>
@@ -252,21 +481,26 @@ const getActionButtons = (
       return "inafanyiwa kazi";
   }
 };
-
 function ApplicationProgressContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Get toast function at component level
+  const { toast } = useToast();
+  
+  // State for application data
   const [applicationId, setApplicationId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [applicationData, setApplicationData] = useState<ApplicationStatusData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isPassPreviewOpen, setIsPassPreviewOpen] = useState(false);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for PDF dialogs
   const [isBillDialogOpen, setIsBillDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string>("");
+  
   // Animation variants
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -290,8 +524,6 @@ function ApplicationProgressContent() {
       },
     },
   };
-
-  // No need for fetchBillDetails - BillPDFPreview handles data fetching
 
   // Auto-search when ID or phone number is provided in URL (only for correction flow)
   useEffect(() => {
@@ -395,7 +627,7 @@ function ApplicationProgressContent() {
         }
         
         // Create application data directly from API response
-        const applicationData: ApplicationStatusData = {
+        const appData: ApplicationStatusData = {
           id: result.applicationID,
           applicantName: `${result.firstName} ${result.middleName || ''} ${result.lastName}`.trim(),
           firstName: result.firstName,
@@ -409,9 +641,12 @@ function ApplicationProgressContent() {
           lastUpdated: new Date().toISOString().split('T')[0],
           phoneNumber: result.phoneNumber,
           controlNumber: result.controlNumber || '',
+          assessorComments: result.assessorComments || '',
+          corrections: result.corrections || [],
+          rejectionReason: result.rejectionReason || '',
         };
 
-        setApplicationData(applicationData);
+        setApplicationData(appData);
       } else {
         setError(response.ackMessage || "Hakuna taarifa za ombi zilizopatikana. Tafadhali hakiki namba ya ombi na namba ya simu.");
         setApplicationData(null);
@@ -430,14 +665,13 @@ function ApplicationProgressContent() {
 
   const handleCorrectApplication = () => {
     if (applicationData?.id) {
-      router.push('/dashboard');
+      router.push(`/application/basic-info?id=${applicationData.id}&edit=true`);
     }
   };
 
   const handleNewApplication = () => {
-    router.push("/dashboard");
+    router.push("/application/basic-info");
   };
-
   const getStatusBadge = (status: ApplicationStatus, statusName?: string) => {
     const displayStatusName = statusName || "";
     
@@ -620,43 +854,32 @@ function ApplicationProgressContent() {
                             <TableCell>{applicationData.applicantName}</TableCell>
                             <TableCell>{applicationData.controlNumber}</TableCell>
                             <TableCell>{getStatusBadge(applicationData.status, applicationData.statusName)}</TableCell>
-                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsPassPreviewOpen, setIsBillDialogOpen, setIsReceiptDialogOpen)}</TableCell>
+                            <TableCell>{getActionButtons(applicationData.status, applicationData.id, applicationData, isGeneratingPDF, setIsGeneratingPDF, setSelectedApplicationId, setIsBillDialogOpen, setIsReceiptDialogOpen, toast)}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </div>
               
-              {/* Pass Preview Dialog */}
-              <PassPDFPreview
-                open={isPassPreviewOpen}
-                onOpenChange={setIsPassPreviewOpen}
-                applicationId={selectedApplicationId}
-                refreshApplications={() => {
-                  // Refresh application data if needed
-                  if (applicationId || phoneNumber) {
-                    handleSearchWithId(applicationId, phoneNumber);
-                  }
-                }}
-              />
+              {/* PDF Preview Dialogs */}
+              {isBillDialogOpen && applicationData?.controlNumber && (
+                <BillPDFPreview 
+                  controlNumber={applicationData.controlNumber}
+                  applicationId={applicationData.id}
+                  applicantName={applicationData.applicantName}
+                  open={isBillDialogOpen} 
+                  onOpenChange={setIsBillDialogOpen} 
+                />
+              )}
               
-              {/* Bill PDF Preview */}
-              <BillPDFPreview
-                open={isBillDialogOpen}
-                onOpenChange={setIsBillDialogOpen}
-                controlNumber={applicationData?.controlNumber || null}
-                applicationId={applicationData?.id || ''}
-                applicantName={applicationData?.applicantName || ''}
-              />
-              
-              {/* Receipt PDF Preview */}
-              <ReceiptPDFPreview
-                open={isReceiptDialogOpen}
-                onOpenChange={setIsReceiptDialogOpen}
-                controlNumber={applicationData?.controlNumber || null}
-                applicationId={applicationData?.id || ''}
-                applicantName={applicationData?.applicantName || ''}
-              />
-              
+              {isReceiptDialogOpen && applicationData?.controlNumber && (
+                <ReceiptPDFPreview 
+                  controlNumber={applicationData.controlNumber}
+                  applicationId={applicationData.id}
+                  applicantName={applicationData.applicantName}
+                  open={isReceiptDialogOpen} 
+                  onOpenChange={setIsReceiptDialogOpen} 
+                />
+              )}
               {applicationData.status === "returned_for_correction" && applicationData.corrections && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start">

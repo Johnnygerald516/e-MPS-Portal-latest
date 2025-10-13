@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 10.6.0.157:30000/migrant-fe-portal:v0.0.2
+    image: 10.6.0.157:30000/migrant-fe-portal:v0.0.5
     container_name: migrant-fe-portal
     restart: unless-stopped
     ports:
@@ -20,9 +20,9 @@ services:
       - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
       - NEXT_PUBLIC_API_KEY_FALLBACK=${NEXT_PUBLIC_API_KEY_FALLBACK:-}
       # Trusted Hostnames
-      - NEXT_PUBLIC_TRUSTED_HOSTNAMES=${NEXT_PUBLIC_TRUSTED_HOSTNAMES:-localhost,127.0.0.1,10.6.0.164,10.6.0.165}
+      - NEXT_PUBLIC_TRUSTED_HOSTNAMES=${NEXT_PUBLIC_TRUSTED_HOSTNAMES:-localhost,127.0.0.1,41.59.104.107,41.59.104.109}
       # Image Domains
-      - NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS:-10.6.0.168}
+      - NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS:-41.59.104.109}
     networks:
       - migrant-network
 

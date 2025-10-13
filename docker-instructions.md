@@ -2,14 +2,15 @@
 
 ## Deployment Configuration
 - Image Name: `migrant-fe-portal`
-- Image Registry Path: `10.6.0.157:30000/migrant-fe-portal:v0.01`
+- Image Registry Path: `41.59.104.107:30000/migrant-fe-portal:v0.0.1`
 - Container Port: `3100`
 - Host IP: `0.0.0.0` (to bind to all network interfaces)
+- API Endpoint: `41.59.104.109:30033`
 
 ## Prerequisites
 - Docker installed on your machine
 - Your project code with the Dockerfile and .dockerignore files
-- Access to the private registry at `10.6.0.157:30000`
+- Access to the private registry at `41.59.104.107:30000`
 
 ## Environment Variables
 Since the `.env` file is gitignored (for security reasons), you'll need to handle environment variables when running the Docker container. There are two approaches:
@@ -26,10 +27,10 @@ Pass environment variables directly using the `-e` flag when running the contain
 Navigate to your project directory and run:
 
 ```bash
-docker build -t migrant-fe-portal:v0.01 .
+docker build -t migrant-fe-portal:v0.0.1 .
 ```
 
-This will build your Docker image with the tag `migrant-fe-portal:v0.01`.
+This will build your Docker image with the tag `migrant-fe-portal:v0.0.1`.
 
 ## Running the Docker Container
 
@@ -40,8 +41,8 @@ docker run -d --name migrant-fe-portal -p 3100:3100 \
   -e NODE_ENV=production \
   -e PORT=3100 \
   -e HOST=0.0.0.0 \
-  -e API_ENDPOINT=http://10.6.0.0.164:30033 \
-  10.6.0.157:30000/migrant-fe-portal:v0.01
+  -e NEXT_PUBLIC_API_URL=http://41.59.104.109:30033 \
+  41.59.104.107:30000/migrant-fe-portal:v0.0.1
 ```
 
 ### Using Docker Compose:
@@ -62,21 +63,21 @@ http://localhost:3100
 
 ## Pushing to Private Registry
 
-To upload your image to the specified private registry at 10.6.0.157:30000:
+To upload your image to the specified private registry at 41.59.104.107:30000:
 
 1. Tag your image with the registry address:
    ```bash
-   docker tag migrant-fe-portal:v0.01 10.6.0.157:30000/migrant-fe-portal:v0.01
+   docker tag migrant-fe-portal:v0.0.1 41.59.104.107:30000/migrant-fe-portal:v0.0.1
    ```
 
 2. Push the image to the registry:
    ```bash
-   docker push 10.6.0.157:30000/migrant-fe-portal:v0.01
+   docker push 41.59.104.107:30000/migrant-fe-portal:v0.0.1
    ```
 
 3. If the registry requires authentication, log in first:
    ```bash
-   docker login 10.6.0.157:30000 -u username -p password
+   docker login 41.59.104.107:30000 -u username -p password
    ```
 
 ## Kubernetes Deployment
@@ -102,9 +103,9 @@ We've created Kubernetes configuration files in the `kubernetes/` directory to d
    kubectl get services
    ```
 
-4. Access your application using the LoadBalancer IP (10.6.0.157) or NodePort (30000):
+4. Access your application using the LoadBalancer IP (41.59.104.107) or NodePort (30000):
    ```
-   http://10.6.0.157:3100
+   http://41.59.104.107:3100
    ```
    or
    ```

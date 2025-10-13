@@ -16,12 +16,12 @@ spec:
     spec:
       containers:
       - name: migrant-fe-portal
-        image: 10.6.0.157:30000/migrant-fe-portal:v0.0.3
+        image: 10.6.0.157:30000/migrant-fe-portal:v0.0.5
         ports:
         - containerPort: 3100
         env:
         - name: NEXT_PUBLIC_API_URL
-          value: "http://10.6.0.164:30033"
+          value: "http://10.6.0.168:30033"
         resources:
           limits:
             cpu: "1"

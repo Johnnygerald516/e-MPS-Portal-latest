@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { PassData } from '@/components/application/PassPDF';
+import { base64ToDataUrl, cleanBase64String, isValidBase64 } from '@/lib/utils/base64';
 
 export interface ApplicationPassResponse {
   ackCode: number;
@@ -107,19 +108,23 @@ export const getApplicationPass = async (applicationId: string): Promise<Applica
 
 /**
  * Converts API response data to PassData format
- * @param response The API response
+ * @param jsonResult The API response result object
  * @returns Formatted PassData object
  */
-export const convertToPassData = (response: ApplicationPassResponse): PassData | null => {
-  if (!response.jsonResult || !response.jsonResult.applicationDetails.length) {
+export const convertToPassData = (jsonResult: {
+  applicationDetails: ApplicationDetails[];
+  photo: PhotoData[];
+  dependants: DependantData[];
+}): PassData | null => {
+  if (!jsonResult || !jsonResult.applicationDetails.length) {
     return null;
   }
 
-  const details = response.jsonResult.applicationDetails[0];
-  const photoData = response.jsonResult.photo.length > 0 ? response.jsonResult.photo[0] : null;
+  const details = jsonResult.applicationDetails[0];
+  const photoData = jsonResult.photo.length > 0 ? jsonResult.photo[0] : null;
   
   // Map dependants data
-  const dependants = response.jsonResult.dependants.map(dep => ({
+  const dependants = jsonResult.dependants.map(dep => ({
     dependantFullName: dep.dependantFullName,
     dependantNationality: dep.dependantNationality,
     documentType: dep.documentType,
@@ -140,13 +145,54 @@ export const convertToPassData = (response: ApplicationPassResponse): PassData |
   // Process photo data - ensure it has proper data URL format
   let photoDataUrl: string | undefined = undefined;
   if (photoData?.AttachmentImage) {
-    // Check if the image already has a data URL prefix
-    if (photoData.AttachmentImage.startsWith('data:image')) {
-      photoDataUrl = photoData.AttachmentImage;
-    } else {
-      // Add data URL prefix if it's just a base64 string
-      photoDataUrl = `data:image/jpeg;base64,${photoData.AttachmentImage}`;
+    try {
+      console.log("Processing photo data from API response");
+      console.log("Photo data type:", typeof photoData.AttachmentImage);
+      console.log("Photo data length:", photoData.AttachmentImage.length);
+      console.log("Photo data preview:", photoData.AttachmentImage.substring(0, 50) + "...");
+      
+      // Check if it's already a data URL
+      if (photoData.AttachmentImage.startsWith('data:image')) {
+        console.log("Photo is already a data URL");
+        photoDataUrl = photoData.AttachmentImage;
+      } else {
+        // Clean and validate the base64 string
+        const cleanedBase64 = cleanBase64String(photoData.AttachmentImage);
+        console.log("Cleaned base64 length:", cleanedBase64.length);
+        
+        if (isValidBase64(cleanedBase64)) {
+          console.log("Base64 is valid");
+          // Convert to proper data URL with format detection
+          const dataUrl = base64ToDataUrl(cleanedBase64);
+          if (dataUrl) {
+            photoDataUrl = dataUrl;
+            console.log("Photo data URL processed successfully:", dataUrl.substring(0, 50) + "...");
+          } else {
+            console.error("Failed to create data URL from valid base64");
+            // Try direct construction as JPEG
+            photoDataUrl = `data:image/jpeg;base64,${cleanedBase64}`;
+            console.log("Created direct JPEG data URL");
+          }
+        } else {
+          console.error("Invalid base64 data in photo attachment");
+          // Try with the raw data as fallback
+          const dataUrl = base64ToDataUrl(photoData.AttachmentImage);
+          if (dataUrl) {
+            photoDataUrl = dataUrl;
+            console.log("Created data URL from raw attachment data");
+          } else {
+            console.error("All base64 conversion attempts failed");
+            // Last resort: try direct construction with cleaned string
+            photoDataUrl = `data:image/jpeg;base64,${cleanedBase64}`;
+            console.log("Created last-resort JPEG data URL");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error processing photo data:", error);
     }
+  } else {
+    console.log("No photo data available in the response");
   }
 
   return {

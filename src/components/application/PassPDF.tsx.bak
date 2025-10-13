@@ -35,7 +35,7 @@ export interface PassData {
   ResidenceDistrictName?: string;
   ResidenceRegionName?: string;
   paidAmount?: string;
-  ControlNumber?: string | number;
+  ControlNumber?: string;
   passNumber?: string;
 }
 
@@ -44,12 +44,14 @@ export const imageToBase64 = async (imgUrl: string): Promise<string> => {
   return new Promise<string>(resolve => {
     try {
       if (!imgUrl) {
+        console.log("No image URL provided");
         resolve('');
         return;
       }
 
       // Check if it's already a data URL
       if (imgUrl.startsWith('data:')) {
+        console.log("Image is already a data URL");
         resolve(imgUrl);
         return;
       }
@@ -61,6 +63,7 @@ export const imageToBase64 = async (imgUrl: string): Promise<string> => {
       
       // Set a timeout to handle images that may hang
       const timeoutId = setTimeout(() => {
+        console.error("Image loading timed out");
         resolve('');
       }, 5000);
       
@@ -75,19 +78,23 @@ export const imageToBase64 = async (imgUrl: string): Promise<string> => {
           canvas.width = img.width;
           ctx?.drawImage(img, 0, 0);
           const dataURL = canvas.toDataURL('image/png');
+          console.log("Successfully converted image to data URL");
           resolve(dataURL);
         } catch (canvasError) {
+          console.error("Canvas error:", canvasError);
           resolve('');
         }
       };
       
       img.onerror = error => {
         clearTimeout(timeoutId);
+        console.error("Error loading image:", error);
         resolve('');
       };
       
       img.src = cacheBustedUrl;
     } catch (error) {
+      console.error("Unexpected error in imageToBase64:", error);
       resolve('');
     }
   });
@@ -158,6 +165,9 @@ export const generatePassPDF = async (
   qrCodeImage?: string
 ) => {
   try {
+    console.log("Starting generatePassPDF function");
+    console.log("Pass data received:", passData);
+    console.log("Photo image provided:", !!photoImage);
     
     // Set document properties
     doc.setProperties({
@@ -168,6 +178,7 @@ export const generatePassPDF = async (
       creator: 'E-Migrant Portal'
     });
     
+    console.log("Document properties set");
 
     // Set text color
     doc.setTextColor(51, 51, 51);
@@ -223,9 +234,9 @@ export const generatePassPDF = async (
       if (qrCodeImage) {
         qrCodeDataUrl = qrCodeImage;
       } else {
-        // Generate QR code with only passNumber for reliable scanning
-        const qrText = passData.passNumber ? `${passData.passNumber}` : '';
-        qrCodeDataUrl = await generateQRCode(qrText || 'No Pass Number');
+        // Generate QR code with just the pass ID for reliable scanning
+        const qrText = `${passData.id}`;
+        qrCodeDataUrl = await generateQRCode(qrText);
       }
       
       // Add the QR code to the PDF with increased size for better scanning
@@ -270,36 +281,50 @@ export const generatePassPDF = async (
       try {
         // Use either the provided photoImage or the photo from passData
         let imageSource = photoImage || passData.photo;
+        console.log("Using photo image source:", imageSource ? imageSource.substring(0, 50) + "..." : "Not available");
+        
+        // Create a fallback image for testing
         const fallbackImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
         
         // Ensure the image source is a valid data URL
         if (imageSource && !imageSource.startsWith('data:')) {
+          console.log("Converting photo to data URL");
           const dataUrl = base64ToDataUrl(imageSource);
           if (dataUrl) {
+            console.log("Successfully converted to data URL:", dataUrl.substring(0, 50) + "...");
             imageSource = dataUrl;
           } else {
+            console.error("Failed to convert photo to data URL, trying with raw data");
+            // Try with a direct data URL construction
             imageSource = `data:image/jpeg;base64,${cleanBase64String(imageSource)}`;
+            console.log("Created direct data URL:", imageSource.substring(0, 50) + "...");
           }
         }
         
         // Add the image to the PDF
         if (imageSource && imageSource.startsWith('data:')) {
+          console.log("Adding image to PDF with format:", imageSource.split(';')[0]);
           try {
-            // Use PNG format instead of JPEG to preserve colors correctly
-            doc.addImage(imageSource, 'PNG', 160, 20, 30, 35);
+            doc.addImage(imageSource, 'JPEG', 160, 20, 30, 35);
+            console.log("Photo added to PDF successfully");
           } catch (imgError) {
+            console.error("Error in doc.addImage:", imgError);
+            console.log("Trying with fallback image");
             doc.addImage(fallbackImage, 'PNG', 160, 20, 30, 35);
           }
         } else {
+          console.error("Invalid image source format, using fallback");
           doc.addImage(fallbackImage, 'PNG', 160, 20, 30, 35);
         }
       } catch (error) {
+        console.error("Error adding photo to PDF:", error);
         // Fallback to a placeholder rectangle if image fails
         doc.rect(160, 20, 30, 35);
         doc.setFontSize(8);
         doc.text('Photo', 175, 37, { align: 'center' });
       }
     } else {
+      console.log("No photo available for PDF");
       doc.rect(160, 20, 30, 35);
       doc.setFontSize(8);
       doc.text('Photo', 175, 37, { align: 'center' });
@@ -318,7 +343,7 @@ export const generatePassPDF = async (
     doc.setFontSize(10);
     doc.setFont('Times New Roman', 'normal');
     const label = "CODE NO:";
-    doc.text(label, labelX, 76);
+doc.text(label, labelX, 76);
 
 
     const labelWidth = doc.getTextWidth(label);
@@ -367,26 +392,21 @@ export const generatePassPDF = async (
     doc.text('2YRS', valueX, y);
     y += lineHeight;
     
-    // From and to dates - using API data
+    // From and to dates - formatted exactly as in the image
     doc.setFont('Times New Roman', 'normal');
     doc.text('From:', labelX, y);
     
-    // Format dates from API response
-    const formatApiDate = (dateString: string | undefined) => {
-      if (!dateString) return 'N/A';
-      try {
-        const date = new Date(dateString);
-        return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'long' })} ${date.getFullYear()}`;
-      } catch (error) {
-        return dateString || 'N/A'; // Return original string if parsing fails
-      }
+    // Format dates as shown in the image
+    const fromDate = new Date();
+    const toDate = new Date();
+    toDate.setFullYear(toDate.getFullYear() + 2);
+    
+    const formatDisplayDate = (date: Date) => {
+      return `${date.getDate()} ${date.toLocaleString('en-US', { month: 'long' })} ${date.getFullYear()}`;
     };
     
-    const fromDateFormatted = formatApiDate(passData.validFrom);
-    const toDateFormatted = formatApiDate(passData.validTo);
-    
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text(`${fromDateFormatted} to ${toDateFormatted}`, valueX, y);
+    doc.text(`${formatDisplayDate(fromDate)} to ${formatDisplayDate(toDate)}`, valueX, y);
     y += lineHeight; // Reduced from lineHeight * 2 to just lineHeight
     
     // Purpose statement in a box - reduced spacing
@@ -418,8 +438,7 @@ export const generatePassPDF = async (
     doc.setFont('Times New Roman', 'normal');
     doc.text('vide Control No', 100, y);
     doc.setFont('Times New Roman', 'bolditalic');
-    // Ensure ControlNumber is always a string
-    doc.text(String(passData.ControlNumber || 'N/A'), 140, y);
+    doc.text(`${passData.ControlNumber}`, 140, y);
     y += lineHeight;
     
     // Issued at
@@ -512,8 +531,8 @@ export const generatePassPDF = async (
     doc.text('Nationality', 120, y+4); // Moved left to increase column width
     doc.text('Registration No.', 165, y+4); // Shortened text and moved right
     
-    // Add vertical borders for header row - Increase name column width
-    doc.line(60, y, 60, y+7); // Name column (increased from 50 to 60)
+    // Add vertical borders for header row
+    doc.line(50, y, 50, y+7); // Name column
     doc.line(75, y, 75, y+7); // Age column
     doc.line(105, y, 105, y+7); // Relationship column (reduced width)
     doc.line(160, y, 160, y+7); // Nationality column (increased width)
@@ -532,10 +551,10 @@ export const generatePassPDF = async (
       dependantsToShow.forEach((dependant, index) => {
         // Handle long names with truncation and smaller font if needed
         const nameText = dependant.dependantFullName || 'N/A';
-        if (nameText.length > 20) { // Increased from 15 to 20
+        if (nameText.length > 15) {
           doc.setFontSize(7); // Smaller font for long names
-          // Truncate if still too long - increased length
-          const truncatedName = nameText.length > 30 ? nameText.substring(0, 27) + '...' : nameText;
+          // Truncate if still too long
+          const truncatedName = nameText.length > 25 ? nameText.substring(0, 22) + '...' : nameText;
           doc.text(truncatedName, 25, y+4); 
         } else {
           doc.text(nameText, 25, y+4); // Name column
@@ -564,15 +583,23 @@ export const generatePassPDF = async (
         }
         doc.setFontSize(9); // Reset font size
         
-        // Always display N/A for registration number
-        doc.text('N/A', 165, y+4); // Registration No. column
-        
+        // Handle registration number
+        const regNumber = dependant.documentNo || 'N/A';
+        if (regNumber.length > 10) {
+          doc.setFontSize(7); // Smaller font for long values
+          // Truncate if still too long
+          const truncatedRegNumber = regNumber.length > 15 ? regNumber.substring(0, 12) + '...' : regNumber;
+          doc.text(truncatedRegNumber, 165, y+4);
+        } else {
+          doc.text(regNumber, 165, y+4); // Registration No. column
+        }
+        doc.setFontSize(9); // Reset font size
         // Add complete grid of borders for each row
         // Draw outer border
         doc.rect(20, y, 170, 8); // Consistent height for all rows
         
-        // Draw vertical borders - Increase name column width
-        doc.line(60, y, 60, y+8); // Name column (increased from 50 to 60)
+        // Draw vertical borders
+        doc.line(50, y, 50, y+8); // Name column
         doc.line(75, y, 75, y+8); // Age column
         doc.line(105, y, 105, y+8); // Relationship column (reduced width)
         doc.line(160, y, 160, y+8); // Nationality column (increased width)
@@ -590,8 +617,8 @@ export const generatePassPDF = async (
       // Draw complete border for empty table
       doc.rect(20, y, 170, 8); // Border for empty row
       
-      // Add vertical borders for consistency - Increase name column width
-      doc.line(60, y, 60, y+8); // Name column (increased from 50 to 60)
+      // Add vertical borders for consistency
+      doc.line(50, y, 50, y+8); // Name column
       doc.line(75, y, 75, y+8); // Age column
       doc.line(105, y, 105, y+8); // Relationship column (reduced width)
       doc.line(160, y, 160, y+8); // Nationality column (increased width)
@@ -631,10 +658,13 @@ export const generatePassPDF = async (
     
     // Add safety check to ensure all content fits
     if (y + 10 > pageHeight - margin) {
+      console.warn("PDF content may exceed page height");
     }
-
+    
+    console.log("PDF generation completed successfully");
     
   } catch (error) {
+    console.error("Error in generatePassPDF function:", error);
     throw error;
   }
 };

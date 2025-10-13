@@ -46,7 +46,8 @@ const nextConfig = {
     
     return [
       {
-        source: '/api/:path*',
+        // Use a different prefix to avoid conflicts with Next.js API routes
+        source: '/external-api/:path*',
         destination: `${apiUrl}/:path*`,
       },
     ];
