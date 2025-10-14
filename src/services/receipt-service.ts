@@ -1,67 +1,72 @@
+import axios, { AxiosError } from 'axios';
 import { apiConfig } from '@/lib/config/api-config';
 import { generateReceiptPDF, ReceiptPDFData } from '@/components/application/ReceiptPDF';
 
-export interface ReceiptData {
-  receiptNumber: string;
-  controlNumber: string;
-  amount: string;
-  applicationId: string;
-  applicantName: string;
-  paymentDate: string;
-  paymentMethod: string;
-  serviceType: string;
-  transactionId: string;
-  payerMobile?: string;
-  serviceProviderName?: string;
+// Backend API response structure - matches your Postman response
+export interface ReceiptDetails {
+  payerName: string;
+  applicationID: string;
+  PaymentControlNumber: string;
+  PaidAmount: number;
+  Currency: string;
+  PayerMobile: string;
+  PaymentChannel: string;
+  PaymentReceipt: string;
+  ServiceProviderName: string;
 }
 
-export interface ReceiptApiResponse {
+export interface ReceiptResponse {
   ackCode: number;
   ackMessage: string;
-  jsonResult: ReceiptData | null;
+  jsonResult: ReceiptDetails | null;
 }
 
-export const getReceiptData = async (controlNumber: string | number): Promise<ReceiptData> => {
+/**
+ * Fetches receipt details for an application using its control number
+ * @param controlNumber The control number of the application
+ * @returns Receipt details data
+ */
+export const getApplicationReceipt = async (controlNumber: string): Promise<ReceiptResponse> => {
   try {
-    // Convert controlNumber to string to ensure it has string methods
-    const controlNumberStr = String(controlNumber);
-    
-    // Make API call to fetch receipt data
-    const response = await fetch(`${apiConfig.baseUrl}/applications/${controlNumberStr}/receipt`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch receipt data: ${response.status} ${response.statusText}`);
+    // Validate input
+    if (!controlNumber) {
+      return {
+        ackCode: 0,
+        ackMessage: "Namba ya control inahitajika",
+        jsonResult: null
+      };
     }
-    
-    const responseData: ReceiptApiResponse = await response.json();
-    
-    if (responseData.ackCode !== 1 || !responseData.jsonResult) {
-      throw new Error(responseData.ackMessage || 'Failed to fetch receipt data');
-    }
-    
-    return responseData.jsonResult;
+
+    // Make API request using axios (same as bill service)
+    const response = await axios.get(`${apiConfig.baseUrl}/applications/${controlNumber}/receipt`);
+    return response.data;
   } catch (error) {
-    console.error('Error fetching receipt data:', error);
-    throw new Error('Failed to fetch receipt data');
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ReceiptResponse>;
+      
+      // If the server returned an error response
+      if (axiosError.response?.data) {
+        return axiosError.response.data;
+      }
+      
+      // Network error
+      if (axiosError.code === 'ECONNABORTED' || axiosError.message.includes('timeout')) {
+        return {
+          ackCode: 0,
+          ackMessage: "Muda wa kusubiri umekwisha. Tafadhali jaribu tena.",
+          jsonResult: null
+        };
+      }
+    }
+    
+    // Generic error
+    return {
+      ackCode: 0,
+      ackMessage: "Imeshindikana kupata taarifa za risiti. Tafadhali jaribu tena baadae.",
+      jsonResult: null
+    };
   }
 };
 
-/**
- * Converts ReceiptData to ReceiptPDFData format for PDF generation
- * @param receiptData The receipt data from the API
- * @returns ReceiptPDFData object ready for PDF generation
- */
-export const convertToReceiptPDFData = (receiptData: ReceiptData): ReceiptPDFData => {
-  return {
-    payerName: receiptData.applicantName,
-    applicationID: receiptData.applicationId,
-    PaymentControlNumber: receiptData.controlNumber,
-    PaidAmount: parseFloat(receiptData.amount) || 0,
-    Currency: 'TZS',
-    PayerMobile: receiptData.payerMobile || '',
-    PaymentChannel: receiptData.paymentMethod,
-    PaymentReceipt: receiptData.receiptNumber,
-    ServiceProviderName: receiptData.serviceProviderName || 'Immigration Services Department',
-    paymentDate: receiptData.paymentDate
-  };
-};
+// Keep the old function name for backward compatibility
+export const getReceiptData = getApplicationReceipt;

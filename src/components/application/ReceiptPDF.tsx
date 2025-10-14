@@ -81,6 +81,7 @@ const generateBarcode = (text: string): string => {
 // Generate Receipt PDF
 export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<string> => {
   try {
+    
    const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -168,7 +169,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Receipt No', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.PaymentReceipt), rightCol, currentY);
+    doc.text(receiptData.PaymentReceipt || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // Full Name
@@ -176,7 +177,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Full Name', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.payerName), rightCol, currentY);
+    doc.text(receiptData.payerName || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // App Ref No
@@ -184,7 +185,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Application Ref No', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.applicationID), rightCol, currentY);
+    doc.text(receiptData.applicationID || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // Control No
@@ -192,7 +193,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Control Number', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.PaymentControlNumber), rightCol, currentY);
+    doc.text(receiptData.PaymentControlNumber || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // Paid Amount
@@ -225,7 +226,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Payment Channel', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.PaymentChannel), rightCol, currentY);
+    doc.text(receiptData.PaymentChannel || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // Service Provider
@@ -233,7 +234,7 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Service Provider', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.ServiceProviderName), rightCol, currentY);
+    doc.text(receiptData.ServiceProviderName || 'Immigration Services Department', rightCol, currentY);
     currentY += lineHeight;
 
     // Payer Mobile
@@ -241,21 +242,21 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     doc.text('Payer Mobile', leftCol, currentY);
     doc.text(':', colonCol, currentY, { align: 'center' });
     doc.setFont('times', 'normal');
-    doc.text(String(receiptData.PayerMobile), rightCol, currentY);
+    doc.text(receiptData.PayerMobile || 'N/A', rightCol, currentY);
     currentY += lineHeight;
 
     // Date of Payment
-    try {
-      doc.setFont('times', 'bold');
-      doc.text('Date of Payment', leftCol, currentY);
-      doc.text(':', colonCol, currentY, { align: 'center' });
-      doc.setFont('times', 'normal');
-      const paymentDate = safeFormatDate(receiptData.paymentDate || new Date().toISOString());
-      doc.text(String(paymentDate), rightCol, currentY);
-      currentY += lineHeight;
-    } catch (dateError) {
-      currentY += lineHeight;
-    }
+    // try {
+    //   doc.setFont('times', 'bold');
+    //   doc.text('Date of Payment', leftCol, currentY);
+    //   doc.text(':', colonCol, currentY, { align: 'center' });
+    //   doc.setFont('times', 'normal');
+    //   const paymentDate = safeFormatDate(receiptData.paymentDate || new Date().toISOString());
+    //   doc.text(String(paymentDate), rightCol, currentY);
+    //   currentY += lineHeight;
+    // } catch (dateError) {
+    //   currentY += lineHeight;
+    // }
 
     // Issued By
     doc.setFont('times', 'bold');
@@ -266,17 +267,17 @@ export const generateReceiptPDF = async (receiptData: ReceiptPDFData): Promise<s
     currentY += lineHeight;
 
     // Date Issued
-    try {
-      doc.setFont('times', 'bold');
-      doc.text('Date Issued', leftCol, currentY);
-      doc.text(':', colonCol, currentY, { align: 'center' });
-      doc.setFont('times', 'normal');
-      const issuedDate = safeFormatDate(new Date().toISOString());
-      doc.text(String(issuedDate), rightCol, currentY);
-      currentY += lineHeight;
-    } catch (dateError) {
-      currentY += lineHeight;
-    }
+    // try {
+    //   doc.setFont('times', 'bold');
+    //   doc.text('Date Issued', leftCol, currentY);
+    //   doc.text(':', colonCol, currentY, { align: 'center' });
+    //   doc.setFont('times', 'normal');
+    //   const issuedDate = safeFormatDate(new Date().toISOString());
+    //   doc.text(String(issuedDate), rightCol, currentY);
+    //   currentY += lineHeight;
+    // } catch (dateError) {
+    //   currentY += lineHeight;
+    // }
 
     // Signature
     // doc.setFont('times', 'bold');

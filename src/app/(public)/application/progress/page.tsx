@@ -9,7 +9,7 @@ import { convertToPassData } from "@/services/application-pass";
 import { generatePassPDF } from "@/components/application/PassPDF";
 import { getBillData, convertToBillPDFData } from "@/services/bill-service";
 import { generateBillPDF } from "@/components/application/BillPDF";
-import { getReceiptData, convertToReceiptPDFData } from "@/services/receipt-service";
+import { getApplicationReceipt } from "@/services/receipt-service";
 import { generateReceiptPDF } from "@/components/application/ReceiptPDF";
 import { ProfessionalLoader } from "@/components/ui/professional-loader";
 import BillPDFPreview from "@/components/application/BillPDFPreview";
@@ -142,13 +142,15 @@ const getActionButtons = (
       }
       
       // Fetch receipt data
-      const receiptData = await getReceiptData(applicationData.controlNumber);
+      const receiptResponse = await getApplicationReceipt(applicationData.controlNumber);
       
-      // Convert receipt data to PDF data format
-      const receiptPDFData = convertToReceiptPDFData(receiptData);
+      // Check if the API call was successful
+      if (receiptResponse.ackCode !== 1 || !receiptResponse.jsonResult) {
+        throw new Error(receiptResponse.ackMessage || 'Failed to fetch receipt data');
+      }
       
-      // Generate the receipt PDF
-      const pdfDataUrl = await generateReceiptPDF(receiptPDFData);
+      // Generate the receipt PDF using the data directly from API
+      const pdfDataUrl = await generateReceiptPDF(receiptResponse.jsonResult);
       
       try {
         // Using the data URL directly

@@ -1,11 +1,8 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Printer, X } from 'lucide-react';
-import { generateReceiptPDF, ReceiptPDFData } from './ReceiptPDF';
-import { getReceiptByControlNumber } from '@/services/application-receipt';
+import { X, Download, Printer, Loader2 } from 'lucide-react';
+import { ReceiptPDFData, generateReceiptPDF } from './ReceiptPDF';
+import { getApplicationReceipt, ReceiptDetails } from '@/services/receipt-service';
 
 interface ReceiptPDFPreviewProps {
   open: boolean;
@@ -15,56 +12,74 @@ interface ReceiptPDFPreviewProps {
   applicantName: string;
 }
 
-const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({ 
-  open, 
+const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({
+  open,
   onOpenChange,
   controlNumber,
   applicationId,
-  applicantName
+  applicantName,
 }) => {
-  const [pdfUrl, setPdfUrl] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
   const [receiptData, setReceiptData] = useState<ReceiptPDFData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch receipt data when dialog opens
   useEffect(() => {
     if (open && controlNumber) {
-      fetchReceiptData();
+      fetchReceiptData(controlNumber);
+    } else {
+      // Reset state when closed
+      setPdfUrl(null);
+      setReceiptData(null);
+      setError(null);
     }
-
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
   }, [open, controlNumber]);
 
-  const fetchReceiptData = async () => {
-    if (!controlNumber) {
-      setError('No control number provided');
-      setIsLoading(false);
-      return;
+  // Generate PDF when receipt data is available
+  useEffect(() => {
+    if (receiptData && !pdfUrl) {
+      generatePDFPreview();
     }
+  }, [receiptData, pdfUrl]);
+
+  const fetchReceiptData = async (ctrlNumber: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getApplicationReceipt(ctrlNumber);
+
+      if (response.ackCode === 1 && response.jsonResult) {
+        const data: ReceiptPDFData = {
+          payerName: response.jsonResult.payerName,
+          applicationID: response.jsonResult.applicationID,
+          PaymentControlNumber: response.jsonResult.PaymentControlNumber,
+          PaidAmount: response.jsonResult.PaidAmount,
+          Currency: response.jsonResult.Currency,
+          PayerMobile: response.jsonResult.PayerMobile,
+          PaymentChannel: response.jsonResult.PaymentChannel,
+          PaymentReceipt: response.jsonResult.PaymentReceipt,
+          ServiceProviderName: response.jsonResult.ServiceProviderName,
+        };
+        setReceiptData(data);
+      } else {
+        setError(response.ackMessage || 'Failed to fetch receipt details');
+      }
+    } catch (err) {
+      setError('An error occurred while fetching receipt details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generatePDFPreview = async () => {
+    if (!receiptData) return;
 
     try {
-      setIsLoading(true);
-      setError('');
-    const response = await getReceiptByControlNumber(controlNumber);
-      
-      if (response.ackCode !== 1) {
-        setError(response.ackMessage || 'Failed to fetch receipt data');
-        setIsLoading(false);
-        return;
-      }
-     setReceiptData(response.jsonResult);
-      
-      // Generate PDF with the fetched data
-      const pdfDataUrl = await generateReceiptPDF(response.jsonResult);
+      const pdfDataUrl = await generateReceiptPDF(receiptData);
       setPdfUrl(pdfDataUrl);
-      setIsLoading(false);
     } catch (error) {
-      setError(`Failed to generate receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setIsLoading(false);
+      setError(`Failed to generate PDF preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -73,7 +88,7 @@ const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({
 
     const link = document.createElement('a');
     link.href = pdfUrl;
-    link.download = `Receipt_${receiptData?.PaymentControlNumber || controlNumber || 'document'}.pdf`;
+    link.download = `Receipt_${receiptData?.PaymentControlNumber || 'document'}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -90,33 +105,75 @@ const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Receipt Preview</DialogTitle>
-        </DialogHeader>
+  const handleClose = () => {
+    onOpenChange(false);
+  };
 
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">Receipt Preview</h2>
+          <div className="flex items-center gap-2">
+            {pdfUrl && (
+              <>
+                <Button
+                  onClick={handleDownload}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+                <Button
+                  onClick={handlePrint}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print
+                </Button>
+              </>
+            )}
+            <Button
+              onClick={handleClose}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Content */}
         <div className="flex-1 overflow-hidden">
           {isLoading && (
-            <div className="flex items-center justify-center h-full">
+            <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>Generating receipt PDF...</p>
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
+                <p className="text-sm text-muted-foreground">Loading receipt details...</p>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center text-red-600">
-                <p className="font-semibold mb-2">Error</p>
-                <p className="text-sm">{error}</p>
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-sm text-red-600">{error}</p>
+                <Button onClick={handleClose} variant="outline" size="sm" className="mt-4">
+                  Close
+                </Button>
               </div>
             </div>
           )}
 
-          {!isLoading && !error && pdfUrl && (
+          {pdfUrl && !isLoading && !error && (
             <iframe
               src={pdfUrl}
               className="w-full h-full border-0"
@@ -124,25 +181,8 @@ const ReceiptPDFPreview: React.FC<ReceiptPDFPreviewProps> = ({
             />
           )}
         </div>
-
-        <DialogFooter className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            <X className="w-4 h-4 mr-2" />
-            Close
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDownload} disabled={!pdfUrl}>
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-            <Button onClick={handlePrint} disabled={!pdfUrl}>
-              <Printer className="w-4 h-4 mr-2" />
-              Print
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
