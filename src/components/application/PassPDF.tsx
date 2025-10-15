@@ -37,6 +37,8 @@ export interface PassData {
   paidAmount?: string;
   ControlNumber?: string | number;
   passNumber?: string;
+  stationName?: string;
+  subjectID?: string;
 }
 
 // Helper function to convert image URL to base64
@@ -323,7 +325,7 @@ export const generatePassPDF = async (
 
     const labelWidth = doc.getTextWidth(label);
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text(`${passData.id}`, labelX + labelWidth + 2, 76);
+    doc.text(`${passData.subjectID}`, labelX + labelWidth + 2, 76);
     
     // Add Details header
     doc.setFontSize(10);
@@ -426,7 +428,7 @@ export const generatePassPDF = async (
     doc.setFont('Times New Roman', 'normal');
     doc.text('Issued at:', 20, y);
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text(passData.ResidenceRegionName || '', 50, y);
+    doc.text(passData.stationName || '', 50, y);
     y += lineHeight * 2;
     
     // Contact Address section
@@ -468,7 +470,7 @@ export const generatePassPDF = async (
     doc.setFont('Times New Roman', 'normal');
     doc.text('Region of Application:', labelX, y);
     doc.setFont('Times New Roman', 'bolditalic');
-    doc.text(passData.ResidenceRegionName || '', valueX, y);
+    doc.text(passData.stationName || '', valueX, y);
     
     // Add first signature in the middle section as shown in the image
     // Use optimized spacing
@@ -585,7 +587,7 @@ export const generatePassPDF = async (
         y += 8; // Reduced row height
       });
     } else {
-      doc.text('No dependants', 105, y+4, { align: 'center' });
+      // doc.text('No dependants', 105, y+4, { align: 'center' });
       
       // Draw complete border for empty table
       doc.rect(20, y, 170, 8); // Border for empty row

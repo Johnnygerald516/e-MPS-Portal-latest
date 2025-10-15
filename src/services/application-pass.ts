@@ -33,6 +33,7 @@ export interface ApplicationDetails {
   regionOfBirth: string;
   dateOfBirth: string;
   gender: string;
+  stationName: string;
   subjectCategory: string;
   registrationNo: string;
   passNumber: string | null;
@@ -218,6 +219,9 @@ export const convertToPassData = (jsonResult: {
     // Add the missing properties
     paidAmount: details.paidAmount ? String(details.paidAmount) : undefined,
     ControlNumber: details.ControlNumber || '',
-    passNumber: details.passNumber || ''
+    passNumber: details.passNumber || '',
+    // Map subjectID and stationName from API response
+    subjectID: details.subjectID || '',
+    stationName: details.stationName || ''
   };
 };
