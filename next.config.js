@@ -35,7 +35,7 @@ const nextConfig = {
   // Add API proxy configuration
   async rewrites() {
     // Get API URL from environment variable or use fallback
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
     console.log('Using API URL in rewrites:', apiUrl);
     
     // If no API URL is provided, don't set up rewrites
@@ -45,9 +45,20 @@ const nextConfig = {
     }
     
     return [
+      // First, handle the API routes that should be proxied to the external API
       {
-        // Use a different prefix to avoid conflicts with Next.js API routes
+        // Use the /api prefix for Next.js API routes
+        source: '/api/applications/:path*',
+        destination: '/api/applications/:path*',
+      },
+      {
+        // Backward compatibility for /external-api routes
         source: '/external-api/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+      {
+        // Direct external API access - must be last to avoid conflicts with Next.js API routes
+        source: '/applications/:path*',
         destination: `${apiUrl}/:path*`,
       },
     ];

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: migrant-fe-portal
-        image: 10.6.0.157:30000/migrant-fe-portal:v0.0.5
+        image: 41.59.104.107:30000/migrant-fe-portal:v0.0.7
         ports:
         - containerPort: 3100
         env:

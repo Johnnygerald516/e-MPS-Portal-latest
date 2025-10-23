@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Use the direct API endpoint
+    // The apiUrl already contains the full path: https://migrantonline.immigration.go.tz/api
+    // We need to add 'applications/lookup' to the path
     const externalApiUrl = `${apiUrl}/applications/lookup`;
     console.log('External API URL:', externalApiUrl);
     

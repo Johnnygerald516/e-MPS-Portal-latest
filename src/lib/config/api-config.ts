@@ -10,13 +10,17 @@
  * @returns The API URL with fallback to development URL
  */
 export function getApiUrl(): string {
-  // Use environment variable with fallback
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const fallbackUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || '';
+  // Always use the production API URL
+  const productionApiUrl = 'https://migrantonline.immigration.go.tz/api';
+  
+  // Use environment variable with fallback to production URL
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || productionApiUrl;
+  const fallbackUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || productionApiUrl;
   
   // Log the API URL for debugging
   console.log('[api-config] NEXT_PUBLIC_API_URL:', apiUrl);
   console.log('[api-config] NEXT_PUBLIC_API_URL_FALLBACK:', fallbackUrl);
+  console.log('[api-config] Production API URL:', productionApiUrl);
   
   if (!apiUrl) {
     console.warn('[api-config] NEXT_PUBLIC_API_URL is not defined in environment variables');
@@ -27,8 +31,8 @@ export function getApiUrl(): string {
       return fallbackUrl;
     }
     
-    // Return empty string to trigger fallback in consuming code
-    return '';
+    // Return production API URL as final fallback
+    return productionApiUrl;
   }
   
   return apiUrl;

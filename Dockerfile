@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
-ARG NEXT_PUBLIC_API_URL=http://10.6.0.168:30033
+ARG NEXT_PUBLIC_API_URL=https://migrantonline.immigration.go.tz/api
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV HOST=0.0.0.0
 ENV PORT=3100
@@ -40,7 +40,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3100
 ENV HOST=0.0.0.0
-ARG NEXT_PUBLIC_API_URL=http://10.6.0.168:30033
+ARG NEXT_PUBLIC_API_URL=https://migrantonline.immigration.go.tz/api
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Copy necessary files from builder
@@ -54,7 +54,8 @@ EXPOSE 3100
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="v0.0.1"
+LABEL org.opencontainers.image.version="v0.0.7"
+LABEL org.opencontainers.image.description="Migrant Portal Frontend"
 
 # Start the application in production mode
 CMD ["npm", "run", "start", "--", "-p", "3100", "-H", "0.0.0.0"]

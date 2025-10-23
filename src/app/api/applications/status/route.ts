@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get the API URL from environment variables
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // Get the API URL from environment variables or use the production URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
     if (!apiUrl) {
       return NextResponse.json({
         ackCode: 0,
@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the request to the real backend API
+    // The apiUrl already contains the full path: https://migrantonline.immigration.go.tz/api
     const response = await axios.post(`${apiUrl}/applications/status`, {
       applicationId,
       phoneNumber

@@ -23,14 +23,14 @@ if (!apiUrl) {
 // Validate URL format
 if (!isValidUrl(apiUrl)) {
   const oldUrl = apiUrl;
-  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || 'http://127.0.0.1:8000';
+  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || 'https://migrantonline.immigration.go.tz/api';
   console.error(`[axios] Invalid API URL format: "${oldUrl}", using fallback URL: "${apiUrl}"`);
 }
 
-// Final check - if we still don't have a valid URL, use a hardcoded fallback
+// Final check - if we still don't have a valid URL, use the production API URL
 if (!apiUrl || !isValidUrl(apiUrl)) {
-  apiUrl = 'http://127.0.0.1:8000';
-  console.warn(`[axios] No valid API URL found, using default fallback: ${apiUrl}`);
+  apiUrl = 'https://migrantonline.immigration.go.tz/api';
+  console.warn(`[axios] No valid API URL found, using production API URL: ${apiUrl}`);
 }
 
 const api = axios.create({

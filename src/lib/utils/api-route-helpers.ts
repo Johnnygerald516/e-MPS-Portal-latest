@@ -11,11 +11,30 @@ import { NextResponse } from "next/server";
  * @returns The external API URL or throws an error if not configured
  */
 export function getExternalApiUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
   if (!apiUrl) {
     throw new Error('NEXT_PUBLIC_API_URL environment variable is not set');
   }
   return apiUrl;
+}
+
+/**
+ * Builds a correct API endpoint URL by combining the base URL with the endpoint path
+ * @param endpoint The API endpoint path
+ * @returns The complete API URL
+ */
+export function buildApiUrl(endpoint: string): string {
+  const baseUrl = getExternalApiUrl();
+  
+  // Remove any leading slash from the endpoint
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+  
+  // If the endpoint already contains 'applications', don't add it again
+  if (cleanEndpoint.startsWith('applications/')) {
+    return `${baseUrl}/${cleanEndpoint}`;
+  }
+  
+  return `${baseUrl}/${cleanEndpoint}`;
 }
 
 /**

@@ -4,7 +4,7 @@
 # Variables
 $REGISTRY="41.59.104.107:30000"
 $IMAGE_NAME="migrant-fe-portal"
-$IMAGE_TAG="v0.0.1"
+$IMAGE_TAG="v0.0.7"
 $FULL_IMAGE_NAME="$REGISTRY/$IMAGE_NAME`:$IMAGE_TAG"
 
 # Display information
@@ -20,7 +20,7 @@ try {
 
 # Build the Docker image
 Write-Host "Building Docker image..." -ForegroundColor Yellow
-docker build --build-arg NEXT_PUBLIC_API_URL=http://41.59.104.109:30033 -t $FULL_IMAGE_NAME .
+docker build --build-arg NEXT_PUBLIC_API_URL=https://migrantonline.immigration.go.tz/api -t $FULL_IMAGE_NAME .
 
 # Check if build was successful
 if ($LASTEXITCODE -ne 0) {
@@ -76,4 +76,4 @@ Write-Host "  - Registry: $REGISTRY" -ForegroundColor Cyan
 Write-Host "  - Image name: $IMAGE_NAME" -ForegroundColor Cyan
 Write-Host "  - Tag: $IMAGE_TAG" -ForegroundColor Cyan
 Write-Host "  - Container port: 3100" -ForegroundColor Cyan
-Write-Host "  - API Endpoint: 41.59.104.109:30033" -ForegroundColor Cyan
+Write-Host "  - API Endpoint: https://migrantonline.immigration.go.tz/api" -ForegroundColor Cyan

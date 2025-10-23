@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 10.6.0.157:30000/migrant-fe-portal:v0.0.5
+    image: 41.59.104.107:30000/migrant-fe-portal:v0.0.6
     container_name: migrant-fe-portal
     restart: unless-stopped
     ports:
@@ -15,8 +15,8 @@ services:
       - PORT=3100
       - HOST=0.0.0.0
       # API Configuration
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.6.0.168:30033}
-      - NEXT_PUBLIC_API_URL_FALLBACK=${NEXT_PUBLIC_API_URL_FALLBACK:-http://10.6.0.168:30033}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://41.59.104.109:30033}
+      - NEXT_PUBLIC_API_URL_FALLBACK=${NEXT_PUBLIC_API_URL_FALLBACK:-https://41.59.104.109:30033}
       - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
       - NEXT_PUBLIC_API_KEY_FALLBACK=${NEXT_PUBLIC_API_KEY_FALLBACK:-}
       # Trusted Hostnames

@@ -12,10 +12,10 @@ const rl = readline.createInterface({
 
 // Default values
 const defaults = {
-  NEXT_PUBLIC_API_URL: 'http://127.0.0.1:8000',
-  NEXT_PUBLIC_API_URL_FALLBACK: 'http://127.0.0.1:8000',
-  NEXT_PUBLIC_TRUSTED_HOSTNAMES: 'localhost,127.0.0.1',
-  NEXT_PUBLIC_IMAGE_DOMAINS: '127.0.0.1',
+  NEXT_PUBLIC_API_URL: 'https://migrantonline.immigration.go.tz/api',
+  NEXT_PUBLIC_API_URL_FALLBACK: 'https://migrantonline.immigration.go.tz/api',
+  NEXT_PUBLIC_TRUSTED_HOSTNAMES: 'localhost,127.0.0.1,migrantonline.immigration.go.tz',
+  NEXT_PUBLIC_IMAGE_DOMAINS: '127.0.0.1,migrantonline.immigration.go.tz',
   OPENAI_API_KEY: ''
 };
 

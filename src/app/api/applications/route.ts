@@ -53,8 +53,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Call the external API
-    const externalApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/applications`;
+    // The NEXT_PUBLIC_API_URL already contains the full path: https://migrantonline.immigration.go.tz/api
+    // We need to add 'applications' to the path
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
+    const externalApiUrl = `${apiUrl}/applications`;
     
     try {
       // Check if we have at least a subjectId or dateOfBirth

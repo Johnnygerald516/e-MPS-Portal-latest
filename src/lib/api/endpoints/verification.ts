@@ -209,7 +209,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -250,7 +250,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -285,7 +285,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching occupations with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -320,7 +320,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching countries with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -362,7 +362,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching regions with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -416,7 +416,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching districts with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -470,7 +470,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching wards with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -505,7 +505,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching nationalities with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -538,7 +538,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -571,7 +571,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -606,7 +606,7 @@ export const verificationEndpoints = {
       
       console.log('Marital status payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -648,7 +648,7 @@ export const verificationEndpoints = {
       
       console.log('Application types payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -675,7 +675,7 @@ export const verificationEndpoints = {
     try {
       console.log(`Fetching lookup using API route for operation: ${payload.operationType}`);
       
-      // Use the Next.js API route instead of direct API call
+      // Use the Next.js API route with /api prefix
       const response = await fetch('/api/applications/lookup', {
         method: 'POST',
         headers: {
@@ -704,7 +704,7 @@ export const verificationEndpoints = {
       // The API route will handle the transformation
       console.log('Original data received:', JSON.stringify(data));
       
-      // Use the Next.js API route to avoid CORS issues
+      // Use the Next.js API route with /api prefix
       console.log('Sending request to /api/applications');
       const response = await fetch('/api/applications', {
         method: 'POST',
