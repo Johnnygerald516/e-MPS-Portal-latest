@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, User, Calendar, Globe, Plus, Trash2 } from 'lucide-react';
+import { Loader2, User, Calendar, Globe, Save } from 'lucide-react';
 import { useApplication } from '@/contexts/application-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
@@ -362,7 +362,7 @@ export function DependantsInfoEditDialog({ open, onOpenChange, onSuccess }: Depe
                   className="border border-blue-500 text-blue-700 hover:text-blue-500 hover:border-blue-700 px-4 py-2 rounded flex items-center bg-blue hover:bg-blue-50"
                   size="sm"
                 >
-                  <Plus className="h-4 w-4 mr-1" />
+                  <Save className="h-4 w-4 mr-1" />
                   Ongeza Mtegemezi
                 </Button>
               </div>
@@ -383,7 +383,7 @@ export function DependantsInfoEditDialog({ open, onOpenChange, onSuccess }: Depe
                       className="border border-red-600 text-red-600 hover:border-red-700 hover:text-red-700 px-4 py-2 rounded flex items-center bg-white hover:bg-red-50"
                       size="sm"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
+                      <Save className="h-4 w-4 mr-1" />
                       Futa
                     </Button>
                   </div>

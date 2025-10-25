@@ -658,7 +658,6 @@ export default function DeclarationPage() {
     const safetyTimer = setTimeout(() => {
       // Force navigation to complete page as a last resort
       if (isLoading) {
-        console.log('Safety timer triggered - forcing navigation to complete page');
         setIsLoading(false);
         router.push('/application/complete');
       }
@@ -765,7 +764,7 @@ return (
       />
       
       <div className="bg-slate-50 p-6 rounded mb-6 shadow-sm border border-slate-200">
-        {/* <h3 className="text-lg font-medium text-slate-800 mb-4">Application Summary</h3> */}
+        {/* <h3 className="text-lg font-medium text-slate-500 mb-4">Application Summary</h3> */}
         
         <div className="space-y-6">
           {/* Basic Information Section */}
@@ -789,69 +788,69 @@ return (
             <div className="flex">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pr-4">
                 {/* First column */}
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Jina la Kwanza</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.firstName || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Jina la Kwanza</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.firstName || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Jina la Kati</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.middleName || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Jina la Kati</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.middleName || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Jina la Ukoo</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.lastName || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Jina la Ukoo</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.lastName || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Jina Lingine</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.otherName || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Jina Lingine</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.otherName || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Tarehe ya Kuzaliwa</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.dateOfBirth instanceof Date ? format(formData.dateOfBirth, "PPP") : "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Tarehe ya Kuzaliwa</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.dateOfBirth instanceof Date ? format(formData.dateOfBirth, "PPP") : "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Jinsia</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.gender || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Jinsia</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.gender || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Hali ya Ndoa</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.maritalStatus || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Hali ya Ndoa</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.maritalStatus || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Nchi ya Kuzaliwa</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.countryOfBirth || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Nchi ya Kuzaliwa</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.countryOfBirth || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Mkoa wa Kuzaliwa</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.birthRegionName || formData.region || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Mkoa wa Kuzaliwa</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.birthRegionName || formData.region || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Aina ya Kazi</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.occupationType || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Aina ya Kazi</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.occupationType || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Kazi</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.occupation || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Kazi</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.occupation || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Maelezo ya Kazi</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.occupationDetail || formData.employmentStatus || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Maelezo ya Kazi</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.occupationDetail || formData.employmentStatus || "—"}</p>
                 </div>
                 
-                <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Namba ya Simu</h4>
-                  <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.mobileNumber || "—"}</p>
+                <div className="space-y-1 bg-slate-50 p-2 rounded">
+                  <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Namba ya Simu</h4>
+                  <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.mobileNumber || "—"}</p>
                 </div>
               </div>
               
@@ -875,7 +874,7 @@ return (
                     </div>
                   )}
                 </div>
-                <span className="text-xs font-medium text-gray-700 text-center bg-gray-100 px-2 py-1 rounded-md">Picha ya Muombaji</span>
+                <span className="text-xs font-medium text-gray-600 text-center bg-gray-100 px-2 py-1 rounded-md">Picha ya Muombaji</span>
               </div>
             </div>
           </div>
@@ -899,59 +898,59 @@ return (
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Nchi ya Makazi</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.countryOfResidence || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Nchi ya Makazi</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.countryOfResidence || "—"}</p>
               </div>
               
               {/* <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Mkoa</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.region || "—"}</p>
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Mkoa</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.region || "—"}</p>
               </div> */}
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Wilaya</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.district || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Wilaya</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.district || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Kata</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.ward || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Kata</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.ward || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Mtaa</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.street || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Mtaa</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.street || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Uraia</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.nationality || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Uraia</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.nationality || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Namba ya Simu</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.mobileNumber || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Namba ya Simu</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.mobileNumber || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Namba ya Nyumba</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.houseNumber || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Namba ya Nyumba</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.houseNumber || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Namba ya Kiwanja</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.plotNumber || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Namba ya Kiwanja</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.plotNumber || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Nchi ya Asili</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.countryOfOrigin || formData.birthCountry || "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Nchi ya Asili</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.countryOfOrigin || formData.birthCountry || "—"}</p>
               </div>
               
-              <div className="space-y-1 bg-slate-50 p-2 rounded-md">
-                <h4 className="text-sm font-medium text-gray-700 font-times-new-roman">Tarehe ya Kuingia Nchini</h4>
-                <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.dateOfEntry instanceof Date ? format(formData.dateOfEntry, "PPP") : "—"}</p>
+              <div className="space-y-1 bg-slate-50 p-2 rounded">
+                <h4 className="text-sm font-medium text-gray-500 font-times-new-roman">Tarehe ya Kuingia Nchini</h4>
+                <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.dateOfEntry instanceof Date ? format(formData.dateOfEntry, "PPP") : "—"}</p>
               </div>
             </div>
           </div>
@@ -977,64 +976,64 @@ return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Father's Information */}
               <div className="bg-slate-50 p-4 rounded-md border border-slate-100">
-                <h4 className="text-sm font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-3">Taarifa za Baba</h4>
+                <h4 className="text-sm font-semibold text-gray-600 border-b border-gray-200 pb-2 mb-3">Taarifa za Baba</h4>
                 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Jina la Baba</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.fatherName || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Jina la Baba</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.fatherName || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Tarehe ya Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.fatherDateOfBirth instanceof Date ? format(formData.fatherDateOfBirth, "PPP") : "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Tarehe ya Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.fatherDateOfBirth instanceof Date ? format(formData.fatherDateOfBirth, "PPP") : "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Nchi ya Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.fatherCountryOfBirth || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Nchi ya Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.fatherCountryOfBirth || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Mkoa wa Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.fatherRegionOfBirth || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Mkoa wa Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.fatherRegionOfBirth || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Uraia</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.fatherNationality || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Uraia</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.fatherNationality || "—"}</p>
                   </div>
                 </div>
               </div>
               
               {/* Mother's Information */}
               <div className="bg-slate-50 p-4 rounded-md border border-slate-100">
-                <h4 className="text-sm font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-3">Taarifa za Mama</h4>
+                <h4 className="text-sm font-semibold text-gray-600 border-b border-gray-200 pb-2 mb-3">Taarifa za Mama</h4>
                 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Jina la Mama</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.motherName || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Jina la Mama</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.motherName || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Tarehe ya Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.motherDateOfBirth instanceof Date ? format(formData.motherDateOfBirth, "PPP") : "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Tarehe ya Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.motherDateOfBirth instanceof Date ? format(formData.motherDateOfBirth, "PPP") : "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Nchi ya Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.motherCountryOfBirth || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Nchi ya Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.motherCountryOfBirth || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Mkoa wa Kuzaliwa</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.motherRegionOfBirth || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Mkoa wa Kuzaliwa</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.motherRegionOfBirth || "—"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <h5 className="text-xs font-medium text-gray-600 font-times-new-roman">Uraia</h5>
-                    <p className="text-slate-800 font-medium font-times-new-roman uppercase">{formData.motherNationality || "—"}</p>
+                    <h5 className="text-xs font-medium text-gray-500 font-times-new-roman">Uraia</h5>
+                    <p className="text-slate-600 font-medium font-times-new-roman uppercase">{formData.motherNationality || "—"}</p>
                   </div>
                 </div>
               </div>
@@ -1063,27 +1062,27 @@ return (
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Jina</th>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Mahusiano</th>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Namba ya Hati</th>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Tarehe ya Kutolewa</th>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Tarehe Kuisha</th>
-                      <th className="text-left p-2 text-xs font-medium text-gray-700 border-b border-gray-200">Taifa</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Jina</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Mahusiano</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Namba ya Hati</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Tarehe ya Kutolewa</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Tarehe Kuisha</th>
+                      <th className="text-left p-2 text-xs font-medium text-gray-600 border-b border-gray-200">Taifa</th>
                     </tr>
                   </thead> 
                   <tbody>
                     {formData.dependants.map((dependant, index) => (
                       <tr key={`dependant-${index}-${dependant.name || dependant.passportNumber || index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">{dependant.name || "—"}</td>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">{dependant.relationship || "—"}</td>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">{dependant.passportNumber || "—"}</td>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">{dependant.name || "—"}</td>
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">{dependant.relationship || "—"}</td>
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">{dependant.passportNumber || "—"}</td>
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">
                           {dependant.passportIssuedDate ? format(new Date(dependant.passportIssuedDate), "PPP") : "—"}
                         </td>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">
                           {dependant.passportExpiryDate ? format(new Date(dependant.passportExpiryDate), "PPP") : "—"}
                         </td>
-                        <td className="p-2 text-sm font-medium text-slate-800 border-b border-slate-100 font-times-new-roman uppercase">{dependant.nationality || "—"}</td>
+                        <td className="p-2 text-sm font-medium text-slate-500 border-b border-slate-100 font-times-new-roman uppercase">{dependant.nationality || "—"}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -7,10 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, Mail, Phone, MapPin, Calendar, Globe, Home } from 'lucide-react';
+import { Loader2,Calendar, Globe, Home, Save } from 'lucide-react';
 import { useApplication } from '@/contexts/application-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
 import { LoadingButton } from '@/components/ui/loading-button';
 
 // Form validation schema
@@ -49,7 +48,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
   const applicationId = formData.applicationId;
   
   // API base URL
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.emps.go.tz/api';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
   
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -183,13 +182,13 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
       const residencePayload = {
         applicationId: applicationId,
         // Use the exact field names expected by the API
-        wardResidenceId: 1, // Default to 1 if not available
+        wardResidenceId: data.ward, 
         streetName: data.street,
         phoneNo: data.phoneNumber,
         houseNo: data.houseNumber || '',
         plotNo: data.plotNumber || '',
-        countryOfOriginId: 1, // Default to 1 if not available
-        nationalityId: 1, // Default to 1 if not available
+        countryOfOriginId: data.countryOfOrigin || '', 
+        nationalityId: data.residenceNationality || '', 
         dateOfEntry: data.dateOfEntry || ''
       };
 
@@ -255,21 +254,20 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Hariri Taarifa za Makazi</DialogTitle>
+          <DialogTitle className="text-slate-600 border-b pb-2 border-slate-200">Hariri Taarifa za Makazi</DialogTitle>
         </DialogHeader>
 
         {isLoadingData ? (
           <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2">Inapakia taarifa...</span>
-          </div>
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-200" />
+                      <span className="ml-2 text-slate-200">Inapakia taarifa...</span>
+                    </div>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Anuwani ya Makazi Section */}
               <div className="mb-8">
-                <h2 className="text-lg font-medium border-b pb-2 mb-4">Anuwani ya Makazi</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Row 1: Nchi ya Makazi, Mkoa, Wilaya */}
                   <FormField
                     control={form.control}
@@ -284,7 +282,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                <Globe className="mr-2 h-4 w-4 text-slate-400" />
+                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Nchi ya Makazi" />
                               </div>
                             </SelectTrigger>
@@ -310,7 +308,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Mkoa <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -330,7 +328,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Wilaya <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -356,7 +354,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                <MapPin className="mr-2 h-4 w-4 text-slate-400" />
+                                {/* <MapPin className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua kata" />
                               </div>
                             </SelectTrigger>
@@ -382,7 +380,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Mtaa <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -407,7 +405,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                <Globe className="mr-2 h-4 w-4 text-slate-400" />
+                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua uraia" />
                               </div>
                             </SelectTrigger>
@@ -434,7 +432,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Namba ya Simu <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Phone className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <Phone className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -454,7 +452,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Namba ya Nyumba</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Home className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <Home className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -474,7 +472,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Namba ya Kiwanja</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
                               {...field} 
@@ -500,7 +498,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                <Globe className="mr-2 h-4 w-4 text-slate-400" />
+                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua nchi ya asili" />
                               </div>
                             </SelectTrigger>
@@ -526,7 +524,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Tarehe ya Kuingia Nchini <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            {/* <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
                             <Input 
                               type="date"
                               className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
@@ -541,17 +539,21 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                 </div>
               </div>
 
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between mt-6 border-t pt-4 border-slate-200 gap-3">
+                <Button 
+                type="button" 
+                variant="outline" 
+                 onClick={() => onOpenChange(false)}>
                   Ghairi
                 </Button>
                 <LoadingButton 
                   type="submit" 
                   isLoading={isSubmitting}
                   loadingText="Inahifadhi..."
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-800 hover:bg-blue-900 min-w-[100px] rounded w-full sm:w-auto"
                 >
-                  Hifadhi Taarifa
+                  <Save className="h-4 w-4 mr-2" />
+                  Hifadhi Mabadiliko
                 </LoadingButton>
               </DialogFooter>
             </form>

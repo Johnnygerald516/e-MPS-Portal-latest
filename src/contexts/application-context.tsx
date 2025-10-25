@@ -6,7 +6,6 @@ import { toast } from "@/components/ui/use-toast";
 // Define application types
 export type ApplicationType = "new" | "renew" | "lost" | "damage";
 export type IdentificationType = "national_id" | "passport" | "voter_id" | "driving_license";
-export type ServiceOffice = "dar_es_salaam" | "arusha" | "mwanza" | "dodoma" | "zanzibar";
 export type Gender = "male" | "female" | "M" | "F";
 export type RenewalReason = "expired" | "lost" | "damaged";
 
@@ -37,7 +36,6 @@ export interface ApplicationFormData {
   // Basic Information
   applicationType: ApplicationType;
   renewalReason?: RenewalReason;
-  serviceOffice: ServiceOffice;
   
   // Personal Information
   firstName: string;
@@ -48,7 +46,7 @@ export interface ApplicationFormData {
   dateOfBirth: Date | string;
   formattedDateOfBirth?: string; // Added for formatted date display (YYYY-MM-DD)
   displayDateOfBirth?: string; // Added for human-readable date display (DD/MM/YYYY)
-  gender: Gender;
+  gender: string;
   nationality: string;
   countryOfBirth?: string; // Country of birth name (string format)
   birthCountry?: number; // Country of birth ID
@@ -149,15 +147,14 @@ export const defaultApplicationValues: ApplicationFormData = {
   // Basic Information
   applicationType: "new",
   renewalReason: undefined,
-  serviceOffice: "dar_es_salaam",
   firstName: "",
   middleName: "",
   lastName: "",
   surname: "", 
   otherName: "", 
-  dateOfBirth: new Date(),
-  gender: "male",
-  nationality: "Tanzanian",
+  dateOfBirth:"",
+  gender: "",
+  nationality: "",
   countryOfBirth: "",
   birthCountry: 0,
   birthCountryName: "",
@@ -174,7 +171,7 @@ export const defaultApplicationValues: ApplicationFormData = {
   employmentStatus: "",
   
   // Residence Information
-  countryOfResidence: "tanzania",
+  countryOfResidence: "",
   countryId: 0,
   countryName: "",
   region: "",
@@ -185,14 +182,14 @@ export const defaultApplicationValues: ApplicationFormData = {
   districtName: "",
   street: "",
   permanentAddressOrigin: "",
-  dateOfEntry: new Date(),
+  dateOfEntry:"",
   mobileNumber: "",
   email: "",
   address: "",
   
   // Parents Information
   fatherName: "",
-  fatherDateOfBirth: new Date(),
+  fatherDateOfBirth:"",
   fatherCountryOfBirth: "",
   fatherCountryId: 0,
   fatherCountryName: "",
@@ -201,7 +198,7 @@ export const defaultApplicationValues: ApplicationFormData = {
   fatherRegionName: "",
   fatherNationality: "",
   motherName: "",
-  motherDateOfBirth: new Date(),
+  motherDateOfBirth:"",
   motherCountryOfBirth: "",
   motherCountryId: 0,
   motherCountryName: "",
@@ -215,7 +212,7 @@ export const defaultApplicationValues: ApplicationFormData = {
   dependants: [],
   
   // Document Information
-  identificationType: "national_id",
+  identificationType: "national_id", // Adding required identificationType property
   identificationNumber: "",
   previousPassNumber: "",
   
