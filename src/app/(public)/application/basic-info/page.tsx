@@ -530,6 +530,24 @@ export default function BasicInfoPage() {
       fetchRegionsForCountry(birthCountry);
     }
   }, []);  // Run only once on component mount
+
+ useEffect(() => {
+  verificationEndpoints.fetchCountries()
+    .then((res) => {
+      // console.log("Fetched countries:", res);
+      setCountryOptions(res.jsonResult.map(country => ({
+        value: country.CountryName,
+        label: country.CountryName,
+        id: country.EntryId
+      })));
+    })
+   
+    .catch((err) => {
+      setCountryOptions([]);
+    }
+  );
+}, []);
+
   
   // Fetch countries from API
   const fetchCountries = async () => {

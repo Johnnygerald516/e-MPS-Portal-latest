@@ -71,6 +71,14 @@ export default function PersonalInfoEditDialog({
   const [occupationTypeOptions, setOccupationTypeOptions] = useState<Option[]>([]);
   const [occupationOptions, setOccupationOptions] = useState<Option[]>([]);
   
+  const [maritalStatus, setMaritalStatus] = useState('');
+  const [occupationType, setOccupationType] = useState('');
+  const [occupation, setOccupation] = useState('');
+
+  console.log("maritalStatus", maritalStatus);
+  console.log("occupationType", occupationType);
+  console.log("occupation", occupation);
+
   // Loading states for dropdowns
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isLoadingRegions, setIsLoadingRegions] = useState(false);
@@ -260,6 +268,15 @@ export default function PersonalInfoEditDialog({
         setValue("middleName", data.middleName || "");
         setValue("lastName", data.lastName || "");
         setValue("otherName", data.otherName || "");
+        setValue("occupationType", data.occupationType || "");
+        setValue("occupation", data.occupation || "");
+        setValue("occupationDetail", data.occupationDetail || "");
+
+        setMaritalStatus(data.maritalStatus || "");
+        setOccupationType(data.occupationType || "");
+        setOccupation(data.occupation || "");
+        
+        
         
         // Handle gender field - convert to uppercase if needed
         if (data.gender) {
@@ -281,7 +298,7 @@ export default function PersonalInfoEditDialog({
         // Set marital status after options are loaded
         if (data.maritalStatus) {
           console.log('Setting marital status:', data.maritalStatus);
-          
+          setValue("maritalStatus", data.maritalStatus || "");
           // Find exact match first
           const exactMaritalStatus = maritalStatusOptions.find(ms => 
             ms.value === data.maritalStatus);
@@ -695,7 +712,7 @@ export default function PersonalInfoEditDialog({
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4 overflow-y-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Jina la Kwanza <span className="text-red-500">*</span></Label>
+                <Label htmlFor="firstName">Jina la Kwanza </Label>
                 <Input
                   id="firstName"
                   {...register("firstName")}
@@ -715,7 +732,7 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="lastName">Jina la Mwisho <span className="text-red-500">*</span></Label>
+                <Label htmlFor="lastName">Jina la Mwisho </Label>
                 <Input
                   id="lastName"
                   {...register("lastName")}
@@ -735,7 +752,7 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="gender">Jinsia <span className="text-red-500">*</span></Label>
+                <Label htmlFor="gender">Jinsia </Label>
                 <Select 
                   onValueChange={(value) => setValue("gender", value)} 
                   value={getValues("gender") || ""}
@@ -755,7 +772,7 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Tarehe ya Kuzaliwa <span className="text-red-500">*</span></Label>
+                <Label htmlFor="dateOfBirth">Tarehe ya Kuzaliwa </Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -768,7 +785,10 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="birthCountry">Nchi ya Kuzaliwa <span className="text-red-500">*</span></Label>  
+                <Label htmlFor="birthCountry">
+                  Nchi ya Kuzaliwa 
+                  {/* <span className="text-red-500">*</span> */}
+                  </Label>  
                 <Select 
                   onValueChange={(value) => {
                     setValue("birthCountry", value);
@@ -808,7 +828,9 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="birthRegion">Mkoa wa Kuzaliwa <span className="text-red-500">*</span></Label>
+                <Label htmlFor="birthRegion">
+                  Mkoa wa Kuzaliwa 
+                  </Label>
                 <Select 
                   onValueChange={(value) => setValue("birthRegion", value)} 
                   value={getValues("birthRegion") || ""} 
@@ -838,7 +860,9 @@ export default function PersonalInfoEditDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="maritalStatus">Hali ya Ndoa <span className="text-red-500">*</span></Label>
+                <Label htmlFor="maritalStatus">Hali ya Ndoa 
+                  {/* <span className="text-red-500">*</span> */}
+                  </Label>
                 <Select 
                   onValueChange={(value) => setValue("maritalStatus", value)} 
                   value={getValues("maritalStatus") || ""} 

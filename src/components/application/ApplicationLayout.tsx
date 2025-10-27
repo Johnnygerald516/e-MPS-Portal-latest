@@ -131,8 +131,8 @@ export default function ApplicationLayout({ children, title, subtitle, applicati
               {/* Only render applicationId on client-side to prevent hydration errors */}
               {isMounted && applicationId && (
                 <div className="bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
-                  <span className="text-xs font-medium text-gray-500">Application ID:</span>
-                  <span className="text-sm font-medium text-blue-600 ml-1">{applicationId}</span>
+                  <span className="text-xs font-medium text-gray-500">Namba ya Ombi:</span>
+                  <span className="text-sm font-medium text-blue-800 ml-1">{applicationId}</span>
                 </div>
               )}
             </div>

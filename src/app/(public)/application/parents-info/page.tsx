@@ -774,7 +774,7 @@ function ParentsInfoContent() {
                     field={field}
                     label="Tarehe ya Kuzaliwa"
                     required={true}
-                    placeholder="Chagua tarehe ya kuzaliwa"
+                    placeholder="Chagua tarehe"
                   />
                 )}
               />

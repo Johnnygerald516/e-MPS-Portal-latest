@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Search, Loader2, CheckCircle } from "lucide-react";
+import { AlertTriangle, Search, Loader2, CheckCircle, User, ArrowRight } from "lucide-react";
 import { verificationEndpoints } from "@/lib/api";
 import { useApplication } from "@/contexts/application-context";
 import { formatDateForApi, formatDateForDisplay, parseDateString } from "@/lib/utils/date-utils";
@@ -233,10 +233,14 @@ export default function MigrantVerificationDialog({
         }}
         showCloseButton={false}
       >
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl font-semibold text-blue-700">Uthibitisho wa Usajili</DialogTitle>
+        <DialogHeader className="border-b pb-2">
+         <DialogTitle className="flex items-center justify-center gap-2 text-xl font-semibold text-blue-800">
+  <User className="w-5 h-5" />
+  Uthibitisho wa Usajili
+</DialogTitle>
+
           <DialogDescription className="text-center">
-            Tafadhali ingiza taarifa zako za usajili wa wahamiaji
+            Tafadhali ingiza taarifa zako za usajili wa mlowezi
           </DialogDescription>
         </DialogHeader>
         
@@ -358,7 +362,7 @@ export default function MigrantVerificationDialog({
           )}
         </div>
 
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="sm:justify-between border-t p-2">
           {!verificationSuccess ? (
             <>
               <Button 
@@ -392,7 +396,7 @@ export default function MigrantVerificationDialog({
               onClick={handleContinue}
               className="w-full bg-blue-800 hover:bg-blue-900"
             >
-              Endelea na Ombi
+              Endelea na Ombi  <ArrowRight className="h-4 w-4 mr-2" />
             </Button>
           )}
         </DialogFooter>
