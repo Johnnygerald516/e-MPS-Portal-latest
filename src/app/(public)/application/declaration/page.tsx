@@ -720,7 +720,8 @@ if (applicantPhoto) {
 
 return (
       <ApplicationLayout 
-        title="Declaration" 
+        title="Tamko Rasmi" 
+        // title="Declaration" 
         subtitle="Review and submit your application"
         applicationId={applicationId}
         currentStep="tamko-rasmi"

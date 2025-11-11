@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect,Suspense } from "react";
 import { motion, Variants } from "framer-motion";
-import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck, Download, Receipt, FileText, Edit, CreditCard, FileSearch, Phone } from "lucide-react";
-import { getApplicationStatus, ApplicationStatusPayload, ApplicationStatusResponse } from "@/services/application-status";
+import { Search, CheckCircle, Clock, AlertCircle, Printer, FileCheck,Receipt, Edit, CreditCard, FileSearch, Phone } from "lucide-react";
+import { getApplicationStatus, ApplicationStatusPayload} from "@/services/application-status";
 import { getApplicationPass } from "@/services/application-pass";
 import { convertToPassData } from "@/services/application-pass";
 import { generatePassPDF } from "@/components/application/PassPDF";
@@ -14,13 +14,12 @@ import { generateReceiptPDF } from "@/components/application/ReceiptPDF";
 import { ProfessionalLoader } from "@/components/ui/professional-loader";
 import BillPDFPreview from "@/components/application/BillPDFPreview";
 import ReceiptPDFPreview from "@/components/application/ReceiptPDFPreview";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "@/components/ui/table";
+import { Table, TableHeader, TableBody,TableHead, TableRow, TableCell, TableCaption } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 
 // Add html2canvas type to window object
@@ -746,7 +745,9 @@ function ApplicationProgressContent() {
 
   return ( 
     <motion.div variants={itemVariants} className="max-w-7xl mx-auto py-6 px-3 sm:px-4 border border-slate-200 rounded mt-2 bg-white shadow-sm">
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3" style={{ minHeight: '450px' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3" 
+      // style={{ minHeight: '450px' }} //height of this page
+      >
         
         <div className="border border-slate-100 rounded-lg bg-white p-3 shadow-sm sm:col-span-2">
           <h1 className="text-lg font-bold text-slate-500 mb-3 border-b border-slate-200 pb-1">Taarifa za Msingi</h1>

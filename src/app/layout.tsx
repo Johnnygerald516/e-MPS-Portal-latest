@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "E-Migrant Portal | Immigration Service Department",
-  description: "Modern web portal for migrant services",
+  description: "Web portal for migrant application",
   icons: {
     icon: "/immigration_logo.png",
     shortcut: "/immigration_logo.png",

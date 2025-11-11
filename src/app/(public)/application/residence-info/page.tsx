@@ -900,7 +900,9 @@ export default function ResidenceInfoPage() {
           {/* Anwani ya Kudumu Section */}
           {/* Additional Address Information */}
           <div className="mb-8">
-            <h2 className="text-xl font-medium border-b pb-2 mb-4">Taarifa za Ziada</h2>
+            <h2 className="text-xl font-medium border-b pb-2 mb-4">
+           {/* Taarifa za Ziada*/}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -958,6 +960,93 @@ export default function ResidenceInfoPage() {
                 )}
               />
               
+               <FormField
+                control={form.control}
+                name="countryOfOrigin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-neutral-500">Nchi ya Asili <span className="text-red-500">*</span></FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        try {
+                          if (!value) {
+                            field.onChange('');
+                            form.setValue('countryOfOriginId', 0);
+                            form.setValue('countryOfOriginName', '');
+                            return;
+                          }
+                          
+                          // Find the selected option to get its ID
+                          const selectedOption = countryOfOriginOptions.find(opt => {
+                            if (!opt || !opt.value || !value) return false;
+                            try {
+                              return opt.value.toLowerCase() === value.toLowerCase();
+                            } catch (e) {
+                              return false;
+                            }
+                          });
+                          
+                          if (selectedOption) {
+                            // Update both the country name and ID fields
+                            field.onChange(value);
+                            form.setValue('countryOfOriginId', selectedOption.id);
+                            form.setValue('countryOfOriginName', selectedOption.value);
+                           } else {
+                            field.onChange(value);
+                            form.setValue('countryOfOriginId', 0);
+                            form.setValue('countryOfOriginName', '');
+                          }
+                        } catch (error) {
+                          field.onChange(value || '');
+                          form.setValue('countryOfOriginId', 0);
+                          form.setValue('countryOfOriginName', '');
+                        }
+                      }}
+                      value={field.value}
+                      disabled={isLoadingCountriesOfOrigin}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
+                          <div className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4 text-slate-400" />
+                            <SelectValue 
+                            //placeholder="Chagua Nchi ya Asili" 
+                            />
+                          </div>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {isLoadingCountriesOfOrigin ? (
+                          <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                        ) : countryOfOriginOptions.length > 0 ? (
+                          countryOfOriginOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>Hakuna nchi zilizopatikana</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+ <FormField
+                control={form.control}
+                name="dateOfEntry"
+                render={({ field }) => (
+                  <DatePickerFormField
+                    field={field}
+                    label="Tarehe ya Kuingia Tanzania"
+                    required={true}
+                    placeholder="Chagua tarehe ya kuingia Tanzania"
+                  />
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -1024,8 +1113,10 @@ export default function ResidenceInfoPage() {
           </div>
           
           {/* Anwani ya Kudumu Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-medium border-b pb-2 mb-4">Anuwani ya Kudumu</h2>
+          {/* <div className="mb-8">
+            <h2 className="text-xl font-medium border-b pb-2 mb-4">
+            {/*Anuwani ya Kudumu*/}
+            {/* </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -1099,11 +1190,11 @@ export default function ResidenceInfoPage() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               
               {/* Removed duplicate Uraia field */}
               
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="dateOfEntry"
                 render={({ field }) => (
@@ -1114,9 +1205,10 @@ export default function ResidenceInfoPage() {
                     placeholder="Chagua tarehe ya kuingia Tanzania"
                   />
                 )}
-              />
+              /> 
             </div>
           </div>
+          */}
           {/* Buttons Section */}
           <div className="pt-6 mt-6 border-t border-slate-200 flex justify-between">
             <LoadingButton 

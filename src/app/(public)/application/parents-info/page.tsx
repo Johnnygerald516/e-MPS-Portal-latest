@@ -611,7 +611,8 @@ function ParentsInfoContent() {
   
   return (
       <ApplicationLayout 
-        title="Parents Information" 
+        // title="Parents Information" 
+         title="Habari za Wazazi" 
         subtitle="Enter your parents' details"
       applicationId={applicationId}
       currentStep="habari-za-wazazi"

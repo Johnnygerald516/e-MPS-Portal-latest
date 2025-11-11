@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
-import { ChevronRight,UserPlus,FileText, Briefcase, Users, CheckCircle2} from "lucide-react";
+import { ChevronRight,UserPlus,FileText, Briefcase, Users, CheckCircle2, Ribbon, Circle, CircleUserRoundIcon, Newspaper} from "lucide-react";
 import { PDFViewer } from "../../components/ui/pdf-viewer";
 import { motion, Variants, useScroll, useTransform } from "framer-motion";
 
@@ -214,7 +214,10 @@ export default function Home() {
                   animate="visible"
                 >
                   {/* <motion.span variants={itemVariants} className="block">{t('landing.managing')}</motion.span> */}
-                  <motion.span variants={itemVariants} className="block">Mfumo wa Walowezi</motion.span>
+                  <motion.span variants={itemVariants} className="block">
+                    {/* <Newspaper className="text-zinc-500"/>  */}
+                    Mfumo wa Walowezi
+                    </motion.span>
                   <motion.span variants={itemVariants} className="block text-blue-600">
                     {/* {t('landing.inTanzania')} */}Tanzania
                     </motion.span>

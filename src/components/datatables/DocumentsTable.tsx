@@ -210,15 +210,14 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                       
                       // Process the documents
                       processExistingDocuments(existingDocs);
-                    } else {
-                     }
+                    } 
                   }
-                } else {
-               }
+                }
               }
             } catch (error) {
              }
-          } catch (error) {
+          }
+           catch (error) {
           }
         }
       } catch (error) {
@@ -940,7 +939,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
     return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <span className="ml-2">Loading documents...</span>
+        <span className="ml-2">Loading documents...</span> 
       </div>
     );
   }
@@ -982,7 +981,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
                     <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-100">
                       <p>
                         {/* <strong>Maelekezo:</strong> */}
-                         Picha ya passport size zinazokubalika: PNG, JPEG, JPG (≤1MB)</p>
+                         Picha iwe na background nyeupe, format PNG, JPEG, JPG na ukubwa usiozidi 1MB</p>
                       {/* <p>Aina za faili zinazokubalika: PNG, JPEG, JPG (≤1MB)</p> */}
                     </div>
                   )}

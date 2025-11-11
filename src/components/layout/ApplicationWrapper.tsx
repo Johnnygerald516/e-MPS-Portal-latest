@@ -18,17 +18,7 @@ export default function ApplicationWrapper({ children }: ApplicationWrapperProps
   const { formData } = useApplication();
   const router = useRouter();
 
-  // Store the last navigation path to prevent infinite redirects
-  const lastNavigationPathRef = React.useRef<string | null>(null);
 
-  // Store the previous step to detect changes
-  const prevStepRef = React.useRef<number | undefined>(formData.currentStep);
-  
-  // DISABLED: Automatic navigation based on current step
-  // This was causing issues with page refreshes redirecting to /application
-  // Now we rely on explicit navigation after form submissions instead
-  
-  // For debugging purposes only - log the current path and step
   React.useEffect(() => {
     const currentPath = window.location.pathname;
      if (typeof window !== 'undefined' && window.performance && window.performance.navigation) {

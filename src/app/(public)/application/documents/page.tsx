@@ -43,7 +43,6 @@ const CheckCircle = dynamic(() => import('lucide-react').then(mod => mod.CheckCi
 const AlertCircle = dynamic(() => import('lucide-react').then(mod => mod.AlertCircle), { ssr: false });
 
 
-
 // Form validation schema
 const documentsSchema = z.object({
   identificationType: z.enum(["national_id", "passport", "voter_id", "driving_license"]),
@@ -621,11 +620,11 @@ export default function DocumentsPage() {
           </div> */}
 
           <div className="mt-8 p-4 rounded-md border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4 border-b pb-2">
+             {/*<div className="flex items-center justify-between mb-4 border-b pb-2">
               <h2 className="text-lg font-medium text-slate-800">Nyaraka Muhimu</h2>
               <p className="text-sm text-slate-500">Tafadhali pakia nyaraka zote muhimu.</p>
             </div>
-            
+            */}
             {/* Document upload instructions */}
             {/* <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-md">
               <h3 className="text-sm font-medium text-blue-800 mb-2">Document Upload Instructions:</h3>
@@ -643,7 +642,7 @@ export default function DocumentsPage() {
               <Suspense fallback={
                 <div className="flex justify-center items-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="ml-2">Loading documents...</span>
+                  <span className="ml-2">Inapakia nyaraka, tafadhali subiri...</span>
                 </div>
               }>
                 <DocumentsTable 

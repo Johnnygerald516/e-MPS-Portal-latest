@@ -196,16 +196,16 @@ export function ParentsInfoEditDialog({ open, onOpenChange, onSuccess }: Parents
       const parentsPayload = {
         fatherFullName: data.fatherFullName,
         fatherDateOfBirth: data.fatherDateOfBirth,
-        fatherCountryOfBirthId: 1, // Default to 1 if not available
-        fatherCountryOfResidentId: 1, // Default to 1 if not available
-        fatherNationalityId: 1, // Default to 1 if not available
-        fatherRegionOfBirthId: 1, // Default to 1 if not available
+        fatherCountryOfBirthId: 0, // Default to 1 if not available
+        fatherCountryOfResidentId: 0, // Default to 1 if not available
+        fatherNationalityId: 0, // Default to 1 if not available
+        fatherRegionOfBirthId: 0, // Default to 1 if not available
         motherFullName: data.motherFullName,
         motherDateOfBirth: data.motherDateOfBirth,
-        motherRegionOfBirthId: 1, // Default to 1 if not available
-        motherCountryOfBirthId: 1, // Default to 1 if not available
-        motherCountryOfResidentId: 1, // Default to 1 if not available
-        motherNationalityId: 1, // Default to 1 if not available
+        motherRegionOfBirthId: 0, // Default to 1 if not available
+        motherCountryOfBirthId: 0, // Default to 1 if not available
+        motherCountryOfResidentId: 0, // Default to 1 if not available
+        motherNationalityId: 0, // Default to 1 if not available
       };
 
       const response = await fetch(`${apiBaseUrl}/applications/${applicationId}/parents-info`, {

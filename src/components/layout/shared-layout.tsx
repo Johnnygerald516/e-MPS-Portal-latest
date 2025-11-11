@@ -3,27 +3,11 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Sun, Moon, Globe, LogIn, Home } from "lucide-react";
-import { NavLink } from "../ui/nav-link";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/language-context";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "../ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../ui/tabs";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +24,6 @@ export function SharedLayout({ children }: SharedLayoutProps) {
   
   // Scroll animations
   const { scrollY } = useScroll();
-  const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.95]);
-  const headerScale = useTransform(scrollY, [0, 100], [1, 0.98]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -90,9 +72,20 @@ export function SharedLayout({ children }: SharedLayoutProps) {
           <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center py-1 px-4">
             {/* Left nav links - responsive layout */}
             <div className="flex items-center space-x-2 sm:space-x-4 mb-1 sm:mb-0 overflow-x-auto w-full sm:w-auto">
-              <Link href="/" className="text-xs whitespace-nowrap text-white hover:text-[#f0e7c3] transition-colors duration-200 flex items-center gap-1">
+              <Link 
+                href="/" 
+                className="text-xs whitespace-nowrap text-white hover:text-[#f0e7c3] transition-colors duration-200 flex items-center gap-1"
+                onClick={() => {
+                  // Clear all session storage when clicking the home link
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.clear();
+                    localStorage.clear();
+                  }
+                }}
+              >
                 <Home className="h-3 w-3 mr-4" />
-                e-Migrant Portal
+                {/* e-Migrant Portal */}
+                Nyumbani
               </Link>
             </div>
             
@@ -118,7 +111,7 @@ export function SharedLayout({ children }: SharedLayoutProps) {
               </DropdownMenu>
             
               {/* Language switcher */}
-              <DropdownMenu>
+              {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-5 p-0 flex items-center gap-0.5 text-xs text-white hover:text-[#f0e7c3] transition-colors duration-200">
                     <Globe className="h-3 w-3" />
@@ -133,7 +126,7 @@ export function SharedLayout({ children }: SharedLayoutProps) {
                     <span>Swahili</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
+              </DropdownMenu> */}
             
               {/* Home link */}
               {/* <Link href="/" className="flex items-center gap-1 text-xs text-white hover:text-[#f0e7c3] transition-colors duration-200">
