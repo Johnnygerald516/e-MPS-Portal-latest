@@ -49,9 +49,13 @@ export function SharedLayout({ children }: SharedLayoutProps) {
             
             {/* Center title - wizara-header - responsive text sizes */}
             <div className="wizara-header text-center flex-grow max-w-2xl">
-              <h1 className="text-base md:text-xl font-bold text-white leading-tight tracking-wide">The United Republic of Tanzania</h1>
+              {/* <h1 className="text-base md:text-xl font-bold text-white leading-tight tracking-wide">The United Republic of Tanzania</h1>
               <p className="text-sm md:text-base text-[#f0e7c3] leading-tight font-medium mt-0.5">Ministry of Home Affairs</p>
-              <p className="text-sm text-gray-100 leading-tight">Immigration Services Department</p>
+              <p className="text-sm text-gray-100 leading-tight">Immigration Services Department</p> */}
+
+               <h1 className="text-base md:text-xl font-bold text-white leading-tight tracking-wide">Jamhuri ya Muungano wa Tanzania</h1>
+              <p className="text-sm md:text-base text-[#f0e7c3] leading-tight font-medium mt-0.5">Wizara ya Mambo ya Ndani ya Nchi</p>
+              <p className="text-sm text-gray-100 leading-tight">Idara ya Uhamiaji</p>
             </div>
             
             {/* Right logo - with consistent spacing */}
