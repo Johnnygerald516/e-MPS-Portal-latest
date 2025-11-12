@@ -378,7 +378,7 @@ function ApplicationCompleteContent(): React.ReactNode {
   };
 
   const handleGoHome = () => {
-    // localStorage.clear();
+    localStorage.clear();
     sessionStorage.clear();
     window.location.href = "/";
   };

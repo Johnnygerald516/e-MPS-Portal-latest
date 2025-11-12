@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, Trash2, CheckCircle, XCircle, FileText, Clock, AlertCircle, Image as ImageIcon, Eye } from "lucide-react";
+import { Loader2, Upload, Trash2, CheckCircle, XCircle, FileText, Clock, AlertCircle, Image as ImageIcon, Eye, FileImage } from "lucide-react";
 import { documentsEndpoints } from '@/lib/api';
 import { useCustomToast } from "@/hooks/use-custom-toast";
 import {
@@ -1235,14 +1235,15 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
         if (!open) setPdfPreviewOpen(false);
       }}>
         <DialogContent className="w-[90vw] h-[90vh] max-w-[95vw]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedAttachment ? `Preview: ${selectedAttachment.AttachmentName}` : 'Document Preview'}
+          <DialogHeader className='border-b border-gray-200 p-1'>
+            <DialogTitle className='w-full flex justify-center text-center text-muted-foreground'>
+              <FileImage className="h-4 w-4 mr-2" /> {selectedAttachment ? `Preview: ${selectedAttachment.AttachmentName}` : 'Document Preview'}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">Tafadhali kagua nyaraka zako kwa makini kabla ya kuwasilisha.</p>
+            <p className="text-sm text-red-400 mt-1 w-full flex justify-center text-center">
+              <AlertCircle className="h-4 w-4 mr-2" /> Tafadhali kagua nyaraka zako kwa makini kabla ya kuwasilisha.</p>
           </DialogHeader>
           {pdfPreviewUrl && (
-            <div className="w-full h-full overflow-hidden">
+            <div className="w-full h-full overflow-hidden justify-center items-center">
               <iframe
                 src={pdfPreviewUrl}
                 className="w-full h-[calc(90vh-120px)]"
@@ -1250,42 +1251,45 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
               />
             </div>
           )}
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setPdfPreviewOpen(false)} 
-              className="w-full sm:w-auto"
-            >
-              Funga 
-            </Button>
-            
-            {/* Show Submit button only for uploaded files that haven't been submitted yet */}
-            {selectedAttachment && uploadedFiles[selectedAttachment.AttachmentTypeID] && (
-              <Button 
-                onClick={() => {
-                  if (selectedAttachment) {
-                    handleSubmitFile(selectedAttachment.AttachmentTypeID);
-                    setPdfPreviewOpen(false);
-                  }
-                }} 
-                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
-                disabled={uploading !== null}
-              >
-                {uploading !== null ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Inatuma...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Thibitisha na Wasilisha Nyaraka
-                  </>
-                )}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
+     <DialogFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-4 border-t border-gray-200">
+  <div className="w-full flex justify-between items-center gap-2">
+    {/* Left-aligned Funga button */}
+    <Button 
+      variant="outline" 
+      onClick={() => setPdfPreviewOpen(false)} 
+      className="w-auto"
+    >
+      Funga
+    </Button>
+
+    {/* Right-aligned Thibitisha na Wasilisha Nyaraka button */}
+    {selectedAttachment && uploadedFiles[selectedAttachment.AttachmentTypeID] && (
+      <Button 
+        onClick={() => {
+          if (selectedAttachment) {
+            handleSubmitFile(selectedAttachment.AttachmentTypeID);
+            setPdfPreviewOpen(false);
+          }
+        }} 
+        className="bg-green-600 hover:bg-green-700 text-white"
+        disabled={uploading !== null}
+      >
+        {uploading !== null ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            Inatuma...
+          </>
+        ) : (
+          <>
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Wasilisha Nyaraka
+          </>
+        )}
+      </Button>
+    )}
+  </div>
+</DialogFooter>
+  </DialogContent>
       </Dialog>
     </div>
   );
