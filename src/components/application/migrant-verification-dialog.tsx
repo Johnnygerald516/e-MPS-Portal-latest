@@ -218,7 +218,7 @@ export default function MigrantVerificationDialog({
       modal={true}
     >
       <DialogContent 
-        className="sm:max-w-md"
+        className="sm:max-w-md rounded"
         onEscapeKeyDown={(e) => {
           // Prevent closing when pressing escape key
           e.preventDefault();

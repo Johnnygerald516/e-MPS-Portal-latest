@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { getApiUrlForRoute } from '@/lib/config/api-config';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,19 +17,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get the API URL from environment variables or use the production URL
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
-    if (!apiUrl) {
-      return NextResponse.json({
-        ackCode: 0,
-        ackMessage: "Server configuration error",
-        jsonResult: null
-      }, { status: 500 });
-    }
+    // Get the API URL from environment variables
+    const apiUrl = getApiUrlForRoute();
+    console.log('[API Route status] Using API URL:', apiUrl);
 
     // Forward the request to the real backend API
-    // The apiUrl already contains the full path: https://migrantonline.immigration.go.tz/api
-    const response = await axios.post(`${apiUrl}/applications/status`, {
+    const externalUrl = `${apiUrl}/applications/status`;
+    console.log('[API Route] Forwarding request to external API:', externalUrl);
+    console.log('[API Route] Request payload:', { applicationId, phoneNumber });
+    
+    const response = await axios.post(externalUrl, {
       applicationId,
       phoneNumber
     });

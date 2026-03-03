@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { PassData } from '@/components/application/PassPDF';
 import { base64ToDataUrl, cleanBase64String, isValidBase64 } from '@/lib/utils/base64';
+import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 
 export interface ApplicationPassResponse {
   ackCode: number;
@@ -76,7 +77,7 @@ export const getApplicationPass = async (applicationId: string): Promise<Applica
       };
     }
 
-    // Make API request
+    // Use local Next.js API route for proper HTTPS handling and redirect management
     const response = await axios.get(`/api/applications/${applicationId}/pass`);
     return response.data;
   } catch (error) {

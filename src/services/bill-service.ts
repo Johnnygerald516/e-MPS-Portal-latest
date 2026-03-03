@@ -1,4 +1,4 @@
-import { apiConfig } from '@/lib/config/api-config';
+import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 import { BillDetails } from '@/services/application-bill';
 import { generateBillPDF, BillPDFData } from '@/components/application/BillPDF';
 
@@ -27,8 +27,8 @@ export const getBillData = async (controlNumber: string | number): Promise<BillD
     // Convert controlNumber to string to ensure it has string methods
     const controlNumberStr = String(controlNumber);
     
-    // Make API call to fetch bill data
-    const response = await fetch(`${apiConfig.baseUrl}/applications/${controlNumberStr}/bill`);
+    // Use local Next.js API route for proper HTTPS handling and redirect management
+    const response = await fetch(`/api/applications/${controlNumberStr}/bill`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch bill data: ${response.status} ${response.statusText}`);

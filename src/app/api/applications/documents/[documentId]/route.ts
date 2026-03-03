@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callExternalApi, getExternalApiUrl } from "../../../../../lib/utils/api-route-helpers";
+import { getApiUrlForRoute, isLocalUrl, ensureHttps } from '@/lib/config/api-config';
 
 export async function DELETE(
   request: NextRequest,
@@ -8,32 +9,31 @@ export async function DELETE(
   try {
     const { documentId } = params;
     
-    // Check if API URL is configured
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-      return NextResponse.json(
-        { 
-          ackCode: 500, 
-          ackMessage: 'API configuration error: NEXT_PUBLIC_API_URL not set',
-          jsonResult: null
-        },
-        { status: 500 }
-      );
-    }
-
+    // Get API URL with proper protocol handling
+    const apiUrl = getApiUrlForRoute();
     console.log('Document delete request for document:', documentId);
 
     // Forward the request to the external API
     const externalApiUrl = `${apiUrl}/applications/documents/${documentId}`;
     console.log('Forwarding to external API:', externalApiUrl);
 
-    const response = await fetch(externalApiUrl, {
+    let response = await fetch(externalApiUrl, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      redirect: 'manual'
     });
+
+    // Handle redirects manually
+    if (response.status >= 300 && response.status < 400) {
+      const redirectUrl = response.headers.get('location');
+      if (redirectUrl) {
+        const secureRedirectUrl = isLocalUrl(redirectUrl) ? redirectUrl : ensureHttps(redirectUrl);
+        response = await fetch(secureRedirectUrl, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     console.log('External API response status:', response.status);
 

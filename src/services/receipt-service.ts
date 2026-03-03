@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { apiConfig } from '@/lib/config/api-config';
+import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 import { generateReceiptPDF, ReceiptPDFData } from '@/components/application/ReceiptPDF';
 
 // Backend API response structure - matches your Postman response
@@ -37,8 +37,8 @@ export const getApplicationReceipt = async (controlNumber: string): Promise<Rece
       };
     }
 
-    // Make API request using axios (same as bill service)
-    const response = await axios.get(`${apiConfig.baseUrl}/applications/${controlNumber}/receipt`);
+    // Use local Next.js API route for proper HTTPS handling and redirect management
+    const response = await axios.get(`/api/applications/${controlNumber}/receipt`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -1,5 +1,6 @@
 // Dependant information API endpoints
 import { toast } from "@/components/ui/use-toast";
+import { apiConfig } from '@/lib/config/api-config';
 
 export interface DependantInfoPayload {
   applicationId: string;
@@ -39,7 +40,7 @@ export const dependantInfoEndpoints = {
     try {
       console.log('Saving dependant info with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${payload.applicationId}/dependants`, {
         method: 'POST',
         headers: {
@@ -78,7 +79,7 @@ export const dependantInfoEndpoints = {
     try {
       console.log('Getting dependant info for application:', applicationId);
       
-      // Use the Next.js API route instead of direct API call
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${applicationId}/dependants`, {
         method: 'GET',
         headers: {

@@ -87,8 +87,10 @@ export interface ContinueApplicationResponse {
   ackCode: number;
   ackMessage: string;
   jsonResult: {
-    applicationId: string;
-    currentStep: number;
+    applicationId?: string;
+    applicationID?: string;
+    currentStep?: number;
+    appStageID?: number;
     // Additional application data may be included
   };
 }
@@ -214,8 +216,20 @@ export const applicationsEndpoints = {
   // Continue application
   continueApplication: async (data: ContinueApplicationRequest) => {
     try {
-      const response = await api.post('/applications/continue', data);
-      return response.data as ContinueApplicationResponse;
+      // Use local Next.js API route for proper HTTPS handling
+      const response = await fetch('/api/applications/continue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      return await response.json() as ContinueApplicationResponse;
     } catch (error) {
       throw error;
     }

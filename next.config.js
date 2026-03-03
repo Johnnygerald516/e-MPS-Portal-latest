@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 // Load environment variables
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 console.log('Loading next.config.js with NEXT_PUBLIC_API_URL:', apiUrl);
 
 const nextConfig = {
@@ -35,7 +35,24 @@ const nextConfig = {
   // Add API proxy configuration
   async rewrites() {
     // Get API URL from environment variable or use fallback
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    // Check if this is a local development URL
+    const isLocalUrl = apiUrl && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'));
+    
+    // Only force HTTPS for non-local URLs
+    if (!isLocalUrl) {
+      if (apiUrl && apiUrl.startsWith('http://')) {
+        console.warn('[next.config.js] Converting http:// to https:// in API URL');
+        apiUrl = apiUrl.replace('http://', 'https://');
+      } else if (apiUrl && !apiUrl.startsWith('https://') && !apiUrl.startsWith('http://')) {
+        console.warn('[next.config.js] Adding https:// protocol to API URL');
+        apiUrl = 'https://' + apiUrl;
+      }
+    } else {
+      console.log('[next.config.js] Local development URL detected, keeping as-is:', apiUrl);
+    }
+    
     console.log('Using API URL in rewrites:', apiUrl);
     
     // If no API URL is provided, don't set up rewrites

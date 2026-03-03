@@ -560,6 +560,19 @@ export default function ResidenceInfoPage() {
         dateOfEntry = currentDate.toISOString().split('T')[0];
       }
       
+      // Validate that date of entry is not in the future
+      const entryDate = new Date(dateOfEntry);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+      
+      if (entryDate > today) {
+        showError({
+          description: "Tarehe ya kuingia Tanzania haiwezi kuwa tarehe ya baadaye. Tafadhali chagua tarehe sahihi."
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Store form values in a data object with proper type conversions
       const data = {
         ...formValues,
@@ -588,6 +601,13 @@ export default function ResidenceInfoPage() {
         nationalityId: Number(data.residenceNationalityId) || 0,
         dateOfEntry: dateOfEntry
       };
+      
+      // Debug: Log the exact payload being sent
+      console.log('=== RESIDENCE INFO PAYLOAD ===');
+      console.log('dateOfEntry value:', dateOfEntry);
+      console.log('dateOfEntry type:', typeof dateOfEntry);
+      console.log('Full payload:', JSON.stringify(residencePayload, null, 2));
+      console.log('==============================');
       
       // Call the API to save residence info
       const response = await residenceInfoEndpoints.saveResidenceInfo(residencePayload);

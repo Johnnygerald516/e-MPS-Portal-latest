@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { apiConfig, isValidUrl } from '../config/api-config';
 
-// Get API URL from config with environment variables
+// Get API URL from config (already handles local vs production URLs correctly)
 let apiUrl = apiConfig.baseUrl;
 
 // Log the API URL for debugging
@@ -10,28 +10,23 @@ console.log('[axios] Direct env var check:', process.env.NEXT_PUBLIC_API_URL);
 
 // Validate that we have an API URL
 if (!apiUrl) {
-  // Use the production API URL as fallback - read from .env.NEXT_PUBLIC_API_URL_FALLBACK
-  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || '';
-  console.log('[axios] Using fallback URL:', apiUrl);
+  // Use the environment variable directly as fallback
+  apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  console.log('[axios] Using fallback URL from env:', apiUrl);
   
   // In browser, we can show an error message
   if (typeof window !== 'undefined') {
-    console.warn('[axios] API URL not found in environment variables, using fallback URL');
+    console.warn('[axios] API URL not found in config, using env variable directly');
   }
 }
 
 // Validate URL format
 if (!isValidUrl(apiUrl)) {
-  const oldUrl = apiUrl;
-  apiUrl = process.env.NEXT_PUBLIC_API_URL_FALLBACK || 'https://migrantonline.immigration.go.tz/api';
-  console.error(`[axios] Invalid API URL format: "${oldUrl}", using fallback URL: "${apiUrl}"`);
+  console.error(`[axios] Invalid API URL format: "${apiUrl}"`);
 }
 
-// Final check - if we still don't have a valid URL, use the production API URL
-if (!apiUrl || !isValidUrl(apiUrl)) {
-  apiUrl = 'https://migrantonline.immigration.go.tz/api';
-  console.warn(`[axios] No valid API URL found, using production API URL: ${apiUrl}`);
-}
+// Log final URL being used
+console.log('[axios] Final API URL to be used:', apiUrl);
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -42,6 +37,9 @@ const api = axios.create({
   timeout: 30000, // 30 seconds timeout
   withCredentials: true, // Important for CORS with credentials
 });
+
+// Log the final baseURL being used
+console.log('[axios] Final axios instance baseURL:', api.defaults.baseURL);
 
 const publicEndpoints = [
   '/applications',
@@ -71,6 +69,10 @@ api.interceptors.request.use(
         config.headers['Authorization'] = `Bearer ${token}`;
       } 
     }
+    
+    // Log the full URL being called
+    const fullUrl = config.baseURL ? `${config.baseURL}${config.url}` : config.url;
+    console.log('[axios] Making request to:', fullUrl);
     
     return config;
   },

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Search, Loader2, CheckCircle, ArrowRight } from "lucide-react";
+import { AlertTriangle, Search, Loader2,User, CheckCircle, ArrowRight } from "lucide-react";
 import { useApplication } from "@/contexts/application-context";
 import {
   Dialog,
@@ -201,16 +201,20 @@ export default function PassportRenewalDialog({
     getQuestionSet()[currentQuestionIndex] || null : null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
+    <Dialog open={isOpen} 
+    onOpenChange={(open) => {
       if (!open) {
         onClose();
         // Reset form when dialog is closed
         handleReset();
       }
-    }}>
-      <DialogContent className="sm:max-w-md">
+    }}
+    >
+      <DialogContent className="sm:max-w-md rounded">
         <DialogHeader>
-          <DialogTitle className="text-center">Uthibitisho wa Kibali</DialogTitle>
+          <DialogTitle className="flex items-center justify-center gap-2 text-xl font-semibold text-blue-800 border-b p-2">
+            <User className="w-5 h-5 mr-2" />  Uthibitisho wa Kibali
+            </DialogTitle>
           <DialogDescription className="text-center">
             {renewalReason === "expired" && "Tafadhali thibitisha Kibali chako kilichokwisha muda"}
             {renewalReason === "lost" && "Tafadhali thibitisha Kibali chako kilichopotea"}
@@ -222,12 +226,12 @@ export default function PassportRenewalDialog({
           {!isFound ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="passNumber">Namba ya Kibali</Label>
+                <Label htmlFor="passNumber">Namba ya Kibali cha awali</Label>
                 <Input
                   id="passNumber"
                   value={passNumber}
                   onChange={(e) => setPassNumber(e.target.value)}
-                  placeholder="Ingiza namba ya Kibali chako cha awali"
+                  placeholder="MPS0000000"
                   className="rounded"
                 />
               </div>
@@ -312,7 +316,7 @@ export default function PassportRenewalDialog({
           )}
         </div>
 
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="sm:justify-between border-t pt-4">
           {!isFound ? (
             <>
               <Button 
@@ -326,7 +330,7 @@ export default function PassportRenewalDialog({
               <Button 
                 onClick={handleSearch} 
                 disabled={isSearching}
-                className="bg-blue-600 hover:bg-blue-700 rounded"
+                className="bg-blue-800 hover:bg-blue-900 rounded"
               >
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -349,7 +353,7 @@ export default function PassportRenewalDialog({
               <Button 
                 onClick={handleVerifyAnswer} 
                 disabled={isVerifying}
-                className="bg-blue-600 hover:bg-blue-700 rounded"
+                className="bg-blue-800 hover:bg-blue-900 rounded"
               >
                 {isVerifying ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

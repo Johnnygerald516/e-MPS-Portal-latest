@@ -1,4 +1,5 @@
 // Document/attachment related API endpoints
+import { apiConfig } from '@/lib/config/api-config';
 
 interface AttachmentType {
   AttachmentTypeID: number;
@@ -21,7 +22,8 @@ export const documentsEndpoints = {
         argument1: 1,
         argument2: 0
       };
-      const response = await fetch('/api/applications/lookup', {
+      // Use local Next.js API route for proper HTTPS handling
+      const response = await fetch(`/api/applications/lookup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,8 +116,8 @@ export const documentsEndpoints = {
       formData.append('applicationId', applicationId);
       formData.append('attachmentTypeId', attachmentTypeId.toString());
       
-      // Use the Next.js API route instead of direct API call
-      const response = await fetch('/api/applications/documents/upload', {
+      // Use local Next.js API route for proper HTTPS handling
+      const response = await fetch(`/api/applications/documents/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -134,6 +136,7 @@ export const documentsEndpoints = {
   // Delete a document
   deleteDocument: async (documentId: string): Promise<any> => {
     try {
+       // Use local Next.js API route for proper HTTPS handling
        const response = await fetch(`/api/applications/documents/${documentId}`, {
         method: 'DELETE',
         headers: {

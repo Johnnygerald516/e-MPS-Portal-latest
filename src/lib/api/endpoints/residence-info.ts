@@ -1,5 +1,6 @@
 // Residence information API endpoints
 import { toast } from "@/components/ui/use-toast";
+import { apiConfig } from '@/lib/config/api-config';
 
 interface ResidenceInfoPayload {
   applicationId: string;
@@ -30,7 +31,7 @@ export const residenceInfoEndpoints = {
     try {
       console.log('Saving residence info with payload:', payload);
       
-      // Use the Next.js API route instead of direct API call
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${payload.applicationId}/residence-info`, {
         method: 'POST',
         headers: {
@@ -69,7 +70,7 @@ export const residenceInfoEndpoints = {
     try {
       console.log('Getting residence info for application:', applicationId);
       
-      // Use the Next.js API route instead of direct API call
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${applicationId}/residence-info`, {
         method: 'GET',
         headers: {

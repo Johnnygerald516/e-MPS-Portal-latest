@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 
 export interface ReceiptDetails {
   payerName: string;
@@ -42,7 +43,7 @@ export const getReceiptByControlNumber = async (controlNumber: string): Promise<
       };
     }
 
-   // Make API request
+   // Use local Next.js API route for proper HTTPS handling and redirect management
     const response = await axios.get(`/api/applications/${controlNumber}/receipt`);
   
     

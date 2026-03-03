@@ -1,5 +1,6 @@
 // Personal information API endpoints
 import { toast } from "@/components/ui/use-toast";
+import { apiConfig } from '@/lib/config/api-config';
 
 interface PersonalInfoPayload {
   applicationId: string;
@@ -32,7 +33,7 @@ export const personalInfoEndpoints = {
   // Save personal information
   savePersonalInfo: async (payload: PersonalInfoPayload): Promise<PersonalInfoResponse> => {
     try {
-      // Use the Next.js API route with POST method for updates
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${payload.applicationId}/personal-info`, {
         method: 'POST',
         headers: {
@@ -59,7 +60,7 @@ export const personalInfoEndpoints = {
   // Get personal information
   getPersonalInfo: async (applicationId: string): Promise<any> => {
     try {
-      // Use the Next.js API route instead of direct API call
+      // Use local Next.js API route for proper HTTPS handling
       const response = await fetch(`/api/applications/${applicationId}/personal-info`, {
         method: 'GET',
         headers: {

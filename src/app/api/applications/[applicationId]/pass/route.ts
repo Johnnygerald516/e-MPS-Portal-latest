@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { getApiUrlForRoute } from '@/lib/config/api-config';
 
 export async function GET(
   request: NextRequest,
@@ -17,16 +18,8 @@ export async function GET(
       }, { status: 400 });
     }
 
-    // Get the API URL from environment variables
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-      console.error('API URL not configured in environment variables');
-      return NextResponse.json({
-        ackCode: 0,
-        ackMessage: "Server configuration error",
-        jsonResult: null
-      }, { status: 500 });
-    }
+    // Get the API URL with proper protocol handling
+    const apiUrl = getApiUrlForRoute();
 
     // Log the request details for debugging
     console.log(`Fetching pass data for application ${applicationId}`);

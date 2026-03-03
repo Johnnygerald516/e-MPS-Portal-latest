@@ -11,27 +11,28 @@ import { Loader2,Calendar, Globe, Home, Save } from 'lucide-react';
 import { useApplication } from '@/contexts/application-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingButton } from '@/components/ui/loading-button';
+import { verificationEndpoints } from '@/lib/api/endpoints/verification';
 
-// Form validation schema
+// Form validation schema - all fields optional
 const residenceInfoSchema = z.object({
   // Current residence location
-  countryOfResidence: z.string().min(1, "Nchi ya makazi inahitajika"),
-  region: z.string().min(1, "Mkoa unahitajika"),
-  district: z.string().min(1, "Wilaya inahitajika"),
-  ward: z.string().min(1, "Kata inahitajika"),
-  street: z.string().min(1, "Mtaa unahitajika"),
+  countryOfResidence: z.string().optional(),
+  region: z.string().optional(),
+  district: z.string().optional(),
+  ward: z.string().optional(),
+  street: z.string().optional(),
   
   // Contact and identification
-  phoneNumber: z.string().min(1, "Namba ya simu inahitajika"),
+  phoneNumber: z.string().optional(),
   houseNumber: z.string().optional(),
   plotNumber: z.string().optional(),
   
   // Origin country and nationality
-  residenceNationality: z.string().min(1, "Uraia unahitajika"),
-  countryOfOrigin: z.string().min(1, "Nchi ya asili inahitajika"),
+  residenceNationality: z.string().optional(),
+  countryOfOrigin: z.string().optional(),
   
   // Date of entry
-  dateOfEntry: z.string().min(1, "Tarehe ya kuingia nchini inahitajika"),
+  dateOfEntry: z.string().optional(),
 });
 
 type ResidenceInfoFormValues = z.infer<typeof residenceInfoSchema>;
@@ -57,7 +58,21 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
   // Options for dropdowns
   const [countries, setCountries] = useState<any[]>([]);
   const [nationalities, setNationalities] = useState<any[]>([]);
+  const [regions, setRegions] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
   const [wards, setWards] = useState<any[]>([]);
+  
+  // Loading states for cascading dropdowns
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
+  const [isLoadingNationalities, setIsLoadingNationalities] = useState(false);
+  const [isLoadingRegions, setIsLoadingRegions] = useState(false);
+  const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
+  const [isLoadingWards, setIsLoadingWards] = useState(false);
+  
+  // Store selected IDs for cascading
+  const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
+  const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
   
   const form = useForm<ResidenceInfoFormValues>({
     resolver: zodResolver(residenceInfoSchema),
@@ -79,52 +94,39 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
   // Fetch residence info data when dialog opens
   useEffect(() => {
     if (open && applicationId) {
-      fetchResidenceInfo();
-      fetchReferenceData();
+      loadDialogData();
     }
   }, [open, applicationId]);
 
-  const fetchReferenceData = async () => {
-    try {
-      // Fetch countries
-      const countriesResponse = await fetch(`${apiBaseUrl}/countries`);
-      if (countriesResponse.ok) {
-        const countriesData = await countriesResponse.json();
-        setCountries(countriesData.jsonResult || []);
-      }
-
-      // Fetch nationalities
-      const nationalitiesResponse = await fetch(`${apiBaseUrl}/nationalities`);
-      if (nationalitiesResponse.ok) {
-        const nationalitiesData = await nationalitiesResponse.json();
-        setNationalities(nationalitiesData.jsonResult || []);
-      }
-
-      // Fetch wards
-      const wardsResponse = await fetch(`${apiBaseUrl}/wards`);
-      if (wardsResponse.ok) {
-        const wardsData = await wardsResponse.json();
-        setWards(wardsData.jsonResult || []);
-      }
-    } catch (error) {
-    toast({
-        title: 'Hitilafu',
-        description: 'Imeshindikana kupata data za rejea. Tafadhali jaribu tena.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const fetchResidenceInfo = async () => {
-    if (!applicationId) return;
-
+  // Load all data in proper sequence
+  const loadDialogData = async () => {
     setIsLoadingData(true);
     try {
+      // First, fetch countries and nationalities
+      setIsLoadingCountries(true);
+      const countriesResponse = await verificationEndpoints.fetchCountries();
+      let countriesList: any[] = [];
+      if (countriesResponse.ackCode === 1 && countriesResponse.jsonResult) {
+        countriesList = countriesResponse.jsonResult;
+        setCountries(countriesList);
+      }
+      setIsLoadingCountries(false);
+
+      setIsLoadingNationalities(true);
+      const nationalitiesResponse = await verificationEndpoints.fetchNationalities();
+      if (nationalitiesResponse.ackCode === 1 && nationalitiesResponse.jsonResult) {
+        setNationalities(nationalitiesResponse.jsonResult);
+      }
+      setIsLoadingNationalities(false);
+
+      // Now fetch residence info
       const response = await fetch(`${apiBaseUrl}/applications/${applicationId}/residence-info`);
       if (response.ok) {
         const data = await response.json();
         if (data.ackCode === 1 && data.jsonResult) {
           const residenceInfo = data.jsonResult;
+          
+          console.log('Residence Info from API:', residenceInfo);
           
           // Format date if it exists
           let dateOfEntry = '';
@@ -141,10 +143,14 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
             }
           }
 
+          // API response only includes ward name, not country/region/district
+          // Set only the values that come from API, leave others empty
+          // Dropdowns will be populated when user selects values
+          
           form.reset({
-            countryOfResidence: residenceInfo.countryOfResidence || '',
-            region: residenceInfo.region || '',
-            district: residenceInfo.district || '',
+            countryOfResidence: '', // Not provided by API - user will select
+            region: '', // Not provided by API - user will select
+            district: '', // Not provided by API - user will select
             ward: residenceInfo.wardResidence || '',
             street: residenceInfo.streetName || '',
             phoneNumber: residenceInfo.phoneNo || '',
@@ -155,21 +161,105 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
             dateOfEntry: dateOfEntry,
           });
         }
-      } else {
-        toast({
-          title: 'Hitilafu',
-          description: 'Imeshindikana kupata taarifa za makazi. Tafadhali jaribu tena.',
-          variant: 'destructive',
-        });
       }
     } catch (error) {
+      console.error('Error loading dialog data:', error);
       toast({
         title: 'Hitilafu',
-        description: 'Imeshindikana kupata taarifa za makazi. Tafadhali jaribu tena.',
+        description: 'Imeshindikana kupata data. Tafadhali jaribu tena.',
         variant: 'destructive',
       });
     } finally {
       setIsLoadingData(false);
+    }
+  };
+
+  const fetchReferenceData = async () => {
+    try {
+      // Fetch countries using verification endpoints
+      setIsLoadingCountries(true);
+      const countriesResponse = await verificationEndpoints.fetchCountries();
+      if (countriesResponse.ackCode === 1 && countriesResponse.jsonResult) {
+        setCountries(countriesResponse.jsonResult);
+      }
+      setIsLoadingCountries(false);
+
+      // Fetch nationalities using verification endpoints
+      setIsLoadingNationalities(true);
+      const nationalitiesResponse = await verificationEndpoints.fetchNationalities();
+      if (nationalitiesResponse.ackCode === 1 && nationalitiesResponse.jsonResult) {
+        setNationalities(nationalitiesResponse.jsonResult);
+      }
+      setIsLoadingNationalities(false);
+    } catch (error) {
+      console.error('Error fetching reference data:', error);
+      setIsLoadingCountries(false);
+      setIsLoadingNationalities(false);
+      toast({
+        title: 'Hitilafu',
+        description: 'Imeshindikana kupata data za rejea. Tafadhali jaribu tena.',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  // Fetch regions for selected country
+  const fetchRegionsForCountry = async (countryId: number) => {
+    if (!countryId) return;
+    
+    setIsLoadingRegions(true);
+    try {
+      const response = await verificationEndpoints.fetchRegions(countryId);
+      if (response.ackCode === 1 && response.jsonResult) {
+        setRegions(response.jsonResult);
+      } else {
+        setRegions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+      setRegions([]);
+    } finally {
+      setIsLoadingRegions(false);
+    }
+  };
+  
+  // Fetch districts for selected region
+  const fetchDistrictsForRegion = async (regionId: number) => {
+    if (!regionId) return;
+    
+    setIsLoadingDistricts(true);
+    try {
+      const response = await verificationEndpoints.fetchDistricts(regionId);
+      if (response.ackCode === 1 && response.jsonResult) {
+        setDistricts(response.jsonResult);
+      } else {
+        setDistricts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      setDistricts([]);
+    } finally {
+      setIsLoadingDistricts(false);
+    }
+  };
+  
+  // Fetch wards for selected district
+  const fetchWardsForDistrict = async (districtId: number) => {
+    if (!districtId) return;
+    
+    setIsLoadingWards(true);
+    try {
+      const response = await verificationEndpoints.fetchWards(districtId);
+      if (response.ackCode === 1 && response.jsonResult) {
+        setWards(response.jsonResult);
+      } else {
+        setWards([]);
+      }
+    } catch (error) {
+      console.error('Error fetching wards:', error);
+      setWards([]);
+    } finally {
+      setIsLoadingWards(false);
     }
   };
 
@@ -178,17 +268,24 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
 
     setIsSubmitting(true);
     try {
-      // Prepare the payload with the exact field names expected by the API
+      // Map string values to IDs
+      const wardMatch = wards.find(w => w.WardName === data.ward);
+      const countryOfOriginMatch = countries.find(c => c.CountryName === data.countryOfOrigin);
+      const nationalityMatch = nationalities.find(n => {
+        const name = n.NationalityName || n.Nationality || n.Name || '';
+        return name === data.residenceNationality;
+      });
+
+      // Prepare the payload with IDs
       const residencePayload = {
         applicationId: applicationId,
-        // Use the exact field names expected by the API
-        wardResidenceId: data.ward, 
+        wardResidenceId: wardMatch?.EntryId || wardMatch?.EntryID || 1,
         streetName: data.street,
         phoneNo: data.phoneNumber,
         houseNo: data.houseNumber || '',
         plotNo: data.plotNumber || '',
-        countryOfOriginId: data.countryOfOrigin || '', 
-        nationalityId: data.residenceNationality || '', 
+        countryOfOriginId: countryOfOriginMatch?.EntryId || 1,
+        nationalityId: nationalityMatch?.EntryId || nationalityMatch?.EntryID || 1,
         dateOfEntry: data.dateOfEntry || ''
       };
 
@@ -252,7 +349,7 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-slate-600 border-b pb-2 border-slate-200">Hariri Taarifa za Makazi</DialogTitle>
         </DialogHeader>
@@ -266,8 +363,8 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Anuwani ya Makazi Section */}
-              <div className="mb-8">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mb-6 sm:mb-8">
+               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {/* Row 1: Nchi ya Makazi, Mkoa, Wilaya */}
                   <FormField
                     control={form.control}
@@ -277,22 +374,46 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <FormLabel className="text-sm font-medium text-neutral-500">Nchi ya Makazi <span className="text-red-500">*</span></FormLabel>
                         <Select 
                           value={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Find the selected country to get its ID
+                            const selectedCountry = countries.find(c => c.CountryName === value);
+                            if (selectedCountry) {
+                              setSelectedCountryId(selectedCountry.EntryId);
+                              // Clear dependent fields
+                              form.setValue('region', '');
+                              form.setValue('district', '');
+                              form.setValue('ward', '');
+                              setRegions([]);
+                              setDistricts([]);
+                              setWards([]);
+                              // Fetch regions for this country
+                              fetchRegionsForCountry(selectedCountry.EntryId);
+                            }
+                          }}
+                          disabled={isLoadingCountries}
                         >
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
-                                <SelectValue placeholder="Nchi ya Makazi" />
+                                <SelectValue placeholder="Chagua nchi ya makazi" />
                               </div>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
-                            {countries.map((country) => (
-                              <SelectItem key={country.EntryId} value={country.CountryName}>
-                                {country.CountryName}
-                              </SelectItem>
-                            ))}
+                            {isLoadingCountries ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : countries.length > 0 ? (
+                              countries
+                                .filter((country) => country.CountryName && country.CountryName.trim() !== '')
+                                .map((country) => (
+                                  <SelectItem key={country.EntryId} value={country.CountryName}>
+                                    {country.CountryName}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Hakuna nchi zilizopatikana</div>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -306,15 +427,49 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-neutral-500">Mkoa <span className="text-red-500">*</span></FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
-                            <Input 
-                              className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
-                              {...field} 
-                            />
-                          </div>
-                        </FormControl>
+                        <Select 
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Find the selected region to get its ID
+                            const selectedRegion = regions.find(r => r.RegionName === value);
+                            if (selectedRegion) {
+                              const regionId = selectedRegion.EntryID || selectedRegion.EntryId || selectedRegion.ID || selectedRegion.Id || selectedRegion.id || 0;
+                              setSelectedRegionId(regionId);
+                              // Clear dependent fields
+                              form.setValue('district', '');
+                              form.setValue('ward', '');
+                              setDistricts([]);
+                              setWards([]);
+                              // Fetch districts for this region
+                              fetchDistrictsForRegion(regionId);
+                            }
+                          }}
+                          disabled={isLoadingRegions || !selectedCountryId || regions.length === 0}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
+                              <div className="flex items-center">
+                                <SelectValue placeholder="Chagua mkoa" />
+                              </div>
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {isLoadingRegions ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : regions.length > 0 ? (
+                              regions
+                                .filter((region) => region.RegionName && region.RegionName.trim() !== '')
+                                .map((region) => (
+                                  <SelectItem key={region.EntryID || region.EntryId || region.ID || region.Id || region.id} value={region.RegionName}>
+                                    {region.RegionName}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Chagua nchi kwanza</div>
+                            )}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -326,15 +481,47 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-neutral-500">Wilaya <span className="text-red-500">*</span></FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            {/* <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /> */}
-                            <Input 
-                              className="border border-gray-300 rounded pl-10 py-2 w-full focus:border-blue-500 focus:outline-none" 
-                              {...field} 
-                            />
-                          </div>
-                        </FormControl>
+                        <Select 
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Find the selected district to get its ID
+                            const selectedDistrict = districts.find(d => d.DistrictName === value);
+                            if (selectedDistrict) {
+                              const districtId = selectedDistrict.EntryID || selectedDistrict.EntryId || selectedDistrict.ID || selectedDistrict.Id || selectedDistrict.id || 0;
+                              setSelectedDistrictId(districtId);
+                              // Clear dependent field
+                              form.setValue('ward', '');
+                              setWards([]);
+                              // Fetch wards for this district
+                              fetchWardsForDistrict(districtId);
+                            }
+                          }}
+                          disabled={isLoadingDistricts || !selectedRegionId || districts.length === 0}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
+                              <div className="flex items-center">
+                                <SelectValue placeholder="Chagua wilaya" />
+                              </div>
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {isLoadingDistricts ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : districts.length > 0 ? (
+                              districts
+                                .filter((district) => district.DistrictName && district.DistrictName.trim() !== '')
+                                .map((district) => (
+                                  <SelectItem key={district.EntryID || district.EntryId || district.ID || district.Id || district.id} value={district.DistrictName}>
+                                    {district.DistrictName}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Chagua mkoa kwanza</div>
+                            )}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -350,21 +537,29 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <Select 
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={isLoadingWards || !selectedDistrictId || wards.length === 0}
                         >
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                {/* <MapPin className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua kata" />
                               </div>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
-                            {wards.map((ward) => (
-                              <SelectItem key={ward.EntryId} value={ward.WardName}>
-                                {ward.WardName}
-                              </SelectItem>
-                            ))}
+                            {isLoadingWards ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : wards.length > 0 ? (
+                              wards
+                                .filter((ward) => ward.WardName && ward.WardName.trim() !== '')
+                                .map((ward) => (
+                                  <SelectItem key={ward.EntryID || ward.EntryId || ward.ID || ward.Id || ward.id} value={ward.WardName}>
+                                    {ward.WardName}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Chagua wilaya kwanza</div>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -401,21 +596,36 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <Select 
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={isLoadingNationalities}
                         >
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua uraia" />
                               </div>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
-                            {nationalities.map((nationality) => (
-                              <SelectItem key={nationality.EntryId} value={nationality.NationalityName}>
-                                {nationality.NationalityName}
-                              </SelectItem>
-                            ))}
+                            {isLoadingNationalities ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : nationalities.length > 0 ? (
+                              nationalities
+                                .filter((nationality) => {
+                                  const nationalityName = nationality.NationalityName || nationality.Nationality || nationality.Name || '';
+                                  return nationalityName.trim() !== '';
+                                })
+                                .map((nationality) => {
+                                  const nationalityName = nationality.NationalityName || nationality.Nationality || nationality.Name || '';
+                                  const nationalityId = nationality.EntryID || nationality.EntryId || nationality.ID || nationality.Id || nationality.id || 0;
+                                  return (
+                                    <SelectItem key={nationalityId} value={nationalityName}>
+                                      {nationalityName}
+                                    </SelectItem>
+                                  );
+                                })
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Hakuna data ilipatikana</div>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -494,21 +704,29 @@ export function ResidenceInfoEditDialog({ open, onOpenChange, onSuccess }: Resid
                         <Select 
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={isLoadingCountries}
                         >
                           <FormControl>
                             <SelectTrigger className="border border-gray-300 rounded px-3 py-2 w-full focus:border-blue-500 focus:outline-none">
                               <div className="flex items-center">
-                                {/* <Globe className="mr-2 h-4 w-4 text-slate-400" /> */}
                                 <SelectValue placeholder="Chagua nchi ya asili" />
                               </div>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
-                            {countries.map((country) => (
-                              <SelectItem key={country.EntryId} value={country.CountryName}>
-                                {country.CountryName}
-                              </SelectItem>
-                            ))}
+                            {isLoadingCountries ? (
+                              <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
+                            ) : countries.length > 0 ? (
+                              countries
+                                .filter((country) => country.CountryName && country.CountryName.trim() !== '')
+                                .map((country) => (
+                                  <SelectItem key={country.EntryId} value={country.CountryName}>
+                                    {country.CountryName}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <div className="py-2 px-3 text-sm text-gray-500">Hakuna nchi zilizopatikana</div>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />

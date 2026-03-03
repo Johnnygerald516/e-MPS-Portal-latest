@@ -296,109 +296,25 @@ export default function PersonalInfoEditDialog({
           console.log('Setting gender to:', normalizedGender === 'F' ? 'F' : 'M');
         }
         
-        // Handle marital status dropdown - using same approach as birth country
-        if (data.maritalStatus && maritalStatusOptions.length > 0) {
-          console.log('Setting marital status:', data.maritalStatus);
-          console.log('Available marital status options:', maritalStatusOptions);
-          
-          // Try to find the marital status in options
-          const maritalStatusMatch = maritalStatusOptions.find(ms => 
-            ms.value.toLowerCase() === data.maritalStatus.toLowerCase());
-          
-          if (maritalStatusMatch) {
-            setValue("maritalStatus", maritalStatusMatch.value);
-            console.log('Match found for marital status:', maritalStatusMatch.value);
-          } else {
-            // Try partial match
-            const partialMatch = maritalStatusOptions.find(ms => 
-              ms.value.toLowerCase().includes(data.maritalStatus.toLowerCase()) || 
-              data.maritalStatus.toLowerCase().includes(ms.value.toLowerCase()));
-            
-            if (partialMatch) {
-              setValue("maritalStatus", partialMatch.value);
-              console.log('Partial match found for marital status:', partialMatch.value);
-            } else {
-              setValue("maritalStatus", data.maritalStatus);
-              console.log('No match found for marital status, setting directly:', data.maritalStatus);
-            }
-          }
-        } else {
-          setValue("maritalStatus", data.maritalStatus || "");
-        }
+        setValue("maritalStatus", data.maritalStatus || "");
+        setValue("occupationType", data.occupationType || "");
         
-        // Handle occupation type dropdown - using same approach as birth country
+        // If we have occupation type, fetch the occupations for it
         if (data.occupationType && occupationTypeOptions.length > 0) {
-          console.log('Setting occupation type:', data.occupationType);
-          console.log('Available occupation type options:', occupationTypeOptions);
-          
-          // Try to find the occupation type in options
           const occupationTypeMatch = occupationTypeOptions.find(ot => 
             ot.value.toLowerCase() === data.occupationType.toLowerCase());
           
           if (occupationTypeMatch) {
-            setValue("occupationType", occupationTypeMatch.value);
-            console.log('Match found for occupation type:', occupationTypeMatch.value);
-            
-            // Fetch occupations for this type
+            console.log('Found occupation type match, fetching occupations for ID:', occupationTypeMatch.id);
             await fetchOccupationsForType(occupationTypeMatch.id);
-            
-            // Now handle occupation dropdown after fetching occupations
-            if (data.occupation && occupationOptions.length > 0) {
-              console.log('Setting occupation:', data.occupation);
-              console.log('Available occupation options:', occupationOptions);
-              
-              // Try to find the occupation in options
-              const occupationMatch = occupationOptions.find(o => 
-                o.value.toLowerCase() === data.occupation.toLowerCase());
-              
-              if (occupationMatch) {
-                setValue("occupation", occupationMatch.value);
-                console.log('Match found for occupation:', occupationMatch.value);
-              } else {
-                // Try partial match
-                const partialMatch = occupationOptions.find(o => 
-                  o.value.toLowerCase().includes(data.occupation.toLowerCase()) || 
-                  data.occupation.toLowerCase().includes(o.value.toLowerCase()));
-                
-                if (partialMatch) {
-                  setValue("occupation", partialMatch.value);
-                  console.log('Partial match found for occupation:', partialMatch.value);
-                } else {
-                  setValue("occupation", data.occupation);
-                  console.log('No match found for occupation, setting directly:', data.occupation);
-                }
-              }
-            }
-          } else {
-            // Try partial match for occupation type
-            const partialMatch = occupationTypeOptions.find(ot => 
-              ot.value.toLowerCase().includes(data.occupationType.toLowerCase()) || 
-              data.occupationType.toLowerCase().includes(ot.value.toLowerCase()));
-            
-            if (partialMatch) {
-              setValue("occupationType", partialMatch.value);
-              console.log('Partial match found for occupation type:', partialMatch.value);
-              
-              // Fetch occupations for this type
-              await fetchOccupationsForType(partialMatch.id);
-              
-              // Handle occupation after fetching occupations
-              if (data.occupation && occupationOptions.length > 0) {
-                setValue("occupation", data.occupation);
-              }
-            } else {
-              setValue("occupationType", data.occupationType);
-              console.log('No match found for occupation type, setting directly:', data.occupationType);
-            }
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
-        } else {
-          setValue("occupationType", data.occupationType || "");
-          setValue("occupation", data.occupation || "");
         }
+        
+        setValue("occupation", data.occupation || "");
         
         // Handle birth country dropdown and fetch regions
         if (data.birthCountry && countryOptions.length > 0) {
-          console.log('Setting birth country:', data.birthCountry);
           
           // Try to find the country in options
           const country = countryOptions.find(c => 
@@ -413,7 +329,6 @@ export default function PersonalInfoEditDialog({
             
             // Now set the birth region if available
             if (data.birthRegion && regionOptions.length > 0) {
-              console.log('Setting birth region:', data.birthRegion);
               setValue("birthRegion", data.birthRegion);
             }
           } else {
@@ -424,38 +339,15 @@ export default function PersonalInfoEditDialog({
           setValue("birthRegion", data.birthRegion || "");
         }
         
-        // Force a re-render of the form to ensure all values are displayed
+        // Log final form values for debugging
         setTimeout(() => {
           const formValues = getValues();
-          console.log('Current form values:', formValues);
-          
-          // Re-apply values to ensure they're displayed
-          if (formValues.maritalStatus) {
-            const currentValue = formValues.maritalStatus;
-            setValue("maritalStatus", ""); // Clear first
-            setTimeout(() => setValue("maritalStatus", currentValue), 50); // Then set again
-          }
-          
-          if (formValues.occupationType) {
-            const currentValue = formValues.occupationType;
-            setValue("occupationType", ""); // Clear first
-            setTimeout(() => setValue("occupationType", currentValue), 50); // Then set again
-          }
-          
-          if (formValues.occupation) {
-            const currentValue = formValues.occupation;
-            setValue("occupation", ""); // Clear first
-            setTimeout(() => setValue("occupation", currentValue), 50); // Then set again
-          }
-          
-          console.log('Forced re-render of dropdown values');
-        }, 300);
+        }, 200);
         
       } else {
         setError(`Imeshindikana kupata taarifa: ${response?.ackMessage || "Kuna hitilafu imetokea"}`);
       }
     } catch (error: any) {
-      console.error('Error fetching personal info:', error);
       setError(`Imeshindikana kupata taarifa: ${error.message || "Kuna hitilafu imetokea"}`);
     } finally {
       setIsLoading(false);
@@ -483,13 +375,6 @@ export default function PersonalInfoEditDialog({
     // Find the selected region ID
     const selectedRegion = regionOptions.find(opt => opt.value === data.birthRegion);
     const birthRegionId = selectedRegion ? selectedRegion.id : 0;
-    
-    // Log detailed information about the selected values and their IDs
-    console.log('Selected country:', selectedCountry, 'ID:', birthCountryId);
-    console.log('Selected region:', selectedRegion, 'ID:', birthRegionId);
-    console.log('Selected occupation type:', selectedOccupationType, 'ID:', occupationTypeId);
-    console.log('Selected occupation:', selectedOccupation, 'ID:', occupationId);
-    console.log('Selected marital status:', selectedMaritalStatus, 'ID:', maritalStatusId);
     
     // Convert the data to match the PersonalInfoPayload interface
     return {
@@ -760,7 +645,7 @@ export default function PersonalInfoEditDialog({
                 <Input
                   id="firstName"
                   {...register("firstName")}
-                  className={errors.firstName ? "border-red-500" : ""}
+                  className={errors.firstName ? "border-red-500 rounded" : "rounded"}
                 />
                 {errors.firstName && (
                   <p className="text-xs text-red-500">{errors.firstName.message}</p>
@@ -772,7 +657,11 @@ export default function PersonalInfoEditDialog({
                 <Input
                   id="middleName"
                   {...register("middleName")}
-                />
+                  className="rounded"
+                  />
+                {errors.middleName && (
+                  <p className="text-xs text-red-500">{errors.middleName.message}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -780,7 +669,7 @@ export default function PersonalInfoEditDialog({
                 <Input
                   id="lastName"
                   {...register("lastName")}
-                  className={errors.lastName ? "border-red-500" : ""}
+                  className={errors.lastName ? "border-red-500 rounded" : "rounded"}
                 />
                 {errors.lastName && (
                   <p className="text-xs text-red-500">{errors.lastName.message}</p>
@@ -792,7 +681,11 @@ export default function PersonalInfoEditDialog({
                 <Input
                   id="otherName"
                   {...register("otherName")}
+                  className="rounded"
                 />
+                {errors.otherName && (
+                  <p className="text-xs text-red-500">{errors.otherName.message}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -801,8 +694,9 @@ export default function PersonalInfoEditDialog({
                   onValueChange={(value) => setValue("gender", value)} 
                   value={getValues("gender") || ""}
                   {...register("gender")}
+                  
                 >
-                  <SelectTrigger className={errors.gender ? "border-red-500" : ""}>
+                  <SelectTrigger className={errors.gender ? "border-red-500 rounded" : "rounded"}>
                     <SelectValue placeholder="Chagua Jinsia" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
@@ -821,7 +715,7 @@ export default function PersonalInfoEditDialog({
                   id="dateOfBirth"
                   type="date"
                   {...register("dateOfBirth")}
-                  className={errors.dateOfBirth ? "border-red-500" : ""}
+                  className={errors.dateOfBirth ? "border-red-500 rounded" : "rounded"}
                 />
                 {errors.dateOfBirth && (
                   <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>
@@ -848,20 +742,22 @@ export default function PersonalInfoEditDialog({
                   disabled={isLoadingCountries}
                   {...register("birthCountry")}
                 >
-                  <SelectTrigger className={errors.birthCountry ? "border-red-500" : ""}>
+                  <SelectTrigger className={errors.birthCountry ? "border-red-500 rounded" : "rounded"}>
                     <SelectValue placeholder="Chagua Nchi" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {isLoadingCountries ? (
-                      <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
                     ) : countryOptions.length > 0 ? (
-                      countryOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))
+                      countryOptions
+                        .filter((option) => option.value && option.value.trim() !== '')
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))
                     ) : (
-                      <SelectItem value="none" disabled>Hakuna nchi zilizopatikana</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Hakuna nchi zilizopatikana</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -880,20 +776,22 @@ export default function PersonalInfoEditDialog({
                   disabled={isLoadingRegions || getValues("birthCountry") === "" || regionOptions.length === 0}
                   {...register("birthRegion")}
                 >
-                  <SelectTrigger className={errors.birthRegion ? "border-red-500" : ""}>
+                  <SelectTrigger className={errors.birthRegion ? "border-red-500 rounded" : "rounded"}>
                     <SelectValue placeholder="Chagua Mkoa" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {isLoadingRegions ? (
-                      <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
                     ) : regionOptions.length > 0 ? (
-                      regionOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))
+                      regionOptions
+                        .filter((option) => option.value && option.value.trim() !== '')
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))
                     ) : (
-                      <SelectItem value="none" disabled>Chagua nchi kwanza</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Chagua nchi kwanza</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -910,20 +808,22 @@ export default function PersonalInfoEditDialog({
                   disabled={isLoadingMaritalStatus}
                   {...register("maritalStatus")}
                 >
-                  <SelectTrigger className={errors.maritalStatus ? "border-red-500" : ""}>
+                  <SelectTrigger className={errors.maritalStatus ? "border-red-500 rounded" : "rounded"}>
                     <SelectValue placeholder="Chagua Hali ya Ndoa" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {isLoadingMaritalStatus ? (
-                      <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
                     ) : maritalStatusOptions.length > 0 ? (
-                      maritalStatusOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))
+                      maritalStatusOptions
+                        .filter((option) => option.value && option.value.trim() !== '')
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))
                     ) : (
-                      <SelectItem value="none" disabled>Hakuna data ilipatikana</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Hakuna data ilipatikana</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -950,20 +850,22 @@ export default function PersonalInfoEditDialog({
                   disabled={isLoadingOccupationTypes}
                   {...register("occupationType")}
                 >
-                  <SelectTrigger className={errors.occupationType ? "border-red-500" : ""}>
+                  <SelectTrigger className={errors.occupationType ? "border-red-500 rounded" : "rounded"}>
                     <SelectValue placeholder="Chagua Aina ya Kazi" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {isLoadingOccupationTypes ? (
-                      <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
                     ) : occupationTypeOptions.length > 0 ? (
-                      occupationTypeOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))
+                      occupationTypeOptions
+                        .filter((option) => option.value && option.value.trim() !== '')
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))
                     ) : (
-                      <SelectItem value="none" disabled>Hakuna data ilipatikana</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Hakuna data ilipatikana</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -980,20 +882,22 @@ export default function PersonalInfoEditDialog({
                   disabled={isLoadingOccupations || getValues("occupationType") === "" || occupationOptions.length === 0}
                   {...register("occupation")}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded">
                     <SelectValue placeholder="Chagua Kazi" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {isLoadingOccupations ? (
-                      <SelectItem value="loading" disabled>Inapakia...</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Inapakia...</div>
                     ) : occupationOptions.length > 0 ? (
-                      occupationOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))
+                      occupationOptions
+                        .filter((option) => option.value && option.value.trim() !== '')
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))
                     ) : (
-                      <SelectItem value="none" disabled>Chagua aina ya kazi kwanza</SelectItem>
+                      <div className="py-2 px-3 text-sm text-gray-500">Chagua aina ya kazi kwanza</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -1004,6 +908,7 @@ export default function PersonalInfoEditDialog({
                 <Input
                   id="occupationDetail"
                   {...register("occupationDetail")}
+                  className="rounded"
                 />
               </div>
             </div>

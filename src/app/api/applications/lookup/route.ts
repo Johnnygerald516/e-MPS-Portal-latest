@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trustedHostnames } from "@/lib/config/api-config";
+import { trustedHostnames, ensureHttps, isLocalUrl } from "@/lib/config/api-config";
 
 // Define the lookup request interface
 interface LookupRequest {
@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
     const requestData: LookupRequest = await request.json();
     const { operationType, argument1, argument2 } = requestData;
     // Use NEXT_PUBLIC_API_URL from environment
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
+    // Only apply HTTPS for non-local URLs
+    const apiUrl = isLocalUrl(rawApiUrl) ? rawApiUrl : ensureHttps(rawApiUrl);
     console.log('Using API URL:', apiUrl);
     if (!apiUrl) {
      return NextResponse.json(
@@ -67,17 +69,43 @@ export async function POST(request: NextRequest) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
-      const response = await fetch(externalApiUrl, {
+      let response = await fetch(externalApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(requestData),
-        signal: controller.signal
+        signal: controller.signal,
+        redirect: 'manual' // Handle redirects manually to prevent protocol downgrades
       });
       
       clearTimeout(timeoutId);
+      
+      // Handle redirects manually to ensure HTTPS protocol
+      if (response.status >= 300 && response.status < 400) {
+        const redirectUrl = response.headers.get('location');
+        if (redirectUrl) {
+          console.log('Redirect detected:', redirectUrl);
+          const secureRedirectUrl = ensureHttps(redirectUrl);
+          console.log('Following redirect with HTTPS:', secureRedirectUrl);
+          
+          const redirectController = new AbortController();
+          const redirectTimeoutId = setTimeout(() => redirectController.abort(), 5000);
+          
+          response = await fetch(secureRedirectUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestData),
+            signal: redirectController.signal
+          });
+          
+          clearTimeout(redirectTimeoutId);
+        }
+      }
       
       if (!response.ok) {
         const errorText = await response.text();

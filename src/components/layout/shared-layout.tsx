@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/language-context";
+import { PDFViewer } from "../ui/pdf-viewer";
 
 import {
   DropdownMenu,
@@ -87,10 +88,17 @@ export function SharedLayout({ children }: SharedLayoutProps) {
                   }
                 }}
               >
-                <Home className="h-3 w-3 mr-4" />
-                {/* e-Migrant Portal */}
+                <Home className="h-3 w-3 mr-1" />
                 Nyumbani
               </Link>
+              
+              <PDFViewer 
+                pdfPath="/assets/MUONGOZO_WA_KIBALI_CHA_WALOWEZI_NEW.pdf"
+                buttonText="Soma Muongozo wa Kibali cha Mlowezi"
+                title="Muongozo wa Kibali cha Mlowezi"
+                variant="ghost"
+                className="text-xs whitespace-nowrap text-white hover:text-[#f0e7c3] transition-colors duration-200 px-2 py-1 h-auto font-normal"
+              />
             </div>
             
             {/* Right controls: theme, login, language - responsive spacing */}

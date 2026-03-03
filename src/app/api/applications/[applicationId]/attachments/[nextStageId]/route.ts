@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Use the API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getApiUrlForRoute, isLocalUrl, ensureHttps } from '@/lib/config/api-config';
 
 export async function POST(
   request: NextRequest,
@@ -13,28 +11,38 @@ export async function POST(
     
     console.log(`Proceeding to next stage for application ID: ${applicationId}, nextStageId: ${nextStageId}`);
     
-    // Check if API URL is configured
-    if (!API_URL) {
-      console.error('NEXT_PUBLIC_API_URL is not configured');
-      return NextResponse.json({
-        ackCode: 0,
-        ackMessage: "API URL not configured. Please set NEXT_PUBLIC_API_URL environment variable.",
-        jsonResult: null
-      }, { status: 500 });
-    }
+    // Get API URL with proper protocol handling
+    const apiUrl = getApiUrlForRoute();
     
     // Forward the request to the actual API
-    console.log(`Sending request to: ${API_URL}/applications/${applicationId}/attachments/${nextStageId}`);
+    const externalApiUrl = `${apiUrl}/applications/${applicationId}/attachments/${nextStageId}`;
+    console.log(`Sending request to: ${externalApiUrl}`);
     
     let response;
     try {
-      response = await fetch(`${API_URL}/applications/${applicationId}/attachments/${nextStageId}`, {
+      response = await fetch(externalApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        redirect: 'manual'
       });
+      
+      // Handle redirects manually
+      if (response.status >= 300 && response.status < 400) {
+        const redirectUrl = response.headers.get('location');
+        if (redirectUrl) {
+          const secureRedirectUrl = isLocalUrl(redirectUrl) ? redirectUrl : ensureHttps(redirectUrl);
+          response = await fetch(secureRedirectUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+        }
+      }
     } catch (error) {
       const fetchError = error as Error;
       console.error('Fetch operation failed:', fetchError);

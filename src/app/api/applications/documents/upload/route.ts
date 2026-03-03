@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callExternalApi, getExternalApiUrl } from "../../../../../lib/utils/api-route-helpers";
+import { getApiUrlForRoute, isLocalUrl, ensureHttps } from '@/lib/config/api-config';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if API URL is configured
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-      return NextResponse.json(
-        { 
-          ackCode: 500, 
-          ackMessage: 'API configuration error: NEXT_PUBLIC_API_URL not set',
-          jsonResult: null
-        },
-        { status: 500 }
-      );
-    }
+    // Get API URL with proper protocol handling
+    const apiUrl = getApiUrlForRoute();
 
     // Get the form data
     const formData = await request.formData();
@@ -25,10 +15,23 @@ export async function POST(request: NextRequest) {
     const externalApiUrl = `${apiUrl}/applications/documents/upload`;
     console.log('Forwarding to external API:', externalApiUrl);
 
-    const response = await fetch(externalApiUrl, {
+    let response = await fetch(externalApiUrl, {
       method: 'POST',
-      body: formData, // Forward the FormData directly
+      body: formData,
+      redirect: 'manual'
     });
+
+    // Handle redirects manually
+    if (response.status >= 300 && response.status < 400) {
+      const redirectUrl = response.headers.get('location');
+      if (redirectUrl) {
+        const secureRedirectUrl = isLocalUrl(redirectUrl) ? redirectUrl : ensureHttps(redirectUrl);
+        response = await fetch(secureRedirectUrl, {
+          method: 'POST',
+          body: formData
+        });
+      }
+    }
 
     console.log('External API response status:', response.status);
 

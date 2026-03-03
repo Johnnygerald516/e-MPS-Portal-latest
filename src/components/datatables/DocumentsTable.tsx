@@ -1257,7 +1257,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
     <Button 
       variant="outline" 
       onClick={() => setPdfPreviewOpen(false)} 
-      className="w-auto"
+      className="w-auto rounded"
     >
       Funga
     </Button>
@@ -1271,7 +1271,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
             setPdfPreviewOpen(false);
           }
         }} 
-        className="bg-green-600 hover:bg-green-700 text-white"
+        className="bg-green-600 hover:bg-green-700 text-white rounded"
         disabled={uploading !== null}
       >
         {uploading !== null ? (

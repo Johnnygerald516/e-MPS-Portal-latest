@@ -11,11 +11,27 @@
 export const PRODUCTION_API_URL = 'https://migrantonline.immigration.go.tz/api';
 
 /**
+ * Check if a URL is a local development URL
+ * @param url The URL to check
+ * @returns True if the URL is for localhost or 127.0.0.1
+ */
+export function isLocalUrl(url: string): boolean {
+  if (!url) return false;
+  return url.includes('localhost') || url.includes('127.0.0.1');
+}
+
+/**
  * Gets the API URL from environment variables or uses the production URL as fallback
  * @returns The API URL to use
  */
 export function getApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || PRODUCTION_API_URL;
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) {
+    console.log('[api-url-helper] Using NEXT_PUBLIC_API_URL:', envUrl);
+    return envUrl;
+  }
+  console.log('[api-url-helper] Using fallback PRODUCTION_API_URL:', PRODUCTION_API_URL);
+  return PRODUCTION_API_URL;
 }
 
 /**

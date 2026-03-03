@@ -114,10 +114,11 @@
 // };
 
 import axios from 'axios';
+import { ensureHttps } from '@/lib/config/api-config';
 
 // Create a single Axios instance with interceptors for automatic headers
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+  baseURL: ensureHttps(process.env.NEXT_PUBLIC_API_URL || ''),
   headers: {
     'Content-Type': 'application/json',
   },

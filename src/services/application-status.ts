@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 
 export interface ApplicationStatusPayload {
   applicationId: string;
@@ -45,8 +46,8 @@ export const getApplicationStatus = async (payload: ApplicationStatusPayload): P
       };
     }
 
-    // Make API request
-    const response = await axios.post('/api/applications/status', payload);
+    // Use local Next.js API route for proper HTTPS handling and redirect management
+    const response = await axios.post(`/api/applications/status`, payload);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

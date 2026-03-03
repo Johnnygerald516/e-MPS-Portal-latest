@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
 import { ChevronRight,UserPlus,FileText, Briefcase, Users, CheckCircle2, Ribbon, Circle, CircleUserRoundIcon, Newspaper} from "lucide-react";
-import { PDFViewer } from "../../components/ui/pdf-viewer";
 import { motion, Variants, useScroll, useTransform } from "framer-motion";
 
 // Service types for the landing page
@@ -232,18 +231,6 @@ export default function Home() {
                
                 </motion.p>
                 
-                <motion.div
-                  variants={itemVariants}
-                  className="mb-2"
-                >
-                  <PDFViewer 
-                    pdfPath="/assets/MUONGOZO_WA_KIBALI_CHA_WALOWEZI_NEW.pdf"
-                    buttonText="Soma Muongozo wa Kibali cha Mlowezi"
-                    title="Muongozo wa Kibali cha Mlowezi"
-                    variant="secondary"
-                    className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2.5 rounded-md font-medium text-base shadow-sm hover:shadow-md transition-all duration-200"
-                  />
-                </motion.div>
               </motion.div>
               
               {/* Right side - Latest Announcements */}
@@ -309,8 +296,7 @@ export default function Home() {
                               </Link>
                             ) : service.title === "Endeleza Ombi" ? (
                                 <Link 
-                                href="/"
-                                // href="/application/continue"
+                                href="/application/continue"
                                 >
                                   <motion.button 
                                     className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors duration-200"

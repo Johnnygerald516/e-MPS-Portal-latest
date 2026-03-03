@@ -1,5 +1,6 @@
 // Parents information API endpoints
 import { toast } from "@/components/ui/use-toast";
+import { apiConfig } from '@/lib/config/api-config';
 
 interface ParentsInfoPayload {
   applicationId: string;
@@ -28,6 +29,7 @@ export const parentsInfoEndpoints = {
   // Save parents information
   saveParentsInfo: async (payload: ParentsInfoPayload): Promise<ParentsInfoResponse> => {
     try {
+    // Use local Next.js API route for proper HTTPS handling
     const response = await fetch(`/api/applications/${payload.applicationId}/parents-info`, {
         method: 'POST',
         headers: {
@@ -60,6 +62,7 @@ export const parentsInfoEndpoints = {
   // Get parents information
   getParentsInfo: async (applicationId: string): Promise<any> => {
     try {
+     // Use local Next.js API route for proper HTTPS handling
      const response = await fetch(`/api/applications/${applicationId}/parents-info`, {
         method: 'GET',
         headers: {

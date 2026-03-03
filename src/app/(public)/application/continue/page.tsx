@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, Variants } from "framer-motion";
-import { ArrowLeft, FileText, Phone, ChevronRight, ArrowRight, AlertCircle } from "lucide-react";
+import { ArrowLeft, FileText, Phone, ChevronRight, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,14 +25,14 @@ interface ContinueApplicationFormData {
 
 // Map step numbers to their corresponding routes
 const stepRoutes: Record<number, string> = {
-  10: "/application/verification",  // uthibitisho wa usajili
-  20: "/application/basic-info",    // basic-info
-  30: "/application/residence-info", // residence-info
-  40: "/application/parents-info",  // parents-info
-  50: "/application/dependant-info", // dependants-info
-  60: "/application/documents",     // documents
-  70: "/application/declaration",   // declaration
-  80: "/application/complete"       // complete
+  10: "/application/basic-info",      // basic-info
+  20: "/application/residence-info",  // residence-info
+  30: "/application/parents-info",   // parents-info
+  40: "/application/dependant-info", // dependants-info
+  50: "/application/documents",       // documents
+  60: "/application/declaration",     // declaration
+  70: "/application/complete",        // complete
+  80: "completed"                     // Special case - show completed message
 };
 
 export default function ContinueApplicationPage() {
@@ -40,6 +40,7 @@ export default function ContinueApplicationPage() {
   const { updateFormData } = useApplication();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [completedMessage, setCompletedMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<ContinueApplicationFormData>({
     applicationId: "",
     phoneNumber: "",
@@ -72,20 +73,31 @@ export default function ContinueApplicationPage() {
       
       if (response.ackCode === 1) {
         // Success - update application context with the response data
+        // Handle both response formats: applicationId or applicationID
+        const returnedAppId = response.jsonResult.applicationID || response.jsonResult.applicationId;
+        const currentStep = response.jsonResult.appStageID || response.jsonResult.currentStep || 10;
+        
         updateFormData({
-          applicationId: response.jsonResult.applicationId,
-          currentStep: response.jsonResult.currentStep as any // Type cast to ApplicationStep
+          applicationId: returnedAppId,
+          currentStep: currentStep as any // Type cast to ApplicationStep
         });
         
-        // Get the next route based on the current step
-        const nextRoute = stepRoutes[response.jsonResult.currentStep];
+        // Get the next route based on the appStageID
+        const nextRoute = stepRoutes[currentStep];
         
-        if (nextRoute) {
+        if (currentStep === 80) {
+          // Application is already completed - show message
+          setCompletedMessage(`Ombi lako ${returnedAppId} limekamilisha mchakato wa maombi. Asante kwa kutumia mfumo wetu.`);
+          setIsLoading(false);
+          return;
+        }
+        
+        if (nextRoute && nextRoute !== "completed") {
           // Navigate to the appropriate page with the application ID
-          router.push(`${nextRoute}?applicationId=${response.jsonResult.applicationId}`);
+          router.push(`${nextRoute}?applicationId=${returnedAppId}`);
         } else {
-          // Fallback to basic info if step is not recognized
-          router.push(`/application/basic-info?applicationId=${response.jsonResult.applicationId}`);
+          // Fallback to basic-info if step is not recognized
+          router.push(`/application/basic-info?applicationId=${returnedAppId}`);
         }
       } else {
         // Error handling
@@ -146,11 +158,19 @@ export default function ContinueApplicationPage() {
         <div>
         <h2 className="text-lg font-bold text-slate-500 mb-6 border-b border-slate-200 pb-1">Taarifa za Msingi</h2>
         
-        {error && (
+      {/*   {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}*/}
+        
+        {completedMessage && (
+          <Alert className="mb-4 bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800">Ombi Limekamilika</AlertTitle>
+            <AlertDescription className="text-green-700">{completedMessage}</AlertDescription>
           </Alert>
         )}
         
@@ -158,7 +178,7 @@ export default function ContinueApplicationPage() {
                     <motion.div variants={itemVariants} className="space-y-6">
                       <div className="space-y-2">
                         <Label htmlFor="applicationId" className="text-sm font-medium">
-                          Application ID <span className="text-red-500">*</span>
+                          Namba ya Ombi <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id="applicationId"
@@ -167,7 +187,7 @@ export default function ContinueApplicationPage() {
                           onChange={handleInputChange}
                           required
                           className="bg-white border-slate-300 rounded"
-                          placeholder="Ingiza Application ID yako (mfano: APP-12345)"
+                          placeholder="Ingiza Namba ya Ombi (mfano: EMPS0000000000)"
                         />
                       </div>
                       
@@ -185,7 +205,7 @@ export default function ContinueApplicationPage() {
                             onChange={handleInputChange}
                             required
                             className="rounded bg-white border-slate-300"
-                            placeholder="000 000 000"
+                            placeholder="0000000000"
                           />
                         </div>
                        

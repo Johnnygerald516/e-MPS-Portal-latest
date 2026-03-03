@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getApiUrlForRoute, isLocalUrl, ensureHttps } from "@/lib/config/api-config";
 
 // Define the verification request interface
 interface VerificationRequest {
@@ -25,17 +26,9 @@ export async function POST(request: NextRequest) {
   try {
     // Parse the request body
     const requestData: VerificationRequest = await request.json();
-    
-    console.log('Raw request data received:', JSON.stringify(requestData));
-    
-    const { subjectId, dateOfBirth, phoneNumber, applicationTypeId } = requestData;
-    
-    console.log(`Verification request received: SubjectID: ${subjectId}, DOB: ${dateOfBirth}, Phone: ${phoneNumber}, Type: ${applicationTypeId}`);
-    
-    
+   const { subjectId, dateOfBirth, phoneNumber, applicationTypeId } = requestData;
     // Check if API URL is configured
     if (!process.env.NEXT_PUBLIC_API_URL) {
-      console.error('NEXT_PUBLIC_API_URL is not configured');
       return NextResponse.json(
         { 
           ackCode: 0, 
@@ -53,15 +46,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // The NEXT_PUBLIC_API_URL already contains the full path: https://migrantonline.immigration.go.tz/api
+    // The NEXT_PUBLIC_API_URL already contains the full path
     // We need to add 'applications' to the path
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
+    const apiUrl = getApiUrlForRoute();
     const externalApiUrl = `${apiUrl}/applications`;
     
     try {
       // Check if we have at least a subjectId or dateOfBirth
       if (!requestData.subjectId && !requestData.dateOfBirth) {
-        console.error('Missing required fields: subjectId or dateOfBirth');
         return NextResponse.json(
           { 
             ackCode: 0, 
@@ -82,22 +74,32 @@ export async function POST(request: NextRequest) {
       // Pass through the request data directly without modification
       // This ensures we're using exactly the same field names and values
       const apiPayload = requestData;
-      
-      // For debugging purposes, log what we're sending
-      console.log('API Payload (stringified):', JSON.stringify(apiPayload));
-      console.log('API Payload keys:', Object.keys(apiPayload));
-      
-      console.log('Sending to external API:', externalApiUrl);
-      console.log('Payload:', JSON.stringify(apiPayload));
-      
-      const response = await fetch(externalApiUrl, {
+      let response = await fetch(externalApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(apiPayload),
+        redirect: 'manual' // Handle redirects manually to prevent protocol downgrades
       });
+      
+      // Handle redirects manually
+      if (response.status >= 300 && response.status < 400) {
+        const redirectUrl = response.headers.get('location');
+        if (redirectUrl) {
+          // Only force HTTPS for non-local URLs
+          const secureRedirectUrl = isLocalUrl(redirectUrl) ? redirectUrl : ensureHttps(redirectUrl);
+       response = await fetch(secureRedirectUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(apiPayload),
+          });
+        }
+      }
       
       if (!response.ok) {
         let errorText = '';
@@ -107,15 +109,12 @@ export async function POST(request: NextRequest) {
           // Try to parse as JSON first
           errorJson = await response.json();
           errorText = JSON.stringify(errorJson);
-          console.error(`API error (JSON): ${response.status} ${response.statusText}`, errorJson);
-        } catch (e) {
+         } catch (e) {
           // If not JSON, get as text
           try {
             errorText = await response.text();
-            console.error(`API error (text): ${response.status} ${response.statusText}`, errorText);
           } catch (textError) {
             errorText = 'Could not read error response';
-            console.error(`API error: ${response.status} ${response.statusText}`, 'Could not read error response');
           }
         }
         
@@ -139,8 +138,6 @@ export async function POST(request: NextRequest) {
       }
       
       const apiResponse = await response.json();
-      console.log('External API response:', apiResponse);
-      
       // Return the response with CORS headers
       return NextResponse.json(apiResponse, {
         headers: {
@@ -151,9 +148,7 @@ export async function POST(request: NextRequest) {
       });
       
     } catch (fetchError) {
-      console.error('External API call failed:', fetchError);
-      
-      return NextResponse.json(
+     return NextResponse.json(
         { 
           ackCode: 0, 
           ackMessage: "Failed to connect to external API",
@@ -172,8 +167,7 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error("Error processing verification request:", error);
-    return NextResponse.json(
+     return NextResponse.json(
       { 
         ackCode: 0, 
         ackMessage: "Failed to process verification request",
