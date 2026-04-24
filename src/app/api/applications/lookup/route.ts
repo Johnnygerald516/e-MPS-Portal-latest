@@ -9,32 +9,37 @@ interface LookupRequest {
 }
 
 export async function POST(request: NextRequest) {
+  // Get API URL from environment - SINGLE SOURCE OF TRUTH
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  if (!rawApiUrl) {
+    return NextResponse.json(
+      { 
+        ackCode: 0, 
+        ackMessage: "API URL not configured. Please set NEXT_PUBLIC_API_URL in .env file.",
+        jsonResult: []
+      },
+      { status: 500 }
+    );
+  }
+  
+  // Respect the protocol from env (do not force HTTPS for HTTP APIs)
+  let apiUrl = rawApiUrl;
+  if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+    apiUrl = 'http://' + apiUrl;
+  }
+  
+  // Build the lookup endpoint URL
+  const externalApiUrl = `${apiUrl}/applications/lookup`;
+  
+  // Log the real external API URL (hide internal Next.js route)
   console.log('Lookup API route called');
-  console.log('Request URL:', request.nextUrl.toString());
+  console.log('Request URL:', externalApiUrl);
+  
   try {
     // Parse the request body
     const requestData: LookupRequest = await request.json();
     const { operationType, argument1, argument2 } = requestData;
-    // Use NEXT_PUBLIC_API_URL from environment
-    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://migrantonline.immigration.go.tz/api';
-    // Only apply HTTPS for non-local URLs
-    const apiUrl = isLocalUrl(rawApiUrl) ? rawApiUrl : ensureHttps(rawApiUrl);
-    console.log('Using API URL:', apiUrl);
-    if (!apiUrl) {
-     return NextResponse.json(
-        { 
-          ackCode: 0, 
-          ackMessage: "API URL not configured. Please set NEXT_PUBLIC_API_URL environment variable.",
-          jsonResult: []
-        },
-        { status: 500 }
-      );
-    }
-    
-    // The apiUrl already contains the full path: https://migrantonline.immigration.go.tz/api
-    // We need to add 'applications/lookup' to the path
-    const externalApiUrl = `${apiUrl}/applications/lookup`;
-    console.log('External API URL:', externalApiUrl);
     
     try {
       let currentUrl;
@@ -56,8 +61,7 @@ export async function POST(request: NextRequest) {
       
       if (isSelfCall) {
         console.log('Detected recursive API call attempt');
-        console.log('Request URL:', request.nextUrl.toString());
-        console.log('Target URL:', externalApiUrl);
+        console.log('Request URL:', externalApiUrl);
         return NextResponse.json({
           ackCode: 0,
           ackMessage: "Cannot call API recursively",

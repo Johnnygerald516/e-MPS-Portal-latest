@@ -179,7 +179,7 @@ export function SharedLayout({ children }: SharedLayoutProps) {
           className="max-w-5xl mx-auto px-4"
         >
           <motion.div 
-            className="pt-6 border-t border-slate-200 text-center"
+            className="pt-6 border-t border-slate-200 text-center space-y-2"
           >
             <motion.p 
               initial={{ opacity: 0 }} 
@@ -188,6 +188,15 @@ export function SharedLayout({ children }: SharedLayoutProps) {
               className="text-slate-500"
             >
               © {new Date().getFullYear()} Immigration Services Department. All Rights Reserved.
+            </motion.p>
+            <motion.p 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-xs text-slate-400"
+            >
+              {process.env.NEXT_PUBLIC_APP_NAME || 'eMPS Portal'} v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'}
+              {process.env.NEXT_PUBLIC_BUILD_DATE && ` • Build: ${process.env.NEXT_PUBLIC_BUILD_DATE}`}
             </motion.p>
           </motion.div>
         </motion.div>

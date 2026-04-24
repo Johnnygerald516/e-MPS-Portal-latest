@@ -46,8 +46,9 @@ export const getApplicationStatus = async (payload: ApplicationStatusPayload): P
       };
     }
 
-    // Use local Next.js API route for proper HTTPS handling and redirect management
-    const response = await axios.post(`/api/applications/status`, payload);
+    // Call external API directly so browser network logs show the real API URL
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await axios.post(`${apiBase}/applications/status`, payload);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

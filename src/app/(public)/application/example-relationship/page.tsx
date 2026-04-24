@@ -45,7 +45,7 @@ export default function ExampleRelationshipPage() {
           argument2: 0
         };
         
-        const response = await fetch('/api/applications/lookup', {
+        const response = await fetch('/applications/lookup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export default function ExampleRelationshipPage() {
         <CardHeader>
           <CardTitle>API Endpoint Test</CardTitle>
           <CardDescription>
-            Testing direct API call to /api/applications/lookup with RelationType payload
+            Testing direct API call to /applications/lookup with RelationType payload
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -94,7 +94,7 @@ export const parentsInfoEndpoints = {
       console.log('Payload being sent to API:', payload);
 
       // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/parents-info`, {
+      const response = await fetch(`/applications/${applicationId}/parents-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

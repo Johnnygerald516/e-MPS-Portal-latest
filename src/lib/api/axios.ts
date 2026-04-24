@@ -4,29 +4,20 @@ import { apiConfig, isValidUrl } from '../config/api-config';
 // Get API URL from config (already handles local vs production URLs correctly)
 let apiUrl = apiConfig.baseUrl;
 
-// Log the API URL for debugging
-console.log('[axios] Initial API URL from config:', apiUrl);
-console.log('[axios] Direct env var check:', process.env.NEXT_PUBLIC_API_URL);
 
 // Validate that we have an API URL
 if (!apiUrl) {
-  // Use the environment variable directly as fallback
   apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  console.log('[axios] Using fallback URL from env:', apiUrl);
   
   // In browser, we can show an error message
   if (typeof window !== 'undefined') {
-    console.warn('[axios] API URL not found in config, using env variable directly');
   }
 }
 
 // Validate URL format
 if (!isValidUrl(apiUrl)) {
-  console.error(`[axios] Invalid API URL format: "${apiUrl}"`);
 }
 
-// Log final URL being used
-console.log('[axios] Final API URL to be used:', apiUrl);
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -37,9 +28,6 @@ const api = axios.create({
   timeout: 30000, // 30 seconds timeout
   withCredentials: true, // Important for CORS with credentials
 });
-
-// Log the final baseURL being used
-console.log('[axios] Final axios instance baseURL:', api.defaults.baseURL);
 
 const publicEndpoints = [
   '/applications',
@@ -72,8 +60,6 @@ api.interceptors.request.use(
     
     // Log the full URL being called
     const fullUrl = config.baseURL ? `${config.baseURL}${config.url}` : config.url;
-    console.log('[axios] Making request to:', fullUrl);
-    
     return config;
   },
   (error) => {

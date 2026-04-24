@@ -75,6 +75,7 @@
     "react-markdown": "~10.1.0",
     "react-pdf": "^10.1.0",
     "react-qr-code": "^2.0.18",
+    "react-redux": "~9.2.0",
     "react-to-print": "^3.1.1",
     "recharts": "~3.2.1",
     "sonner": "^2.0.6",

@@ -369,7 +369,7 @@ export default function DocumentsPage() {
       if (nextStageId) {
         try {
           // Call the endpoint to proceed to the next stage
-          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+          const response = await fetch(`/applications/${applicationId}/attachments/${nextStageId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -460,7 +460,7 @@ export default function DocumentsPage() {
       const stageId = nextStageId || '80';
       
       // Call the endpoint to proceed to the next stage
-      const response = await fetch(`/api/applications/${applicationId}/attachments/${stageId}`, {
+      const response = await fetch(`/applications/${applicationId}/attachments/${stageId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -544,7 +544,7 @@ export default function DocumentsPage() {
       if (nextStageId) {
         try {
           // Call the endpoint to proceed to the next stage
-          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+          const response = await fetch(`/applications/${applicationId}/attachments/${nextStageId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

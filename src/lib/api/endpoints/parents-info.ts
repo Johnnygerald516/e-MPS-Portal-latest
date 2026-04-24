@@ -30,7 +30,7 @@ export const parentsInfoEndpoints = {
   saveParentsInfo: async (payload: ParentsInfoPayload): Promise<ParentsInfoResponse> => {
     try {
     // Use local Next.js API route for proper HTTPS handling
-    const response = await fetch(`/api/applications/${payload.applicationId}/parents-info`, {
+    const response = await fetch(`/applications/${payload.applicationId}/parents-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ export const parentsInfoEndpoints = {
   getParentsInfo: async (applicationId: string): Promise<any> => {
     try {
      // Use local Next.js API route for proper HTTPS handling
-     const response = await fetch(`/api/applications/${applicationId}/parents-info`, {
+     const response = await fetch(`/applications/${applicationId}/parents-info`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -216,8 +216,9 @@ export const applicationsEndpoints = {
   // Continue application
   continueApplication: async (data: ContinueApplicationRequest) => {
     try {
-      // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch('/api/applications/continue', {
+      // Call external API directly so browser network logs show the real API URL
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+      const response = await fetch(`${apiBase}/applications/continue`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

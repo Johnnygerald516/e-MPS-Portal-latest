@@ -52,7 +52,7 @@ export function RelationshipTypeSelect({
           argument2: 0
         };
         
-        const response = await fetch('/api/applications/lookup', {
+        const response = await fetch('/applications/lookup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

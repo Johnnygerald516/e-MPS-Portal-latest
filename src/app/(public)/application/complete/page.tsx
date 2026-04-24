@@ -77,7 +77,7 @@ function ApplicationCompleteContent(): React.ReactNode {
       setIsLoadingData(true);
       try {
         console.log('Fetching application data for ID:', applicationId);
-        const response = await fetch(`/api/applications/${applicationId}`);
+        const response = await fetch(`/applications/${applicationId}`);
         
         if (!response.ok) {
           console.error('API response not OK:', response.status, response.statusText);

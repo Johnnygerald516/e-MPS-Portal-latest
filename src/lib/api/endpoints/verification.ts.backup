@@ -422,7 +422,7 @@ export const verificationEndpoints = {
       console.log('Fetching districts with payload:', payload);
       console.log('Payload JSON:', JSON.stringify(payload));
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -496,7 +496,7 @@ export const verificationEndpoints = {
       console.log('Fetching wards with payload:', payload);
       console.log('Payload JSON:', JSON.stringify(payload));
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -558,7 +558,7 @@ export const verificationEndpoints = {
       
       console.log('Fetching nationalities with payload:', payload);
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -624,7 +624,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -666,7 +666,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -710,9 +710,9 @@ export const verificationEndpoints = {
       };
       
       console.log('Marital status payload:', payload);
-      console.log('Sending request to /api/applications/lookup');
+      console.log('Sending request to /applications/lookup');
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -801,7 +801,7 @@ export const verificationEndpoints = {
     try {
       console.log(`fetchLookup called with operation: ${payload.operationType}`);
       
-      const response = await fetch('/api/applications/lookup', {
+      const response = await fetch('/applications/lookup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -849,7 +849,7 @@ export const verificationEndpoints = {
   verifyRegistration: async (data: VerificationRequest): Promise<VerificationResponse> => {
     try {
       // Use the API proxy to avoid CORS issues
-      const response = await fetch('/api/applications', {
+      const response = await fetch('/applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

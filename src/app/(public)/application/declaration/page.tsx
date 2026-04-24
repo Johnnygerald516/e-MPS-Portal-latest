@@ -169,7 +169,7 @@ export default function DeclarationPage() {
     
     setIsLoadingApplicationData(true);
     try {
-      const response = await fetch(`/api/applications/${applicationId}`, {
+      const response = await fetch(`/applications/${applicationId}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache'
@@ -243,7 +243,7 @@ export default function DeclarationPage() {
         // Add a timeout to prevent hanging requests
         const controller = new AbortController();
         const requestTimeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout (increased from 15s)
-        const response = await fetch(`/api/applications/${applicationId}`, {
+        const response = await fetch(`/applications/${applicationId}`, {
           signal: controller.signal,
           // Add cache control headers to prevent caching issues
           headers: {
@@ -376,7 +376,7 @@ export default function DeclarationPage() {
                     } 
                     // else if (attachment.attachmentID) {
                     //   // Fetch the attachment data using the attachment ID
-                    //   const attachmentResponse = await fetch(`/api/applications/documents/${attachment.attachmentID}`);
+                    //   const attachmentResponse = await fetch(`/applications/documents/${attachment.attachmentID}`);
                       
                     //   if (attachmentResponse.ok) {
                     //     const attachmentData = await attachmentResponse.json();
@@ -571,7 +571,7 @@ export default function DeclarationPage() {
       
       // Submit the declaration - using async/await for better control of loading state
       try {
-        const response = await fetch(`/api/applications/${applicationId}/declaration`, {
+        const response = await fetch(`/applications/${applicationId}/declaration`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

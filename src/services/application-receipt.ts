@@ -44,7 +44,7 @@ export const getReceiptByControlNumber = async (controlNumber: string): Promise<
     }
 
    // Use local Next.js API route for proper HTTPS handling and redirect management
-    const response = await axios.get(`/api/applications/${controlNumber}/receipt`);
+    const response = await axios.get(`/applications/${controlNumber}/receipt`);
   
     
     return response.data;

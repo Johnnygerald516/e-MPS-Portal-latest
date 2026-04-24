@@ -48,7 +48,7 @@ export const residenceInfoEndpoints = {
       console.log('Payload being sent to API:', payload);
 
       // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/residence-info`, {
+      const response = await fetch(`/applications/${applicationId}/residence-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

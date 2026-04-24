@@ -324,7 +324,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       setLoading(true);
       
       // Call the endpoint to proceed to the next stage
-      const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+      const response = await fetch(`/applications/${applicationId}/attachments/${nextStageId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -418,7 +418,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       };
       
       // Send to the attachments endpoint
-      const response = await fetch(`/api/applications/${applicationId}/attachments`, {
+      const response = await fetch(`/applications/${applicationId}/attachments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -767,7 +767,7 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({ applicationId, onNextSt
       setUploadProgress(70);
       
       // Submit directly to the attachments endpoint
-      const response = await fetch(`/api/applications/${applicationId}/attachments`, {
+      const response = await fetch(`/applications/${applicationId}/attachments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

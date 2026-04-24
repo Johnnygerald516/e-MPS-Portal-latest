@@ -97,7 +97,7 @@ export const personalInfoEndpoints = {
       console.log('Payload being sent to API:', payload);
 
       // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/personal-info`, {
+      const response = await fetch(`/applications/${applicationId}/personal-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

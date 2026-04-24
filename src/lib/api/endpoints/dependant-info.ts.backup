@@ -120,7 +120,7 @@ export const dependantInfoEndpoints = {
       console.log('================================================================');
 
       // Use the API proxy to avoid CORS issues
-      const response = await fetch(`/api/applications/${applicationId}/dependants`, {
+      const response = await fetch(`/applications/${applicationId}/dependants`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

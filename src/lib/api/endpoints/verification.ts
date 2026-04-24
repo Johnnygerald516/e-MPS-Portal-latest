@@ -2,6 +2,11 @@
 import { toast } from "@/components/ui/use-toast";
 import { apiConfig, ensureHttps } from '@/lib/config/api-config';
 
+// Call external API directly so browser network logs show the real API URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const LOOKUP_URL = `${API_BASE}/applications/lookup`;
+const APPLICATIONS_URL = `${API_BASE}/applications`;
+
 // Type definitions
 interface VerificationRequest {
   subjectId: string;
@@ -207,7 +212,7 @@ export const verificationEndpoints = {
         argument1: 1,
         argument2: 0
       };
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +244,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -267,7 +272,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -295,7 +300,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -328,7 +333,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -366,7 +371,7 @@ export const verificationEndpoints = {
         argument1: numericRegionId,
         argument2: 0
       };
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -405,7 +410,7 @@ export const verificationEndpoints = {
         argument1: numericDistrictId,
         argument2: 0
       };
-     const response = await fetch('/api/applications/lookup', {
+     const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -433,7 +438,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -461,7 +466,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -489,7 +494,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -517,7 +522,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -551,7 +556,7 @@ export const verificationEndpoints = {
         argument2: 0
       };
       
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -573,7 +578,7 @@ export const verificationEndpoints = {
   // Generic lookup function for various data types
   fetchLookup: async (payload: LookupRequest): Promise<LookupResponse> => {
     try {
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -598,7 +603,7 @@ export const verificationEndpoints = {
     try {
       // Use local Next.js API route to handle the request
       // This ensures proper HTTPS enforcement and redirect handling on the server side
-      const response = await fetch('/api/applications', {
+      const response = await fetch(APPLICATIONS_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

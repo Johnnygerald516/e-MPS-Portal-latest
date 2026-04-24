@@ -71,7 +71,7 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
       setIsLoading(true);
       try {
         // In a real application, you would fetch the error data from your API
-        // await fetch(`/api/applications/${resolvedParams.id}/errors`)
+        // await fetch(`/applications/${resolvedParams.id}/errors`)
         
         // For demo purposes, we'll simulate the API response
         setTimeout(() => {
@@ -129,7 +129,7 @@ export default function ApplicationErrorPage({ params }: { params: Promise<{ id:
     
     try {
       // In a real application, you would submit the form data to your API
-      // await fetch(`/api/applications/${params.id}/fix`, {
+      // await fetch(`/applications/${params.id}/fix`, {
       //   method: 'POST',
       //   body: JSON.stringify(formData)
       // })

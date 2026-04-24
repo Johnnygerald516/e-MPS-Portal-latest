@@ -2,6 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+
+// Force dynamic rendering to prevent prerendering errors with client-side data
+export const dynamic = 'force-dynamic';
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { z } from "zod";
@@ -223,8 +227,8 @@ export default function PersonalInfoPage() {
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP")
+                          {field.value && !isNaN(new Date(field.value).getTime()) ? (
+                            format(new Date(field.value), "PPP")
                           ) : (
                             <span>Pick a date</span>
                           )}

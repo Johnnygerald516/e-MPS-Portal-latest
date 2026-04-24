@@ -23,7 +23,7 @@ export const documentsEndpoints = {
         argument2: 0
       };
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/lookup`, {
+      const response = await fetch(`/applications/lookup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export const documentsEndpoints = {
       formData.append('attachmentTypeId', attachmentTypeId.toString());
       
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/documents/upload`, {
+      const response = await fetch(`/applications/documents/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -137,7 +137,7 @@ export const documentsEndpoints = {
   deleteDocument: async (documentId: string): Promise<any> => {
     try {
        // Use local Next.js API route for proper HTTPS handling
-       const response = await fetch(`/api/applications/documents/${documentId}`, {
+       const response = await fetch(`/applications/documents/${documentId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

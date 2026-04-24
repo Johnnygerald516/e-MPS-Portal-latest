@@ -32,7 +32,7 @@ export const residenceInfoEndpoints = {
       console.log('Saving residence info with payload:', payload);
       
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${payload.applicationId}/residence-info`, {
+      const response = await fetch(`/applications/${payload.applicationId}/residence-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export const residenceInfoEndpoints = {
       console.log('Getting residence info for application:', applicationId);
       
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${applicationId}/residence-info`, {
+      const response = await fetch(`/applications/${applicationId}/residence-info`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -1,8 +1,11 @@
 /**
- * API Configuration
+ * API Configuration - CENTRALIZED
  * 
- * This file centralizes all API configuration settings.
- * All API URLs should be derived from environment variables defined here.
+ * This file is the SINGLE SOURCE OF TRUTH for API configuration.
+ * All API URLs are read from the .env file via NEXT_PUBLIC_API_URL.
+ * 
+ * NO hardcoded URLs - everything comes from environment variables.
+ * See env.example for required environment variables.
  */
 
 /**
@@ -17,42 +20,28 @@ export function isLocalUrl(url: string): boolean {
 
 /**
  * Get the main API URL from environment variables
- * @returns The API URL with fallback to development URL
+ * @returns The API URL from .env file (NEXT_PUBLIC_API_URL)
+ * @throws Error if NEXT_PUBLIC_API_URL is not defined
  */
 export function getApiUrl(): string {
-  // Always use the production API URL as fallback
-  const productionApiUrl = 'https://migrantonline.immigration.go.tz/api';
-  
-  // Use environment variable with fallback to production URL
+  // Get API URL from environment variable - SINGLE SOURCE OF TRUTH
   let apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
-  // Log the API URL for debugging
-  console.log('[api-config] NEXT_PUBLIC_API_URL:', apiUrl);
-  console.log('[api-config] Production API URL:', productionApiUrl);
-  
   if (!apiUrl) {
-    console.warn('[api-config] NEXT_PUBLIC_API_URL is not defined in environment variables');
-    // Return production API URL as final fallback
-    return productionApiUrl;
+    throw new Error('NEXT_PUBLIC_API_URL is not defined in .env file. Please set it before starting the application.');
   }
   
   // For local development URLs, don't force HTTPS
   if (isLocalUrl(apiUrl)) {
-    console.log('[api-config] Local development URL detected, keeping as-is:', apiUrl);
     return apiUrl;
   }
   
   // For production URLs, ensure HTTPS protocol
   if (apiUrl.startsWith('http://')) {
-    console.warn('[api-config] Converting http:// to https://');
     apiUrl = apiUrl.replace('http://', 'https://');
   } else if (!apiUrl.startsWith('https://')) {
-    console.warn('[api-config] Adding https:// protocol to URL');
     apiUrl = 'https://' + apiUrl;
   }
-  
-  console.log('[api-config] Final API URL:', apiUrl);
-  
   return apiUrl;
 }
 
@@ -88,7 +77,6 @@ export function ensureHttps(url: string): string {
   
   // For local development URLs, don't force HTTPS
   if (isLocalUrl(url)) {
-    console.log('[ensureHttps] Local URL detected, keeping protocol as-is:', url);
     // Ensure it has a protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       return 'http://' + url;
@@ -98,13 +86,11 @@ export function ensureHttps(url: string): string {
   
   // Convert http:// to https:// for production URLs
   if (url.startsWith('http://')) {
-    console.warn('[ensureHttps] Converting http:// to https://');
     return url.replace('http://', 'https://');
   }
   
   // Add https:// if no protocol
   if (!url.startsWith('https://') && !url.startsWith('http://')) {
-    console.warn('[ensureHttps] Adding https:// protocol');
     return 'https://' + url;
   }
   
@@ -149,14 +135,18 @@ export const trustedHostnames = [
 /**
  * Get the API URL for use in API routes
  * Handles local development URLs (keeps HTTP) vs production URLs (ensures HTTPS)
- * @param fallback Optional fallback URL if env variable is not set
- * @returns The API URL with correct protocol
+ * @returns The API URL with correct protocol from .env file
+ * @throws Error if NEXT_PUBLIC_API_URL is not defined
  */
-export function getApiUrlForRoute(fallback: string = 'https://migrantonline.immigration.go.tz/api'): string {
-  const rawUrl = process.env.NEXT_PUBLIC_API_URL || fallback;
+export function getApiUrlForRoute(): string {
+  const rawUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  if (!rawUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL is not defined in .env file. Please set it before starting the application.');
+  }
+  
   // For local URLs, return as-is; for production, ensure HTTPS
   if (isLocalUrl(rawUrl)) {
-    console.log('[getApiUrlForRoute] Local URL detected:', rawUrl);
     return rawUrl;
   }
   return ensureHttps(rawUrl);

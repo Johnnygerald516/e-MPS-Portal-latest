@@ -36,7 +36,7 @@ export const getApplicationBill = async (controlNumber: string): Promise<BillRes
     }
 
     // Use local Next.js API route for proper HTTPS handling and redirect management
-    const response = await axios.get(`/api/applications/${controlNumber}/bill`);
+    const response = await axios.get(`/applications/${controlNumber}/bill`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

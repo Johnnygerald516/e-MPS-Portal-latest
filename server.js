@@ -39,36 +39,24 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production';
 }
 
-// Load environment variables
-console.log('=== Starting Server ===');
-console.log('Current directory:', process.cwd());
 
 // Always load .env file first
 try {
   const defaultEnvFile = path.resolve(process.cwd(), '.env');
   if (fs.existsSync(defaultEnvFile)) {
-    console.log('Loading .env from:', defaultEnvFile);
     dotenv.config({ path: defaultEnvFile, override: true });
-    console.log('API URL from .env:', process.env.NEXT_PUBLIC_API_URL);
-  } else {
-    console.warn('No .env file found at:', defaultEnvFile);
   }
 } catch (error) {
-  console.error('Error loading default .env:', error);
 }
 
 if (process.env.NODE_ENV === 'production') {
   try {
     const envFile = path.resolve(process.cwd(), '.env.production');
     if (fs.existsSync(envFile)) {
-      console.log('Loading .env.production from:', envFile);
       dotenv.config({ path: envFile, override: true });
-      console.log('API URL loaded:', process.env.NEXT_PUBLIC_API_URL);
     } else {
-      console.warn('.env.production not found at:', envFile);
     }
   } catch (error) {
-    console.error('Error loading .env.production:', error);
   }
 }
 
@@ -81,16 +69,10 @@ const localIp = getLocalIpForDisplay();
 
 // Use the configured API URL or exit if not defined
 if (!process.env.NEXT_PUBLIC_API_URL) {
-  console.error('❌ NEXT_PUBLIC_API_URL is not defined. Please set it in .env or .env.production before starting the server.');
   process.exit(1);
 }
-console.log('✅ Using API URL:', process.env.NEXT_PUBLIC_API_URL);
 
 
-console.log('Server configuration:');
-console.log('- Host:', hostname);
-console.log('- Port:', port);
-console.log('- API URL:', process.env.NEXT_PUBLIC_API_URL);
 
 const app = next({ 
   dev,
@@ -104,6 +86,13 @@ const app = next({
     },
     eslint: {
       ignoreDuringBuilds: true,
+    },
+    webpack: (config) => {
+      // Disable file watching to prevent scanning entire drive
+      config.watchOptions = {
+        ignored: '**/',
+      };
+      return config;
     }
   }
 });
@@ -116,15 +105,10 @@ app.prepare().then(() => {
       const parsedUrl = parse(req.url, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
-      console.error('Error handling request:', err);
       res.statusCode = 500;
       res.end('Internal Server Error');
     }
   }).listen(port, hostname, (err) => {
     if (err) throw err;
-    console.log('=== Server Ready ===');
-    console.log(`> Local: http://localhost:${port}`);
-    console.log(`> Network: http://${localIp}:${port}`);
-    console.log(`> API Server: ${process.env.NEXT_PUBLIC_API_URL}`);
   });
 });

@@ -78,7 +78,7 @@ export const getApplicationPass = async (applicationId: string): Promise<Applica
     }
 
     // Use local Next.js API route for proper HTTPS handling and redirect management
-    const response = await axios.get(`/api/applications/${applicationId}/pass`);
+    const response = await axios.get(`/applications/${applicationId}/pass`);
     return response.data;
   } catch (error) {
      if (axios.isAxiosError(error)) {
@@ -148,53 +148,37 @@ export const convertToPassData = (jsonResult: {
   let photoDataUrl: string | undefined = undefined;
   if (photoData?.AttachmentImage) {
     try {
-      console.log("Processing photo data from API response");
-      console.log("Photo data type:", typeof photoData.AttachmentImage);
-      console.log("Photo data length:", photoData.AttachmentImage.length);
-      console.log("Photo data preview:", photoData.AttachmentImage.substring(0, 50) + "...");
       
       // Check if it's already a data URL
       if (photoData.AttachmentImage.startsWith('data:image')) {
-        console.log("Photo is already a data URL");
         photoDataUrl = photoData.AttachmentImage;
       } else {
         // Clean and validate the base64 string
         const cleanedBase64 = cleanBase64String(photoData.AttachmentImage);
-        console.log("Cleaned base64 length:", cleanedBase64.length);
         
         if (isValidBase64(cleanedBase64)) {
-          console.log("Base64 is valid");
           // Convert to proper data URL with format detection
           const dataUrl = base64ToDataUrl(cleanedBase64);
           if (dataUrl) {
             photoDataUrl = dataUrl;
-            console.log("Photo data URL processed successfully:", dataUrl.substring(0, 50) + "...");
           } else {
-            console.error("Failed to create data URL from valid base64");
             // Try direct construction as JPEG
             photoDataUrl = `data:image/jpeg;base64,${cleanedBase64}`;
-            console.log("Created direct JPEG data URL");
           }
         } else {
-          console.error("Invalid base64 data in photo attachment");
           // Try with the raw data as fallback
           const dataUrl = base64ToDataUrl(photoData.AttachmentImage);
           if (dataUrl) {
             photoDataUrl = dataUrl;
-            console.log("Created data URL from raw attachment data");
           } else {
-            console.error("All base64 conversion attempts failed");
             // Last resort: try direct construction with cleaned string
             photoDataUrl = `data:image/jpeg;base64,${cleanedBase64}`;
-            console.log("Created last-resort JPEG data URL");
           }
         }
       }
     } catch (error) {
-      console.error("Error processing photo data:", error);
     }
   } else {
-    console.log("No photo data available in the response");
   }
 
   return {

@@ -10,22 +10,22 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV HOST=0.0.0.0
 ENV PORT=5002
 
-# Install dependencies only when needed
+# Install dependencies only when needed - using official registry (faster)
 FROM base AS deps
 COPY package.json package-lock.json ./
-# Configure npm to use a more reliable registry and add retry logic
-RUN npm config set registry https://registry.npmmirror.com/ && \
-    npm config set fetch-retries 5 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm install --legacy-peer-deps || \
-    (npm cache clean --force && npm install --legacy-peer-deps --no-package-lock)
+# Use official npm registry for faster downloads outside China
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000 && \
+    npm ci --legacy-peer-deps && \
+    npm cache clean --force
 
 # Install production dependencies only
 FROM base AS prod-deps
 COPY package.json package-lock.json ./
-RUN npm config set registry https://registry.npmmirror.com/ && \
-    npm install --production --legacy-peer-deps && \
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm ci --production --legacy-peer-deps && \
     npm cache clean --force
 
 # Rebuild the source code only when needed
@@ -35,7 +35,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
 RUN npm run build
@@ -63,8 +63,9 @@ EXPOSE 5002
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="0.0.1"
+LABEL org.opencontainers.image.version="0.0.3"
 LABEL org.opencontainers.image.description="Migrant Portal Frontend"
 
 # Start the application using Next.js standalone server
 CMD ["node", "server.js"]
+

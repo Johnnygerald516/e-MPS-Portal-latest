@@ -34,7 +34,7 @@ export const personalInfoEndpoints = {
   savePersonalInfo: async (payload: PersonalInfoPayload): Promise<PersonalInfoResponse> => {
     try {
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${payload.applicationId}/personal-info`, {
+      const response = await fetch(`/applications/${payload.applicationId}/personal-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const personalInfoEndpoints = {
   getPersonalInfo: async (applicationId: string): Promise<any> => {
     try {
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${applicationId}/personal-info`, {
+      const response = await fetch(`/applications/${applicationId}/personal-info`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -495,7 +495,7 @@ export default function PersonalInfoEditDialog({
       });
       
       // Use direct fetch with PUT method to update personal info
-      const res = await fetch(`/api/applications/${payload.applicationId}/personal-info`, {
+      const res = await fetch(`/applications/${payload.applicationId}/personal-info`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

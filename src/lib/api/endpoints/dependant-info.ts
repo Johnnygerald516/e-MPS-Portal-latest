@@ -41,7 +41,7 @@ export const dependantInfoEndpoints = {
       console.log('Saving dependant info with payload:', payload);
       
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${payload.applicationId}/dependants`, {
+      const response = await fetch(`/applications/${payload.applicationId}/dependants`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export const dependantInfoEndpoints = {
       console.log('Getting dependant info for application:', applicationId);
       
       // Use local Next.js API route for proper HTTPS handling
-      const response = await fetch(`/api/applications/${applicationId}/dependants`, {
+      const response = await fetch(`/applications/${applicationId}/dependants`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

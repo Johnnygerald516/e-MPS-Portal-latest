@@ -28,7 +28,7 @@ export const getBillData = async (controlNumber: string | number): Promise<BillD
     const controlNumberStr = String(controlNumber);
     
     // Use local Next.js API route for proper HTTPS handling and redirect management
-    const response = await fetch(`/api/applications/${controlNumberStr}/bill`);
+    const response = await fetch(`/applications/${controlNumberStr}/bill`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch bill data: ${response.status} ${response.statusText}`);
@@ -42,7 +42,6 @@ export const getBillData = async (controlNumber: string | number): Promise<BillD
     
     return responseData.jsonResult;
   } catch (error) {
-    console.error('Error fetching bill data:', error);
     throw new Error('Failed to fetch bill data');
   }
 };

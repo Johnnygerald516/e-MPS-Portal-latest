@@ -299,7 +299,7 @@ export default function DependantInfoPage() {
         
         try {
           // Call the endpoint to proceed to the next stage
-          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+          const response = await fetch(`/applications/${applicationId}/attachments/${nextStageId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -535,7 +535,7 @@ export default function DependantInfoPage() {
         
         try {
           // Call the endpoint to proceed to the next stage
-          const response = await fetch(`/api/applications/${applicationId}/attachments/${nextStageId}`, {
+          const response = await fetch(`/applications/${applicationId}/attachments/${nextStageId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

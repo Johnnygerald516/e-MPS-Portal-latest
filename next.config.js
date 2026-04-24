@@ -2,10 +2,10 @@
 
 // Load environment variables
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-console.log('Loading next.config.js with NEXT_PUBLIC_API_URL:', apiUrl);
 
 const nextConfig = {
   reactStrictMode: false,
+  output: 'standalone',
   images: {
     domains: [
       'i.pravatar.cc',
@@ -16,8 +16,6 @@ const nextConfig = {
   async headers() {
     // Get API URL from environment variable or use fallback
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    console.log('Using API URL in headers:', apiUrl);
-    console.log('Using .env file:', process.env.NODE_ENV);
     
     return [
       {
@@ -34,30 +32,16 @@ const nextConfig = {
   },
   // Add API proxy configuration
   async rewrites() {
-    // Get API URL from environment variable or use fallback
+    // Get API URL from environment variable - respect the protocol as defined in .env
     let apiUrl = process.env.NEXT_PUBLIC_API_URL;
     
-    // Check if this is a local development URL
-    const isLocalUrl = apiUrl && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'));
-    
-    // Only force HTTPS for non-local URLs
-    if (!isLocalUrl) {
-      if (apiUrl && apiUrl.startsWith('http://')) {
-        console.warn('[next.config.js] Converting http:// to https:// in API URL');
-        apiUrl = apiUrl.replace('http://', 'https://');
-      } else if (apiUrl && !apiUrl.startsWith('https://') && !apiUrl.startsWith('http://')) {
-        console.warn('[next.config.js] Adding https:// protocol to API URL');
-        apiUrl = 'https://' + apiUrl;
-      }
-    } else {
-      console.log('[next.config.js] Local development URL detected, keeping as-is:', apiUrl);
+    // Ensure a protocol is present; default to http:// if missing
+    if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+      apiUrl = 'http://' + apiUrl;
     }
-    
-    console.log('Using API URL in rewrites:', apiUrl);
     
     // If no API URL is provided, don't set up rewrites
     if (!apiUrl) {
-      console.warn('No API URL provided, skipping rewrites');
       return [];
     }
     
@@ -76,7 +60,7 @@ const nextConfig = {
       {
         // Direct external API access - must be last to avoid conflicts with Next.js API routes
         source: '/applications/:path*',
-        destination: `${apiUrl}/:path*`,
+        destination: `${apiUrl}/applications/:path*`,
       },
     ];
   },
@@ -92,6 +76,12 @@ const nextConfig = {
   },
   // Ensure CSS modules are properly processed
   webpack: (config) => {
+    // Fix react-redux resolution for recharts
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-redux': require.resolve('react-redux'),
+    };
+    
     // Push the CSS loader configuration
     const cssRules = config.module.rules
       .find((rule) => typeof rule.oneOf === 'object')
