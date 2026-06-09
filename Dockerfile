@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
-ARG NEXT_PUBLIC_API_URL=http://10.248.0.12:3300
+ARG NEXT_PUBLIC_API_URL=http://10.232.0.12:3300
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV HOST=0.0.0.0
 ENV PORT=5002
@@ -48,7 +48,7 @@ ENV NODE_ENV=production
 # Standalone server uses PORT and HOSTNAME env vars
 ENV PORT=5002
 ENV HOSTNAME=0.0.0.0
-ARG NEXT_PUBLIC_API_URL=http://10.248.0.12:3300
+ARG NEXT_PUBLIC_API_URL=http://10.232.0.12:3300
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Copy standalone output (includes minimal node_modules and built-in server)
@@ -63,7 +63,7 @@ EXPOSE 5002
 
 # Set container label for the image name
 LABEL org.opencontainers.image.name="migrant-fe-portal"
-LABEL org.opencontainers.image.version="0.0.1"
+LABEL org.opencontainers.image.version="0.0.4"
 LABEL org.opencontainers.image.description="Migrant Portal Frontend"
 
 # Start the application using Next.js standalone server

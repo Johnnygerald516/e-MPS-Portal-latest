@@ -5,7 +5,7 @@
 
 # Configuration
 IMAGE_NAME="migrant-fe-portal"
-IMAGE_VERSION="0.0.3"
+IMAGE_VERSION="0.0.4"
 LOCAL_REGISTRY="10.248.0.7:30000"
 CONTAINER_PORT="5002"
 
