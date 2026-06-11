@@ -87,6 +87,9 @@ export default function ContinueApplicationPage() {
       // Call the API to continue the application
       const response = await applicationsEndpoints.continueApplication(requestData);
       
+      // Debug: log the raw API response so we can see exactly what the backend returns
+      console.log('=== CONTINUE APPLICATION RESPONSE ===', JSON.stringify(response, null, 2));
+      
       // Parse jsonResult — handle both object and stringified-JSON formats
       let result = response.jsonResult;
       if (typeof result === 'string') {
@@ -185,13 +188,13 @@ export default function ContinueApplicationPage() {
         <div>
         <h2 className="text-lg font-bold text-slate-500 mb-6 border-b border-slate-200 pb-1">Taarifa za Msingi</h2>
         
-      {/*   {error && (
+        {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Hitilafu</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        )}*/}
+        )}
         
         {completedMessage && (
           <Alert className="mb-4 bg-green-50 border-green-200">
