@@ -23,16 +23,17 @@ interface ContinueApplicationFormData {
   phoneNumber: string;
 }
 
-// Map step numbers to their corresponding routes
+// Map each completed application stage (appStageID) to the NEXT page the
+// applicant should fill. e.g. stage 10 is done → go to basic-info (stage 20).
 const stepRoutes: Record<number, string> = {
-  10: "/application/basic-info",      // basic-info
-  20: "/application/residence-info",  // residence-info
-  30: "/application/parents-info",   // parents-info
-  40: "/application/dependant-info", // dependants-info
-  50: "/application/documents",       // documents
-  60: "/application/declaration",     // declaration
-  70: "/application/complete",        // complete
-  80: "completed"                     // Special case - show completed message
+  10: "/application/basic-info",      // 10 done → next is basic-info (20)
+  20: "/application/residence-info",  // 20 done → next is residence-info (30)
+  30: "/application/parents-info",    // 30 done → next is parents-info (40)
+  40: "/application/dependant-info",  // 40 done → next is dependants-info (50)
+  50: "/application/documents",       // 50 done → next is documents (60)
+  60: "/application/declaration",     // 60 done → next is declaration (70)
+  70: "/application/complete",        // 70 done → next is complete (80)
+  80: "completed"                     // fully completed - show message
 };
 
 export default function ContinueApplicationPage() {
@@ -62,43 +63,93 @@ export default function ContinueApplicationPage() {
     setError(null);
     
     try {
-      // Prepare request data
+      // Prepare request data — trim whitespace so blank entries are caught
+      const applicationId = formData.applicationId.trim();
+      const phoneNumber = formData.phoneNumber.trim();
+
+      if (!applicationId || !phoneNumber) {
+        setError("Tafadhali weka Namba ya Ombi na Namba ya Simu.");
+        toast({
+          title: "Error",
+          description: "Tafadhali weka Namba ya Ombi na Namba ya Simu.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const requestData: ContinueApplicationRequest = {
-        applicationId: formData.applicationId,
-        phoneNumber: formData.phoneNumber
+        applicationId,
+        phoneNumber
       };
       
       // Call the API to continue the application
       const response = await applicationsEndpoints.continueApplication(requestData);
       
-      if (response.ackCode === 1) {
-        // Success - update application context with the response data
-        // Handle both response formats: applicationId or applicationID
-        const returnedAppId = response.jsonResult.applicationID || response.jsonResult.applicationId;
-        const currentStep = response.jsonResult.appStageID || response.jsonResult.currentStep || 10;
+      // Debug: log the raw API response so we can see exactly what the backend returns
+      console.log('=== CONTINUE APPLICATION RESPONSE ===', JSON.stringify(response, null, 2));
+      
+      // Parse jsonResult — handle both object and stringified-JSON formats
+      let result = response.jsonResult;
+      if (typeof result === 'string') {
+        try { result = JSON.parse(result); } catch { /* keep as-is */ }
+      }
+      
+      if (response.ackCode === 1 && result) {
+        // Extract applicationId — try all common field-name variants
+        const r = result as Record<string, unknown>;
+        const returnedAppId = (
+          r.applicationID || r.applicationId || r.ApplicationID ||
+          r.ApplicationId || r.application_id || applicationId
+        ) as string;
+
+        // Extract the last completed stage — search for any stage-related field
+        // in the response regardless of exact casing or naming convention.
+        let completedStage = 0;
+        const stageKeys = ['stageID', 'StageID', 'stageId',
+          'appStageID', 'AppStageID', 'appStageId',
+          'currentStep', 'CurrentStep', 'stage', 'Stage',
+          'app_stage_id', 'current_step'];
+        for (const key of stageKeys) {
+          if (r[key] !== undefined && r[key] !== null) {
+            completedStage = Number(r[key]);
+            break;
+          }
+        }
+        // Fallback: if no stage field found, default to 10
+        if (!completedStage) completedStage = 10;
+
+        console.log('=== STAGE EXTRACTED ===', { completedStage, resultKeys: Object.keys(r) });
+
+        // The next step the applicant should fill is completedStage + 10
+        const nextStep = Math.min(completedStage + 10, 80);
         
         updateFormData({
-          applicationId: returnedAppId,
-          currentStep: currentStep as any // Type cast to ApplicationStep
+          applicationId: returnedAppId as string,
+          phoneNumber,
+          currentStep: nextStep as any // Type cast to ApplicationStep
         });
         
-        // Get the next route based on the appStageID
-        const nextRoute = stepRoutes[currentStep];
+        // Get the route for the next page to fill
+        const nextRoute = stepRoutes[completedStage];
         
-        if (currentStep === 80) {
+        if (completedStage >= 80) {
           // Application is already completed - show message
           setCompletedMessage(`Ombi lako ${returnedAppId} limekamilisha mchakato wa maombi. Asante kwa kutumia mfumo wetu.`);
           setIsLoading(false);
           return;
         }
         
-        if (nextRoute && nextRoute !== "completed") {
-          // Navigate to the appropriate page with the application ID
-          router.push(`${nextRoute}?applicationId=${returnedAppId}`);
-        } else {
-          // Fallback to basic-info if step is not recognized
-          router.push(`/application/basic-info?applicationId=${returnedAppId}`);
-        }
+        const targetUrl = nextRoute && nextRoute !== "completed"
+          ? `${nextRoute}?applicationId=${returnedAppId}`
+          : `/application/basic-info?applicationId=${returnedAppId}`;
+
+        console.log('=== NAVIGATING TO ===', targetUrl);
+
+        // Use window.location for a full navigation to ensure the target
+        // page loads fresh with the updated application context.
+        window.location.href = targetUrl;
+        return;
       } else {
         // Error handling
         setError(response.ackMessage || "Failed to continue application. Please check your details.");
@@ -158,13 +209,13 @@ export default function ContinueApplicationPage() {
         <div>
         <h2 className="text-lg font-bold text-slate-500 mb-6 border-b border-slate-200 pb-1">Taarifa za Msingi</h2>
         
-      {/*   {error && (
+        {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Hitilafu</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        )}*/}
+        )}
         
         {completedMessage && (
           <Alert className="mb-4 bg-green-50 border-green-200">

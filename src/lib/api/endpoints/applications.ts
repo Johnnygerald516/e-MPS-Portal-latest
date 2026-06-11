@@ -89,9 +89,12 @@ export interface ContinueApplicationResponse {
   jsonResult: {
     applicationId?: string;
     applicationID?: string;
+    phoneNumber?: string;
+    stageID?: number;
+    SubjectID?: string;
     currentStep?: number;
     appStageID?: number;
-    // Additional application data may be included
+    [key: string]: unknown;
   };
 }
 
@@ -213,24 +216,25 @@ export const applicationsEndpoints = {
     }
   },
   
-  // Continue application
-  continueApplication: async (data: ContinueApplicationRequest) => {
+  // Continue application — calls the Next.js API route which proxies
+  // server-side to the external backend, avoiding CORS entirely.
+  continueApplication: async (data: ContinueApplicationRequest): Promise<ContinueApplicationResponse> => {
     try {
-      // Call external API directly so browser network logs show the real API URL
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-      const response = await fetch(`${apiBase}/applications/continue`, {
+      const response = await fetch('/api/applications/continue', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
-      
+
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          responseData?.ackMessage || `API error: ${response.status} ${response.statusText}`
+        );
       }
-      
-      return await response.json() as ContinueApplicationResponse;
+
+      return responseData as ContinueApplicationResponse;
     } catch (error) {
       throw error;
     }

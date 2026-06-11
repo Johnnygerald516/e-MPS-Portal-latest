@@ -9,13 +9,22 @@
  */
 
 /**
- * Check if a URL is a local development URL
- * @param url The URL to check
- * @returns True if the URL is for localhost or 127.0.0.1
+ * Check if a URL points to a local or private-network host where HTTPS
+ * should NOT be forced (localhost, 127.0.0.1, RFC-1918 private IPs).
  */
 export function isLocalUrl(url: string): boolean {
   if (!url) return false;
-  return url.includes('localhost') || url.includes('127.0.0.1');
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+    // RFC-1918 private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+    if (/^10\./.test(hostname)) return true;
+    if (/^192\.168\./.test(hostname)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
+    return false;
+  } catch {
+    return url.includes('localhost') || url.includes('127.0.0.1');
+  }
 }
 
 /**
