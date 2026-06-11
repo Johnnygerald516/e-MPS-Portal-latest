@@ -213,24 +213,25 @@ export const applicationsEndpoints = {
     }
   },
   
-  // Continue application — uses relative URL so the request is proxied through
-  // Next.js rewrites (/applications/:path* → external API), avoiding CORS.
+  // Continue application — calls the Next.js API route which proxies
+  // server-side to the external backend, avoiding CORS entirely.
   continueApplication: async (data: ContinueApplicationRequest): Promise<ContinueApplicationResponse> => {
     try {
-      const response = await fetch('/applications/continue', {
+      const response = await fetch('/api/applications/continue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
         throw new Error(
-          errorData?.ackMessage || `API error: ${response.status} ${response.statusText}`
+          responseData?.ackMessage || `API error: ${response.status} ${response.statusText}`
         );
       }
 
-      return await response.json() as ContinueApplicationResponse;
+      return responseData as ContinueApplicationResponse;
     } catch (error) {
       throw error;
     }

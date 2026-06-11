@@ -18,8 +18,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get API URL and ensure HTTPS
-    const apiUrl = ensureHttps(process.env.NEXT_PUBLIC_API_URL || '');
+    // Get API URL — keep the original protocol (HTTP for private-network backends)
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+      apiUrl = 'http://' + apiUrl;
+    }
     
     if (!apiUrl) {
       console.error('NEXT_PUBLIC_API_URL environment variable is not set');
