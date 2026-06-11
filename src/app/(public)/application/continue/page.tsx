@@ -64,23 +64,50 @@ export default function ContinueApplicationPage() {
     setError(null);
     
     try {
-      // Prepare request data
+      // Prepare request data — trim whitespace so blank entries are caught
+      const applicationId = formData.applicationId.trim();
+      const phoneNumber = formData.phoneNumber.trim();
+
+      if (!applicationId || !phoneNumber) {
+        setError("Tafadhali weka Namba ya Ombi na Namba ya Simu.");
+        toast({
+          title: "Error",
+          description: "Tafadhali weka Namba ya Ombi na Namba ya Simu.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const requestData: ContinueApplicationRequest = {
-        applicationId: formData.applicationId,
-        phoneNumber: formData.phoneNumber
+        applicationId,
+        phoneNumber
       };
       
       // Call the API to continue the application
       const response = await applicationsEndpoints.continueApplication(requestData);
       
-      if (response.ackCode === 1) {
-        // Success - update application context with the response data
-        // Handle both response formats: applicationId or applicationID
-        const returnedAppId = response.jsonResult.applicationID || response.jsonResult.applicationId;
-        const currentStep = response.jsonResult.appStageID || response.jsonResult.currentStep || 10;
+      // Parse jsonResult — handle both object and stringified-JSON formats
+      let result = response.jsonResult;
+      if (typeof result === 'string') {
+        try { result = JSON.parse(result); } catch { /* keep as-is */ }
+      }
+      
+      if (response.ackCode === 1 && result) {
+        // Extract applicationId — backend may use applicationID, ApplicationID, or applicationId
+        const returnedAppId =
+          result.applicationID || result.applicationId ||
+          (result as Record<string, unknown>).ApplicationID || applicationId;
+
+        // Extract saved stage — backend may use appStageID, AppStageID, or currentStep
+        const currentStep = Number(
+          result.appStageID || (result as Record<string, unknown>).AppStageID ||
+          result.currentStep || 10
+        );
         
         updateFormData({
-          applicationId: returnedAppId,
+          applicationId: returnedAppId as string,
+          phoneNumber,
           currentStep: currentStep as any // Type cast to ApplicationStep
         });
         
@@ -95,10 +122,8 @@ export default function ContinueApplicationPage() {
         }
         
         if (nextRoute && nextRoute !== "completed") {
-          // Navigate to the appropriate page with the application ID
           router.push(`${nextRoute}?applicationId=${returnedAppId}`);
         } else {
-          // Fallback to basic-info if step is not recognized
           router.push(`/application/basic-info?applicationId=${returnedAppId}`);
         }
       } else {

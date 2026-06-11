@@ -214,23 +214,10 @@ export const applicationsEndpoints = {
   },
   
   // Continue application
-  continueApplication: async (data: ContinueApplicationRequest) => {
+  continueApplication: async (data: ContinueApplicationRequest): Promise<ContinueApplicationResponse> => {
     try {
-      // Call external API directly so browser network logs show the real API URL
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-      const response = await fetch(`${apiBase}/applications/continue`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      return await response.json() as ContinueApplicationResponse;
+      const response = await api.post('/applications/continue', data);
+      return response.data;
     } catch (error) {
       throw error;
     }
