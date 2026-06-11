@@ -23,18 +23,17 @@ interface ContinueApplicationFormData {
   phoneNumber: string;
 }
 
-// Map each saved application stage (appStageID) to the page the applicant
-// left off at, so continuing returns them to their last saved page. These
-// stage numbers match the ApplicationStep values in application-context.
+// Map each completed application stage (appStageID) to the NEXT page the
+// applicant should fill. e.g. stage 10 is done → go to basic-info (stage 20).
 const stepRoutes: Record<number, string> = {
-  10: "/application/basic-info",      // registration verified - start basic-info
-  20: "/application/basic-info",      // basic-info
-  30: "/application/residence-info",  // residence-info
-  40: "/application/parents-info",    // parents-info
-  50: "/application/dependant-info",  // dependants-info
-  60: "/application/documents",       // documents
-  70: "/application/declaration",     // declaration
-  80: "completed"                     // complete - show completed message
+  10: "/application/basic-info",      // 10 done → next is basic-info (20)
+  20: "/application/residence-info",  // 20 done → next is residence-info (30)
+  30: "/application/parents-info",    // 30 done → next is parents-info (40)
+  40: "/application/dependant-info",  // 40 done → next is dependants-info (50)
+  50: "/application/documents",       // 50 done → next is documents (60)
+  60: "/application/declaration",     // 60 done → next is declaration (70)
+  70: "/application/complete",        // 70 done → next is complete (80)
+  80: "completed"                     // fully completed - show message
 };
 
 export default function ContinueApplicationPage() {
@@ -102,22 +101,25 @@ export default function ContinueApplicationPage() {
           result.applicationID || result.applicationId ||
           (result as Record<string, unknown>).ApplicationID || applicationId;
 
-        // Extract saved stage — backend may use appStageID, AppStageID, or currentStep
-        const currentStep = Number(
+        // Extract the last completed stage from the backend response
+        const completedStage = Number(
           result.appStageID || (result as Record<string, unknown>).AppStageID ||
           result.currentStep || 10
         );
+
+        // The next step the applicant should fill is completedStage + 10
+        const nextStep = Math.min(completedStage + 10, 80);
         
         updateFormData({
           applicationId: returnedAppId as string,
           phoneNumber,
-          currentStep: currentStep as any // Type cast to ApplicationStep
+          currentStep: nextStep as any // Type cast to ApplicationStep
         });
         
-        // Get the route for the stage the applicant last saved
-        const nextRoute = stepRoutes[currentStep];
+        // Get the route for the next page to fill
+        const nextRoute = stepRoutes[completedStage];
         
-        if (currentStep === 80) {
+        if (completedStage >= 80) {
           // Application is already completed - show message
           setCompletedMessage(`Ombi lako ${returnedAppId} limekamilisha mchakato wa maombi. Asante kwa kutumia mfumo wetu.`);
           setIsLoading(false);
