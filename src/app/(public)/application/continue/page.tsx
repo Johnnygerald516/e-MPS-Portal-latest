@@ -23,16 +23,18 @@ interface ContinueApplicationFormData {
   phoneNumber: string;
 }
 
-// Map step numbers to their corresponding routes
+// Map each saved application stage (appStageID) to the page the applicant
+// left off at, so continuing returns them to their last saved page. These
+// stage numbers match the ApplicationStep values in application-context.
 const stepRoutes: Record<number, string> = {
-  10: "/application/basic-info",      // basic-info
-  20: "/application/residence-info",  // residence-info
-  30: "/application/parents-info",   // parents-info
-  40: "/application/dependant-info", // dependants-info
-  50: "/application/documents",       // documents
-  60: "/application/declaration",     // declaration
-  70: "/application/complete",        // complete
-  80: "completed"                     // Special case - show completed message
+  10: "/application/basic-info",      // registration verified - start basic-info
+  20: "/application/basic-info",      // basic-info
+  30: "/application/residence-info",  // residence-info
+  40: "/application/parents-info",    // parents-info
+  50: "/application/dependant-info",  // dependants-info
+  60: "/application/documents",       // documents
+  70: "/application/declaration",     // declaration
+  80: "completed"                     // complete - show completed message
 };
 
 export default function ContinueApplicationPage() {
@@ -82,7 +84,7 @@ export default function ContinueApplicationPage() {
           currentStep: currentStep as any // Type cast to ApplicationStep
         });
         
-        // Get the next route based on the appStageID
+        // Get the route for the stage the applicant last saved
         const nextRoute = stepRoutes[currentStep];
         
         if (currentStep === 80) {
