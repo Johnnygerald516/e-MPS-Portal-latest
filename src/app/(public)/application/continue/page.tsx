@@ -96,16 +96,29 @@ export default function ContinueApplicationPage() {
       }
       
       if (response.ackCode === 1 && result) {
-        // Extract applicationId — backend may use applicationID, ApplicationID, or applicationId
-        const returnedAppId =
-          result.applicationID || result.applicationId ||
-          (result as Record<string, unknown>).ApplicationID || applicationId;
+        // Extract applicationId — try all common field-name variants
+        const r = result as Record<string, unknown>;
+        const returnedAppId = (
+          r.applicationID || r.applicationId || r.ApplicationID ||
+          r.ApplicationId || r.application_id || applicationId
+        ) as string;
 
-        // Extract the last completed stage from the backend response
-        const completedStage = Number(
-          result.appStageID || (result as Record<string, unknown>).AppStageID ||
-          result.currentStep || 10
-        );
+        // Extract the last completed stage — search for any stage-related field
+        // in the response regardless of exact casing or naming convention.
+        let completedStage = 0;
+        const stageKeys = ['appStageID', 'AppStageID', 'appStageId', 'appStageid',
+          'currentStep', 'CurrentStep', 'stage', 'Stage', 'stageId', 'StageId',
+          'app_stage_id', 'current_step'];
+        for (const key of stageKeys) {
+          if (r[key] !== undefined && r[key] !== null) {
+            completedStage = Number(r[key]);
+            break;
+          }
+        }
+        // Fallback: if no stage field found, default to 10
+        if (!completedStage) completedStage = 10;
+
+        console.log('=== STAGE EXTRACTED ===', { completedStage, resultKeys: Object.keys(r) });
 
         // The next step the applicant should fill is completedStage + 10
         const nextStep = Math.min(completedStage + 10, 80);
