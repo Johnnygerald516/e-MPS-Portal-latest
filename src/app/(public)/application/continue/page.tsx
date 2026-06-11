@@ -140,11 +140,16 @@ export default function ContinueApplicationPage() {
           return;
         }
         
-        if (nextRoute && nextRoute !== "completed") {
-          router.push(`${nextRoute}?applicationId=${returnedAppId}`);
-        } else {
-          router.push(`/application/basic-info?applicationId=${returnedAppId}`);
-        }
+        const targetUrl = nextRoute && nextRoute !== "completed"
+          ? `${nextRoute}?applicationId=${returnedAppId}`
+          : `/application/basic-info?applicationId=${returnedAppId}`;
+
+        console.log('=== NAVIGATING TO ===', targetUrl);
+
+        // Use window.location for a full navigation to ensure the target
+        // page loads fresh with the updated application context.
+        window.location.href = targetUrl;
+        return;
       } else {
         // Error handling
         setError(response.ackMessage || "Failed to continue application. Please check your details.");
