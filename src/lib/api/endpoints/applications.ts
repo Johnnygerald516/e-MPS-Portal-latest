@@ -89,9 +89,12 @@ export interface ContinueApplicationResponse {
   jsonResult: {
     applicationId?: string;
     applicationID?: string;
+    phoneNumber?: string;
+    stageID?: number;
+    SubjectID?: string;
     currentStep?: number;
     appStageID?: number;
-    // Additional application data may be included
+    [key: string]: unknown;
   };
 }
 

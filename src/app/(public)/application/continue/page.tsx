@@ -106,8 +106,9 @@ export default function ContinueApplicationPage() {
         // Extract the last completed stage — search for any stage-related field
         // in the response regardless of exact casing or naming convention.
         let completedStage = 0;
-        const stageKeys = ['appStageID', 'AppStageID', 'appStageId', 'appStageid',
-          'currentStep', 'CurrentStep', 'stage', 'Stage', 'stageId', 'StageId',
+        const stageKeys = ['stageID', 'StageID', 'stageId',
+          'appStageID', 'AppStageID', 'appStageId',
+          'currentStep', 'CurrentStep', 'stage', 'Stage',
           'app_stage_id', 'current_step'];
         for (const key of stageKeys) {
           if (r[key] !== undefined && r[key] !== null) {
